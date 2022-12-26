@@ -25,7 +25,7 @@ IvyCode ivyCreateGraphicsAttachment(
     IvyGraphicsAttachmentType     type,
     IvyGraphicsAttachment        *attachment);
 
-IvyCode ivyDestroyGraphicsAttachment(
+void ivyDestroyGraphicsAttachment(
     IvyGraphicsContext           *context,
     IvyAnyGraphicsMemoryAllocator allocator,
     IvyGraphicsAttachment        *attachment);

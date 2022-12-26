@@ -588,6 +588,14 @@ ivyCreateVulkanTransientCommandPool(VkDevice device, uint32_t family) {
 }
 
 void ivyDestroyGraphicsContext(IvyGraphicsContext *context) {
+  if (context->globalDescriptorPool) {
+    vkDestroyDescriptorPool(
+        context->device,
+        context->globalDescriptorPool,
+        NULL);
+    context->globalDescriptorPool = VK_NULL_HANDLE;
+  }
+
   if (context->transientCommandPool) {
     vkDestroyCommandPool(context->device, context->transientCommandPool, NULL);
     context->transientCommandPool = VK_NULL_HANDLE;
@@ -617,6 +625,55 @@ void ivyDestroyGraphicsContext(IvyGraphicsContext *context) {
     vkDestroyInstance(context->instance, NULL);
     context->instance = VK_NULL_HANDLE;
   }
+}
+
+VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
+  VkResult                   vulkanResult;
+  VkDescriptorPool           descriptorPool;
+  VkDescriptorPoolSize       descriptorPoolSizes[7];
+  VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
+
+  descriptorPoolSizes[0].descriptorCount = 256;
+  descriptorPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+
+  descriptorPoolSizes[1].descriptorCount = 256;
+  descriptorPoolSizes[1].type            = VK_DESCRIPTOR_TYPE_SAMPLER;
+
+  descriptorPoolSizes[2].descriptorCount = 256;
+  descriptorPoolSizes[2].type            = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+
+  descriptorPoolSizes[3].descriptorCount = 256;
+  descriptorPoolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+  descriptorPoolSizes[4].descriptorCount = 256;
+  descriptorPoolSizes[4].type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+  descriptorPoolSizes[5].descriptorCount = 256;
+  descriptorPoolSizes[5].type            = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+  descriptorPoolSizes[6].descriptorCount = 256;
+  descriptorPoolSizes[6].type            = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+
+  descriptorPoolCreateInfo
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  descriptorPoolCreateInfo.pNext = NULL;
+  descriptorPoolCreateInfo
+      .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+  descriptorPoolCreateInfo.maxSets = 256 *
+                                     IVY_ARRAY_LENGTH(descriptorPoolSizes);
+  descriptorPoolCreateInfo.poolSizeCount = IVY_ARRAY_LENGTH(
+      descriptorPoolSizes);
+  descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes;
+
+  vulkanResult = vkCreateDescriptorPool(
+      device,
+      &descriptorPoolCreateInfo,
+      NULL,
+      &descriptorPool);
+  if (vulkanResult)
+    return VK_NULL_HANDLE;
+
+  return descriptorPool;
 }
 
 IvyCode ivyCreateGraphicsContext(
@@ -672,6 +729,11 @@ IvyCode ivyCreateGraphicsContext(
       context->device,
       context->graphicsQueueFamilyIndex);
   if (!context->transientCommandPool)
+    goto error;
+
+  context->globalDescriptorPool = ivyCreateVulkanGlobalDescriptorPool(
+      context->device);
+  if (!context->globalDescriptorPool)
     goto error;
 
   return IVY_OK;

@@ -26,7 +26,7 @@ typedef struct IvyGraphicsContext {
   VkQueue                  presentQueue;
   VkSampleCountFlagBits    attachmentSampleCounts;
   VkCommandPool            transientCommandPool;
-  VkDescriptorPool globalDescriptorPool
+  VkDescriptorPool         globalDescriptorPool;
 } IvyGraphicsContext;
 
 IvyCode ivyCreateGraphicsContext(

@@ -71,7 +71,7 @@ error:
   return IVY_NO_GRAPHICS_MEMORY;
 }
 
-IvyCode ivyDestroyGraphicsAttachment(
+void ivyDestroyGraphicsAttachment(
     IvyGraphicsContext           *context,
     IvyAnyGraphicsMemoryAllocator allocator,
     IvyGraphicsAttachment        *attachment) {

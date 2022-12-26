@@ -71,13 +71,13 @@ static uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
 }
 
 IvyCode ivyUploadDataToVulkanImage(
-    IvyGraphicsContext            *context,
-    IvyAnyGraphicsMemoryAllocator *allocator,
-    int32_t                        width,
-    int32_t                        height,
-    IvyPixelFormat                 format,
-    void                          *data,
-    VkImage                        destImage) {
+    IvyGraphicsContext           *context,
+    IvyAnyGraphicsMemoryAllocator allocator,
+    int32_t                       width,
+    int32_t                       height,
+    IvyPixelFormat                format,
+    void                         *data,
+    VkImage                       destImage) {
   IvyCode           ivyCode;
   VkBufferImageCopy bufferImageCopy;
   VkCommandBuffer   commandBuffer = VK_NULL_HANDLE;

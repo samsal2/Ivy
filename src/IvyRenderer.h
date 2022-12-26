@@ -4,6 +4,7 @@
 #include "IvyDummyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsAttachment.h"
 #include "IvyGraphicsContext.h"
+#include "IvyGraphicsProgram.h"
 
 #define IVY_MAX_SWAPCHAIN_IMAGES 8
 
@@ -18,7 +19,7 @@ typedef struct IvyRenderer {
   VkImage                        *swapchainImages;
   VkImageView                    *swapchainImageViews;
   VkFramebuffer                  *swapchainFramebuffers;
-
+  IvyGraphicsProgram              basicGraphicsProgram;
 } IvyRenderer;
 
 IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer);
