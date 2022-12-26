@@ -165,9 +165,11 @@ VkPipeline ivyCreateVulkanPipeline(
   rasterizationStateCreateInfo.pNext = NULL;
   rasterizationStateCreateInfo.flags = 0;
   if (IVY_DEPTH_ENABLE & flags)
-    rasterizationStateCreateInfo.depthBiasEnable = VK_TRUE;
+    rasterizationStateCreateInfo.depthClampEnable = VK_TRUE;
   else
-    rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
+    rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+
+  rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 
   if (IVY_POLYGON_MODE_FILL & flags)
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;

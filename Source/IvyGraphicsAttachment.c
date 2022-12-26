@@ -23,6 +23,17 @@ ivyAsVulkanImageAspect(IvyGraphicsAttachmentType type) {
   }
 }
 
+static VkFormat ivyGetGraphicsAttachmentFormat(IvyGraphicsContext *context, IvyGraphicsAttachmentType type)
+{
+  switch (type) {
+  case IVY_COLOR_ATTACHMENT:
+    return context->surfaceFormat.format;
+
+  case IVY_DEPTH_ATTACHMENT:
+    return context->depthFormat;
+  }
+}
+
 IvyCode ivyCreateGraphicsAttachment(
     IvyGraphicsContext           *context,
     IvyAnyGraphicsMemoryAllocator allocator,
@@ -45,15 +56,10 @@ IvyCode ivyCreateGraphicsAttachment(
       1,
       context->attachmentSampleCounts,
       ivyAsVulkanImageUsage(attachment->type),
-      context->surfaceFormat.format);
+      ivyGetGraphicsAttachmentFormat(context, type));
+  IVY_ASSERT(attachment->image);
   if (!attachment->image)
     goto error;
-
-  attachment->imageView = ivyCreateVulkanImageView(
-      context->device,
-      attachment->image,
-      ivyAsVulkanImageAspect(attachment->type),
-      context->surfaceFormat.format);
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(
       context,
@@ -61,7 +67,17 @@ IvyCode ivyCreateGraphicsAttachment(
       IVY_GPU_LOCAL,
       attachment->image,
       &attachment->memory);
+  IVY_ASSERT(!ivyCode);
   if (ivyCode)
+    goto error;
+
+  attachment->imageView = ivyCreateVulkanImageView(
+      context->device,
+      attachment->image,
+      ivyAsVulkanImageAspect(attachment->type),
+      ivyGetGraphicsAttachmentFormat(context, type));
+  IVY_ASSERT(attachment->imageView);
+  if (!attachment->imageView)
     goto error;
 
   return IVY_OK;

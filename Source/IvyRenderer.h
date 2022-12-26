@@ -23,7 +23,7 @@ typedef struct IvyRenderer {
   VkImageView                    *swapchainImageViews;
   VkFramebuffer                  *swapchainFramebuffers;
   IvyGraphicsProgram              basicGraphicsProgram;
-  IvyGraphicsProgram *boundGraphicsProgram;
+  IvyGraphicsProgram             *boundGraphicsProgram;
 } IvyRenderer;
 
 IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer);

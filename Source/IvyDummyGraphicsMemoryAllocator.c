@@ -1,10 +1,11 @@
 #include "IvyDummyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsMemoryChunk.h"
 
-// TODO(samuel): move elsewhere
+#include <stdio.h>
 
 static IvyBool ivyIsGraphicsMemoryChunkEmpty(IvyGraphicsMemoryChunk *chunk) {
-  return !!chunk->memory;
+  IVY_ASSERT(chunk);
+  return !chunk->memory;
 }
 
 static IvyGraphicsMemoryChunk *ivyFindEmptyGraphicsMemoryChunkInDummyAllocator(
@@ -37,13 +38,18 @@ static IvyCode ivyAllocateGraphicsMemoryFromDummyAllocator(
   IVY_ASSERT(allocator);
   IVY_ASSERT(memory);
 
+  dummyAllocator = allocator;
   chunk = ivyFindEmptyGraphicsMemoryChunkInDummyAllocator(dummyAllocator);
+  IVY_ASSERT(chunk);
   if (!chunk)
     return IVY_NO_GRAPHICS_MEMORY;
 
   ivyCode = ivyAllocateGraphicsMemoryChunk(context, flags, type, size, chunk);
+  IVY_ASSERT(!ivyCode);
   if (ivyCode)
     return ivyCode;
+
+  ++dummyAllocator->occupiedChunkCount;
 
   memory->data   = chunk->data;
   memory->slot   = (int32_t)(chunk - &dummyAllocator->chunks[0]);
@@ -65,17 +71,33 @@ static void ivyFreeGraphicsMemoryFromDummyAllocator(
   IVY_ASSERT(context);
   IVY_ASSERT(allocator);
   IVY_ASSERT(allocation);
+  IVY_ASSERT(0 <= allocation->slot);
 
   dummyAllocator = allocator;
-  chunk          = &dummyAllocator->chunks[allocation->slot];
+  --dummyAllocator->occupiedChunkCount;
+  chunk = &dummyAllocator->chunks[allocation->slot];
   ivyFreeGraphicsMemoryChunk(context, chunk);
+}
+
+static void ivyDestroyDummyGraphicsMemoryAllocator(
+    IvyGraphicsContext           *context,
+    IvyAnyGraphicsMemoryAllocator allocator) {
+  int i;
+  IvyDummyGraphicsMemoryAllocator *dummyAllocator;
+
+  IVY_ASSERT(allocator);
+  dummyAllocator = allocator;
+
+  for (i = 0; i < IVY_ARRAY_LENGTH(dummyAllocator->chunks); ++i)
+    if (!ivyIsGraphicsMemoryChunkEmpty(&dummyAllocator->chunks[i]))
+      ivyFreeGraphicsMemoryChunk(context, &dummyAllocator->chunks[i]);
 }
 
 static IvyGraphicsMemoryAllocatorDispatch dummyGraphicsMemoryAllocatorDispatch =
     {ivyAllocateGraphicsMemoryFromDummyAllocator,
      ivyFreeGraphicsMemoryFromDummyAllocator,
      NULL,
-     NULL};
+     ivyDestroyDummyGraphicsMemoryAllocator};
 
 IvyCode ivyCreateDummyGraphicsMemoryAllocator(
     IvyGraphicsContext              *context,
@@ -84,6 +106,8 @@ IvyCode ivyCreateDummyGraphicsMemoryAllocator(
 
   if (!context || !allocator)
     return IVY_INVALID_VALUE;
+
+  IVY_MEMSET(allocator, 0, sizeof(*allocator));
 
   ivySetupGraphicsMemoryAllocatorBase(
       &allocator->base,

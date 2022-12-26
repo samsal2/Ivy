@@ -7,10 +7,9 @@
 
 #define IVY_MAX_WINDOWS 4
 
-struct ivy_graphics_context;
-
 typedef struct IvyWindow {
   void   *opaque;
+  IvyBool resized;
   int32_t windowWidth;
   int32_t windowHeight;
   int32_t framebufferWidth;

@@ -19,9 +19,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyGraphicsTexture.c
   IvyGraphicsTexture.h
   IvyRenderer.c
-  IvyRenderer.h
-  main.c
-)
+  IvyRenderer.h)
 
 
 

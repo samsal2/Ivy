@@ -371,14 +371,6 @@ IvyCode ivyCreateGraphicsTexture(
   if (!texture->image)
     goto error;
 
-  texture->imageView = ivyCreateVulkanImageView(
-      context->device,
-      texture->image,
-      VK_IMAGE_ASPECT_COLOR_BIT,
-      ivyAsVulkanFormat(texture->format));
-  if (!texture->imageView)
-    goto error;
-
   ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(
       context,
       allocator,
@@ -386,6 +378,14 @@ IvyCode ivyCreateGraphicsTexture(
       texture->image,
       &texture->memory);
   if (!texture->memory.memory)
+    goto error;
+
+  texture->imageView = ivyCreateVulkanImageView(
+      context->device,
+      texture->image,
+      VK_IMAGE_ASPECT_COLOR_BIT,
+      ivyAsVulkanFormat(texture->format));
+  if (!texture->imageView)
     goto error;
 
   if (data) {

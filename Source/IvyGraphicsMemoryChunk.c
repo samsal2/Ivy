@@ -1,5 +1,7 @@
 #include "IvyGraphicsMemoryChunk.h"
 
+#include <stdio.h>
+
 static VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(uint32_t flags) {
   VkMemoryPropertyFlagBits properties = 0;
 
@@ -14,8 +16,8 @@ static VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(uint32_t flags) {
 
 static uint32_t ivyFindVulkanMemoryTypeIndex(
     IvyGraphicsContext *context,
-    uint32_t            type,
-    uint32_t            flags) {
+    uint32_t            flags,
+    uint32_t            type) {
   uint32_t                         index;
   VkMemoryPropertyFlagBits         memoryProperties;
   VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
@@ -26,12 +28,17 @@ static uint32_t ivyFindVulkanMemoryTypeIndex(
 
   memoryProperties = ivyGetVulkanMemoryProperties(flags);
 
+  index = 0;
   while (index < physicalDeviceMemoryProperties.memoryTypeCount) {
-    VkMemoryType *memoryType = &physicalDeviceMemoryProperties
-                                    .memoryTypes[index];
-    uint32_t propertyFlags = memoryType->propertyFlags;
+    VkPhysicalDeviceMemoryProperties *properties;
+    VkMemoryType *memoryType;
+    uint32_t propertyFlags;
 
-    if ((propertyFlags & memoryProperties) && (type & (1U << type)))
+    properties = &physicalDeviceMemoryProperties;
+    memoryType = &properties->memoryTypes[index];
+    propertyFlags = memoryType->propertyFlags;
+
+    if ((propertyFlags & memoryProperties) && (type & (1U << index)))
       return index;
 
     ++index;
@@ -56,14 +63,18 @@ static VkDeviceMemory ivyAllocateVulkanMemory(
   memoryAllocateInfo.allocationSize  = size;
   memoryAllocateInfo.memoryTypeIndex = ivyFindVulkanMemoryTypeIndex(
       context,
-      type,
-      flags);
+      flags,
+      type);
+  IVY_ASSERT((uint32_t)-1 != memoryAllocateInfo.memoryTypeIndex);
+  if ((uint32_t)-1 == memoryAllocateInfo.memoryTypeIndex)
+    return VK_NULL_HANDLE;
 
   vulkanResult = vkAllocateMemory(
       context->device,
       &memoryAllocateInfo,
       NULL,
       &memory);
+  IVY_ASSERT(!vulkanResult);
   if (vulkanResult)
     return VK_NULL_HANDLE;
 

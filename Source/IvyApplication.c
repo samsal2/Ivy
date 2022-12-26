@@ -16,6 +16,7 @@ static void ivyWindowSizeCallback(GLFWwindow *opaque, int width, int height) {
   IvyWindow *window    = glfwGetWindowUserPointer(opaque);
   window->windowWidth  = width;
   window->windowHeight = height;
+  window->resized      = 1;
 }
 
 static void
@@ -128,6 +129,7 @@ IvyWindow *ivyAddWindow(
   glfwSetFramebufferSizeCallback(window->opaque, ivyFramebufferSizeCallback);
   glfwSetWindowSizeCallback(window->opaque, ivyWindowSizeCallback);
 
+  window->resized           = 0;
   window->windowWidth       = width;
   window->windowHeight      = height;
   window->framebufferWidth  = width;
@@ -207,6 +209,8 @@ void ivyPollApplicationEvents(IvyApplication *application) {
 
     if (!IVY_IS_VALID_WINDOW(window))
       continue;
+
+    window->resized = 0;
 
     if (!glfwWindowShouldClose(window->opaque))
       continue;

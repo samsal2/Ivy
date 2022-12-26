@@ -304,7 +304,8 @@ static VkRenderPass ivyCreateVulkanMainRenderPass(
   colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
   depthAttachmentReference.attachment = 1;
-  depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+  depthAttachmentReference
+      .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
   resolveAttachmentReference.attachment = 2;
   resolveAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -415,7 +416,7 @@ ivyCreateVulkanUniformDescriptorSetLayout(VkDevice device) {
   descriptorSetLayoutCreateInfo.pNext        = NULL;
   descriptorSetLayoutCreateInfo.flags        = 0;
   descriptorSetLayoutCreateInfo.bindingCount = 1;
-  descriptorSetLayoutCreateInfo.pBindings &descriptorSetLayoutBinding;
+  descriptorSetLayoutCreateInfo.pBindings    = &descriptorSetLayoutBinding;
 
   vulkanResult = vkCreateDescriptorSetLayout(
       device,
@@ -507,32 +508,40 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
   IVY_MEMSET(renderer, 0, sizeof(*renderer));
 
   ivyCode = ivyCreateGraphicsContext(application, &renderer->graphicsContext);
+  IVY_ASSERT(!ivyCode);
   if (ivyCode)
     goto error;
 
   ivyCode = ivyCreateDummyGraphicsMemoryAllocator(
       &renderer->graphicsContext,
       &renderer->defaultGraphicsMemoryAllocator);
+  IVY_ASSERT(!ivyCode);
   if (ivyCode)
     goto error;
+
 
   renderer->mainRenderPass = ivyCreateVulkanMainRenderPass(
       renderer->graphicsContext.device,
       renderer->graphicsContext.surfaceFormat.format,
       renderer->graphicsContext.depthFormat,
       renderer->graphicsContext.attachmentSampleCounts);
+  IVY_ASSERT(renderer->mainRenderPass);
   if (!renderer->mainRenderPass)
     goto error;
+
 
   renderer
       ->uniformDescriptorSetLayout = ivyCreateVulkanUniformDescriptorSetLayout(
       renderer->graphicsContext.device);
+  IVY_ASSERT(renderer->mainRenderPass);
   if (!renderer->uniformDescriptorSetLayout)
     goto error;
 
+
   renderer
-      ->textureDescriptorSetLayout = ivyCreateVulkanUniformDescriptorSetLayout(
+      ->textureDescriptorSetLayout = ivyCreateVulkanTextureDescriptorSetLayout(
       renderer->graphicsContext.device);
+  IVY_ASSERT(renderer->textureDescriptorSetLayout);
   if (!renderer->textureDescriptorSetLayout)
     goto error;
 
@@ -540,7 +549,30 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
       renderer->graphicsContext.device,
       renderer->uniformDescriptorSetLayout,
       renderer->textureDescriptorSetLayout);
+  IVY_ASSERT(renderer->mainPipelineLayout);
   if (!renderer->mainPipelineLayout)
+    goto error;
+
+  ivyCode = ivyCreateGraphicsAttachment(
+      &renderer->graphicsContext,
+      &renderer->defaultGraphicsMemoryAllocator,
+      application->lastAddedWindow->framebufferWidth,
+      application->lastAddedWindow->framebufferHeight,
+      IVY_COLOR_ATTACHMENT,
+      &renderer->colorAttachment);
+  IVY_ASSERT(!ivyCode);
+  if (ivyCode)
+    goto error;
+
+  ivyCode = ivyCreateGraphicsAttachment(
+      &renderer->graphicsContext,
+      &renderer->defaultGraphicsMemoryAllocator,
+      application->lastAddedWindow->framebufferWidth,
+      application->lastAddedWindow->framebufferHeight,
+      IVY_DEPTH_ATTACHMENT,
+      &renderer->depthAttachment);
+  IVY_ASSERT(!ivyCode);
+  if (ivyCode)
     goto error;
 
   renderer->swapchain = ivyCreateVulkanSwapchain(
@@ -562,7 +594,23 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
       &renderer->swapchainImages,
       &renderer->swapchainImageViews,
       &renderer->swapchainFramebuffers);
+  IVY_ASSERT(renderer->swapchain);
   if (!renderer->swapchain)
+    goto error;
+
+  ivyCode = ivyCreateGraphicsProgram(
+      &renderer->graphicsContext,
+      renderer->mainRenderPass,
+      renderer->mainPipelineLayout,
+      application->lastAddedWindow->framebufferWidth,
+      application->lastAddedWindow->framebufferHeight,
+      "../../GLSL/basic.vert.spv",
+      "../../GLSL/basic.frag.spv",
+      IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
+          IVY_CULL_FRONT | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+      &renderer->basicGraphicsProgram);
+  IVY_ASSERT(!ivyCode);
+  if (ivyCode)
     goto error;
 
   return IVY_OK;
@@ -573,6 +621,10 @@ error:
 }
 
 void ivyDestroyRenderer(IvyRenderer *renderer) {
+  ivyDestroyGraphicsProgram(
+      &renderer->graphicsContext,
+      &renderer->basicGraphicsProgram);
+
   if (renderer->swapchainFramebuffers) {
     uint32_t i;
     for (i = 0; i < renderer->swapchainImageCount; ++i)

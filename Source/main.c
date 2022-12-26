@@ -1,11 +1,11 @@
 #include "IvyApplication.h"
-#include "IvyGraphicsContext.h"
+#include "IvyRenderer.h"
 
 #include <stdio.h>
 
 int main(void) {
-  IvyApplication     app;
-  IvyGraphicsContext context;
+  IvyApplication app;
+  IvyRenderer    renderer;
 
   if (0 > ivyCreateApplication(&app)) {
     printf("failed to create application\n");
@@ -17,15 +17,15 @@ int main(void) {
     return 0;
   }
 
-  if (0 > ivyCreateGraphicsContext(&app, &context)) {
-    printf("failed to create graphics_context\n");
+  if (0 > ivyCreateRenderer(&app, &renderer)) {
+    printf("failed to create renderer\n");
     return 0;
   }
 
   while (!ivyShouldApplicationClose(&app))
     ivyPollApplicationEvents(&app);
 
-  ivyDestroyGraphicsContext(&context);
+  ivyDestroyRenderer(&renderer);
   ivyDestroyApplication(&app);
 
   return 0;
