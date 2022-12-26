@@ -39,4 +39,9 @@ typedef int IvyBool;
 #define IVY_CALLOC calloc
 #endif
 
+#if 1
+#include <stddef.h>
+#define IVY_OFFSETOF offsetof
+#endif
+
 #endif

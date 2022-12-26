@@ -25,11 +25,11 @@ target_link_libraries(${PROJECT_NAME}
 
 # includes
 target_include_directories(${PROJECT_NAME} 
-  PUBLIC ${Vulkan_INCLUDE_DIR} src)
+  PUBLIC ${Vulkan_INCLUDE_DIR} Source)
 
 # add sources
-add_subdirectory(deps)
-add_subdirectory(src)
+add_subdirectory(Dependencies)
+add_subdirectory(Source)
 
 # compile options
 target_compile_options(${PROJECT_NAME} PUBLIC

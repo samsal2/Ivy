@@ -285,7 +285,7 @@ error:
   return VK_NULL_HANDLE;
 }
 
-static VkRenderPass ivyCreateMainRenderPass(
+static VkRenderPass ivyCreateVulkanMainRenderPass(
     VkDevice              device,
     VkFormat              colorFormat,
     VkFormat              depthFormat,
@@ -394,6 +394,113 @@ static VkRenderPass ivyCreateMainRenderPass(
   return mainRenderPass;
 }
 
+static VkDescriptorSetLayout
+ivyCreateVulkanUniformDescriptorSetLayout(VkDevice device) {
+  VkResult                        vulkanResult;
+  VkDescriptorSetLayout           descriptorSetLayout;
+  VkDescriptorSetLayoutBinding    descriptorSetLayoutBinding;
+  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
+
+  descriptorSetLayoutBinding.binding = 0;
+  descriptorSetLayoutBinding
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+  descriptorSetLayoutBinding.descriptorCount = 1;
+  descriptorSetLayoutBinding.stageFlags      = 0;
+  descriptorSetLayoutBinding.stageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
+  descriptorSetLayoutBinding.stageFlags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+  descriptorSetLayoutBinding.pImmutableSamplers = NULL;
+
+  descriptorSetLayoutCreateInfo
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  descriptorSetLayoutCreateInfo.pNext        = NULL;
+  descriptorSetLayoutCreateInfo.flags        = 0;
+  descriptorSetLayoutCreateInfo.bindingCount = 1;
+  descriptorSetLayoutCreateInfo.pBindings &descriptorSetLayoutBinding;
+
+  vulkanResult = vkCreateDescriptorSetLayout(
+      device,
+      &descriptorSetLayoutCreateInfo,
+      NULL,
+      &descriptorSetLayout);
+  if (vulkanResult)
+    return VK_NULL_HANDLE;
+
+  return descriptorSetLayout;
+}
+
+static VkDescriptorSetLayout
+ivyCreateVulkanTextureDescriptorSetLayout(VkDevice device) {
+  uint32_t                        i;
+  VkResult                        vulkanResult;
+  VkDescriptorSetLayout           descriptorSetLayout;
+  VkDescriptorSetLayoutBinding    descriptorSetLayoutBindings[2];
+  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
+
+  for (i = 0; i < IVY_ARRAY_LENGTH(descriptorSetLayoutBindings); ++i) {
+    descriptorSetLayoutBindings[i].binding = i;
+    if (0 == i)
+      descriptorSetLayoutBindings[i]
+          .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    else if (1 == i)
+      descriptorSetLayoutBindings[i]
+          .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+    descriptorSetLayoutBindings[i].descriptorCount = 1;
+    descriptorSetLayoutBindings[i].stageFlags      = 0;
+    descriptorSetLayoutBindings[i].stageFlags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+    descriptorSetLayoutBindings[i].pImmutableSamplers = NULL;
+  }
+
+  descriptorSetLayoutCreateInfo
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  descriptorSetLayoutCreateInfo.pNext        = NULL;
+  descriptorSetLayoutCreateInfo.flags        = 0;
+  descriptorSetLayoutCreateInfo.bindingCount = IVY_ARRAY_LENGTH(
+      descriptorSetLayoutBindings);
+  descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBindings;
+
+  vulkanResult = vkCreateDescriptorSetLayout(
+      device,
+      &descriptorSetLayoutCreateInfo,
+      NULL,
+      &descriptorSetLayout);
+  if (vulkanResult)
+    return VK_NULL_HANDLE;
+
+  return descriptorSetLayout;
+}
+
+static VkPipelineLayout ivyCreateVulkanMainPipelineLayout(
+    VkDevice              device,
+    VkDescriptorSetLayout uniformDescriptorSetLayout,
+    VkDescriptorSetLayout textureDescriptorSetLayout) {
+  VkResult                   vulkanResult;
+  VkPipelineLayout           pipelineLayout;
+  VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+  VkDescriptorSetLayout      descriptorSetLayouts[] = {
+      uniformDescriptorSetLayout,
+      textureDescriptorSetLayout};
+
+  pipelineLayoutCreateInfo
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipelineLayoutCreateInfo.pNext          = NULL;
+  pipelineLayoutCreateInfo.flags          = 0;
+  pipelineLayoutCreateInfo.setLayoutCount = IVY_ARRAY_LENGTH(
+      descriptorSetLayouts);
+  pipelineLayoutCreateInfo.pSetLayouts            = descriptorSetLayouts;
+  pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+  pipelineLayoutCreateInfo.pPushConstantRanges    = NULL;
+
+  vulkanResult = vkCreatePipelineLayout(
+      device,
+      &pipelineLayoutCreateInfo,
+      NULL,
+      &pipelineLayout);
+  if (vulkanResult)
+    return VK_NULL_HANDLE;
+
+  return pipelineLayout;
+}
+
 IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
   IvyCode ivyCode;
 
@@ -409,12 +516,31 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
   if (ivyCode)
     goto error;
 
-  renderer->mainRenderPass = ivyCreateMainRenderPass(
+  renderer->mainRenderPass = ivyCreateVulkanMainRenderPass(
       renderer->graphicsContext.device,
       renderer->graphicsContext.surfaceFormat.format,
       renderer->graphicsContext.depthFormat,
       renderer->graphicsContext.attachmentSampleCounts);
   if (!renderer->mainRenderPass)
+    goto error;
+
+  renderer
+      ->uniformDescriptorSetLayout = ivyCreateVulkanUniformDescriptorSetLayout(
+      renderer->graphicsContext.device);
+  if (!renderer->uniformDescriptorSetLayout)
+    goto error;
+
+  renderer
+      ->textureDescriptorSetLayout = ivyCreateVulkanUniformDescriptorSetLayout(
+      renderer->graphicsContext.device);
+  if (!renderer->textureDescriptorSetLayout)
+    goto error;
+
+  renderer->mainPipelineLayout = ivyCreateVulkanMainPipelineLayout(
+      renderer->graphicsContext.device,
+      renderer->uniformDescriptorSetLayout,
+      renderer->textureDescriptorSetLayout);
+  if (!renderer->mainPipelineLayout)
     goto error;
 
   renderer->swapchain = ivyCreateVulkanSwapchain(
@@ -491,6 +617,30 @@ void ivyDestroyRenderer(IvyRenderer *renderer) {
       &renderer->graphicsContext,
       &renderer->defaultGraphicsMemoryAllocator,
       &renderer->colorAttachment);
+
+  if (renderer->mainPipelineLayout) {
+    vkDestroyPipelineLayout(
+        renderer->graphicsContext.device,
+        renderer->mainPipelineLayout,
+        NULL);
+    renderer->mainPipelineLayout = VK_NULL_HANDLE;
+  }
+
+  if (renderer->textureDescriptorSetLayout) {
+    vkDestroyDescriptorSetLayout(
+        renderer->graphicsContext.device,
+        renderer->textureDescriptorSetLayout,
+        NULL);
+    renderer->textureDescriptorSetLayout = VK_NULL_HANDLE;
+  }
+
+  if (renderer->uniformDescriptorSetLayout) {
+    vkDestroyDescriptorSetLayout(
+        renderer->graphicsContext.device,
+        renderer->uniformDescriptorSetLayout,
+        NULL);
+    renderer->uniformDescriptorSetLayout = VK_NULL_HANDLE;
+  }
 
   if (renderer->mainRenderPass) {
     vkDestroyRenderPass(

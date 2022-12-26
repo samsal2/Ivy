@@ -9,7 +9,7 @@ CMAKE = cmake
 NINJA = ninja
 MKDIR = mkdir
 
-BUILDDIR = build
+BUILDDIR = Build
 
 all: $(NAME)
 
@@ -29,8 +29,8 @@ modules:
 
 .PHONY: format
 format:
-	clang-format -i src/*.h
-	clang-format -i src/*.c
+	clang-format -i Source/*.h
+	clang-format -i Source/*.c
 
 .PHONY: clean
 clean:

@@ -12,6 +12,9 @@ typedef struct IvyRenderer {
   IvyGraphicsContext              graphicsContext;
   IvyDummyGraphicsMemoryAllocator defaultGraphicsMemoryAllocator;
   VkRenderPass                    mainRenderPass;
+  VkDescriptorSetLayout           uniformDescriptorSetLayout;
+  VkDescriptorSetLayout           textureDescriptorSetLayout;
+  VkPipelineLayout                mainPipelineLayout;
   IvyGraphicsAttachment           colorAttachment;
   IvyGraphicsAttachment           depthAttachment;
   VkSwapchainKHR                  swapchain;
@@ -20,6 +23,7 @@ typedef struct IvyRenderer {
   VkImageView                    *swapchainImageViews;
   VkFramebuffer                  *swapchainFramebuffers;
   IvyGraphicsProgram              basicGraphicsProgram;
+  IvyGraphicsProgram *boundGraphicsProgram;
 } IvyRenderer;
 
 IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer);

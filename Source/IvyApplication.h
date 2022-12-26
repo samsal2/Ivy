@@ -40,7 +40,7 @@ IvyBool ivyShouldApplicationClose(IvyApplication *application);
 void ivyPollApplicationEvents(IvyApplication *application);
 
 char const *const *
-ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *num);
+ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count);
 
 VkSurfaceKHR
 ivyCreateVulkanSurface(VkInstance instance, IvyApplication *application);
