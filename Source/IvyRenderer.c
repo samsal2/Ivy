@@ -519,7 +519,6 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
   if (ivyCode)
     goto error;
 
-
   renderer->mainRenderPass = ivyCreateVulkanMainRenderPass(
       renderer->graphicsContext.device,
       renderer->graphicsContext.surfaceFormat.format,
@@ -529,14 +528,12 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
   if (!renderer->mainRenderPass)
     goto error;
 
-
   renderer
       ->uniformDescriptorSetLayout = ivyCreateVulkanUniformDescriptorSetLayout(
       renderer->graphicsContext.device);
   IVY_ASSERT(renderer->mainRenderPass);
   if (!renderer->uniformDescriptorSetLayout)
     goto error;
-
 
   renderer
       ->textureDescriptorSetLayout = ivyCreateVulkanTextureDescriptorSetLayout(

@@ -23,8 +23,9 @@ ivyAsVulkanImageAspect(IvyGraphicsAttachmentType type) {
   }
 }
 
-static VkFormat ivyGetGraphicsAttachmentFormat(IvyGraphicsContext *context, IvyGraphicsAttachmentType type)
-{
+static VkFormat ivyGetGraphicsAttachmentFormat(
+    IvyGraphicsContext       *context,
+    IvyGraphicsAttachmentType type) {
   switch (type) {
   case IVY_COLOR_ATTACHMENT:
     return context->surfaceFormat.format;

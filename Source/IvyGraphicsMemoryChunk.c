@@ -31,11 +31,11 @@ static uint32_t ivyFindVulkanMemoryTypeIndex(
   index = 0;
   while (index < physicalDeviceMemoryProperties.memoryTypeCount) {
     VkPhysicalDeviceMemoryProperties *properties;
-    VkMemoryType *memoryType;
-    uint32_t propertyFlags;
+    VkMemoryType                     *memoryType;
+    uint32_t                          propertyFlags;
 
-    properties = &physicalDeviceMemoryProperties;
-    memoryType = &properties->memoryTypes[index];
+    properties    = &physicalDeviceMemoryProperties;
+    memoryType    = &properties->memoryTypes[index];
     propertyFlags = memoryType->propertyFlags;
 
     if ((propertyFlags & memoryProperties) && (type & (1U << index)))

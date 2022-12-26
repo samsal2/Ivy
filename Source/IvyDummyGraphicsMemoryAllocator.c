@@ -82,7 +82,7 @@ static void ivyFreeGraphicsMemoryFromDummyAllocator(
 static void ivyDestroyDummyGraphicsMemoryAllocator(
     IvyGraphicsContext           *context,
     IvyAnyGraphicsMemoryAllocator allocator) {
-  int i;
+  int                              i;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 
   IVY_ASSERT(allocator);
