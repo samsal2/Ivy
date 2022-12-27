@@ -24,6 +24,9 @@ static IvyPixelFormat ivyAsPixelFormat(VkFormat format) {
 
   case VK_FORMAT_R8G8B8A8_SRGB:
     return IVY_RGBA8_SRGB;
+
+  default:
+    return 0;
   }
 }
 

@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.23.1)
 
 project(Ivy)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 # find external libraries
 find_package(Vulkan REQUIRED)
 
@@ -26,11 +22,6 @@ target_link_libraries(${PROJECT_NAME}
 # includes
 target_include_directories(${PROJECT_NAME} 
   PUBLIC ${Vulkan_INCLUDE_DIR} Source)
-
-# add sources
-add_subdirectory(Dependencies)
-add_subdirectory(Source)
-add_subdirectory(GLSL)
 
 # compile options
 target_compile_options(${PROJECT_NAME} PUBLIC
@@ -64,6 +55,11 @@ target_link_options(${PROJECT_NAME} PUBLIC
 		-fsanitize=bounds
 	">")
 
+# add sources
+add_subdirectory(Dependencies)
+add_subdirectory(Source)
+add_subdirectory(GLSL)
+add_subdirectory(Tests)
 
 add_executable("${PROJECT_NAME}Main" Source/main.c)
 target_link_libraries("${PROJECT_NAME}Main" PRIVATE ${PROJECT_NAME})

@@ -32,6 +32,11 @@ format:
 	clang-format -i Source/*.h
 	clang-format -i Source/*.c
 
+.PHONY: test
+test:
+	ctest --verbose --test-dir Build/Tests
+
+
 .PHONY: clean
 clean:
 	$(NINJA) -C$(BUILDDIR) clean
