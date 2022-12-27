@@ -618,6 +618,35 @@ error:
 }
 
 void ivyDestroyRenderer(IvyRenderer *renderer) {
+  if (renderer->frameCommandBuffers) {
+    uint32_t i;
+    for (i = 0; i < renderer->frameCommandBufferCount; ++i)
+      vkFreeCommandBuffers(
+          renderer->graphicsContext.device,
+          renderer->frameCommandPool,
+          1,
+          &renderer->frameCommandBuffers[i]);
+    renderer->frameCommandBuffers = NULL;
+  }
+
+  if (renderer->frameCommandPool) {
+    vkDestroyCommandPool(
+        renderer->graphicsContext.device,
+        renderer->frameCommandPool,
+        NULL);
+    renderer->frameCommandPool = VK_NULL_HANDLE;
+  }
+
+  if (renderer->temporaryBufferProviders) {
+    uint32_t i;
+    for (i = 0; i < renderer->temporaryBufferProviderCount; ++i)
+      ivyDestroyGraphicsTemporaryBufferProvider(
+          &renderer->graphicsContext,
+          &renderer->defaultGraphicsMemoryAllocator,
+          &renderer->temporaryBufferProviders[i]);
+    renderer->temporaryBufferProviders = NULL;
+  }
+
   ivyDestroyGraphicsProgram(
       &renderer->graphicsContext,
       &renderer->basicGraphicsProgram);
@@ -704,4 +733,36 @@ void ivyDestroyRenderer(IvyRenderer *renderer) {
       &renderer->defaultGraphicsMemoryAllocator);
 
   ivyDestroyGraphicsContext(&renderer->graphicsContext);
+}
+
+IvyGraphicsTemporaryBufferProvider *
+ivyGetCurrentGraphicsTemporaryBufferProvider(IvyRenderer *renderer) {
+  return &renderer->temporaryBufferProviders[renderer->frameIndex];
+}
+
+VkCommandBuffer
+ivyGetCurrentVulkanCommandBufferInRenderer(IvyRenderer *renderer) {
+  return renderer->frameCommandBuffers[renderer->frameIndex];
+}
+
+VkFramebuffer ivyGetCurrentVulkanFramebufferInRenderer(IvyRenderer *renderer) {
+  return renderer->swapchainFramebuffers[renderer->frameIndex];
+}
+
+IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
+  // FIXME(samuel): create first destroy second
+  IvyCode ivyCode;
+
+  IVY_ASSERT(renderer);
+
+  if (!renderer->colorAttachment.image || !renderer->depthAttachment.image ||
+      !renderer->swapchain || !renderer->basicGraphicsProgram.pipeline)
+    return IVY_INVALID_VALUE;
+
+  IVY_TODO();
+
+  return IVY_OK;
+
+error:
+  return ivyCode;
 }

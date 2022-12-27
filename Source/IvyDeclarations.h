@@ -19,6 +19,7 @@ typedef int IvyBool;
 #include <assert.h>
 #define IVY_ASSERT assert
 #define IVY_UNREACHABLE() assert(0)
+#define IVY_TODO() assert(0)
 #endif
 
 #define IVY_UNUSED(e) (void)e

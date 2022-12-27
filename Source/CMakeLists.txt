@@ -16,10 +16,15 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyGraphicsMemoryChunk.h
   IvyGraphicsProgram.c
   IvyGraphicsProgram.h
+  IvyGraphicsTemporaryBuffer.c
+  IvyGraphicsTemporaryBuffer.h
   IvyGraphicsTexture.c
   IvyGraphicsTexture.h
   IvyRenderer.c
-  IvyRenderer.h)
+  IvyRenderer.h
+  IvyVectorMath.c
+  IvyVectorMath.h
+)
 
 
 

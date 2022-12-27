@@ -1,26 +1,7 @@
 
 #include "IvyGraphicsDataUploader.h"
 
-static VkBuffer ivyCreateVulkanUploadBuffer(VkDevice device, uint64_t size) {
-  VkResult           vulkanResult;
-  VkBuffer           buffer;
-  VkBufferCreateInfo bufferCreateInfo;
-
-  bufferCreateInfo.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferCreateInfo.pNext                 = NULL;
-  bufferCreateInfo.flags                 = 0;
-  bufferCreateInfo.size                  = size;
-  bufferCreateInfo.usage                 = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-  bufferCreateInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
-  bufferCreateInfo.queueFamilyIndexCount = 0;
-  bufferCreateInfo.pQueueFamilyIndices   = NULL;
-
-  vulkanResult = vkCreateBuffer(device, &bufferCreateInfo, NULL, &buffer);
-  if (vulkanResult)
-    return VK_NULL_HANDLE;
-
-  return buffer;
-}
+#include "IvyGraphicsTemporaryBuffer.h"
 
 static VkBuffer ivyCreateAndAllocateUploadBuffer(
     IvyGraphicsContext           *context,
@@ -33,7 +14,10 @@ static VkBuffer ivyCreateAndAllocateUploadBuffer(
 
   memory->memory = VK_NULL_HANDLE;
 
-  uploadBuffer = ivyCreateVulkanUploadBuffer(context->device, size);
+  uploadBuffer = ivyCreateVulkanBuffer(
+      context->device,
+      IVY_SOURCE_BUFFER,
+      size);
   if (!uploadBuffer)
     goto error;
 

@@ -1,3 +1,6 @@
 [submodule "Dependencies/glfw/glfw"]
 	path = Dependencies/glfw/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "Dependencies/Unity/Unity"]
+	path = Dependencies/Unity/Unity
+	url = https://github.com/ThrowTheSwitch/Unity.git
