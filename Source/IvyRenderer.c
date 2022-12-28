@@ -10,14 +10,17 @@ static IvyCode ivyVulkanResultToIvyCode(VkResult vulkanResult) {
 }
 
 static VkImageView *ivyAllocateAndCreateVulkanSwapchainImageViews(
-    VkDevice device,
-    VkFormat surfaceFormat,
-    uint32_t swapchainImageCount,
-    VkImage *swapchainImages) {
+    IvyAnyMemoryAllocator *allocator,
+    VkDevice               device,
+    VkFormat               surfaceFormat,
+    uint32_t               swapchainImageCount,
+    VkImage               *swapchainImages) {
   uint32_t     i;
   VkImageView *imageViews = NULL;
 
-  imageViews = IVY_MALLOC(swapchainImageCount * sizeof(*imageViews));
+  imageViews = ivyAllocateMemory(
+      allocator,
+      swapchainImageCount * sizeof(*imageViews));
   if (!imageViews)
     return NULL;
 
@@ -41,7 +44,7 @@ error:
     if (imageViews[i])
       vkDestroyImageView(device, imageViews[i], NULL);
 
-  IVY_FREE(imageViews);
+  ivyFreeMemory(allocator, imageViews);
 
   return NULL;
 }
@@ -85,18 +88,21 @@ static VkFramebuffer ivyCreateVulkanSwapchainFramebuffer(
 }
 
 static VkFramebuffer *ivyAllocateAndCreateVulkanSwapchainFramebuffers(
-    VkDevice     device,
-    uint32_t     swapchainImageCount,
-    VkImageView *swapchainImageViews,
-    int32_t      width,
-    int32_t      height,
-    VkRenderPass mainRenderPass,
-    VkImageView  colorAttachmentImageView,
-    VkImageView  depthAttachmentImageView) {
+    IvyAnyMemoryAllocator allocator,
+    VkDevice              device,
+    uint32_t              swapchainImageCount,
+    VkImageView          *swapchainImageViews,
+    int32_t               width,
+    int32_t               height,
+    VkRenderPass          mainRenderPass,
+    VkImageView           colorAttachmentImageView,
+    VkImageView           depthAttachmentImageView) {
   uint32_t       i;
   VkFramebuffer *framebuffers = NULL;
 
-  framebuffers = IVY_MALLOC(swapchainImageCount * sizeof(*framebuffers));
+  framebuffers = ivyAllocateMemory(
+      allocator,
+      swapchainImageCount * sizeof(*framebuffers));
   if (!framebuffers)
     return NULL;
 
@@ -123,7 +129,7 @@ error:
     if (framebuffers[i])
       vkDestroyFramebuffer(device, framebuffers[i], NULL);
 
-  IVY_FREE(framebuffers);
+  ivyFreeMemory(allocator, framebuffers);
 
   return NULL;
 }
@@ -341,11 +347,14 @@ error:
 }
 
 static IvyGraphicsRenderSemaphores *
-ivyAllocateAndCreateGraphicsRenderSemaphores(VkDevice device, uint32_t count) {
+ivyAllocateAndCreateGraphicsRenderSemaphores(
+    IvyAnyMemoryAllocator allocator,
+    VkDevice              device,
+    uint32_t              count) {
   uint32_t                     i;
   IvyGraphicsRenderSemaphores *semaphores;
 
-  semaphores = IVY_CALLOC(count, sizeof(*semaphores));
+  semaphores = ivyAllocateAndZeroMemory(allocator, count, sizeof(*semaphores));
   if (!semaphores)
     return NULL;
 
@@ -362,14 +371,15 @@ ivyAllocateAndCreateGraphicsRenderSemaphores(VkDevice device, uint32_t count) {
 error:
   for (i = 0; i < count; ++i)
     ivyDestroyGraphicsRenderSemaphores(device, &semaphores[i]);
-  IVY_FREE(semaphores);
+  ivyFreeMemory(allocator, semaphores);
   return NULL;
 }
 
 static VkImage *ivyAllocateVulkanSwapchainImages(
-    VkDevice       device,
-    VkSwapchainKHR swapchain,
-    uint32_t      *swapchainImageCount) {
+    IvyAnyMemoryAllocator allocator,
+    VkDevice              device,
+    VkSwapchainKHR        swapchain,
+    uint32_t             *swapchainImageCount) {
   VkResult vulkanResult;
   VkImage *images;
 
@@ -381,7 +391,7 @@ static VkImage *ivyAllocateVulkanSwapchainImages(
   if (vulkanResult)
     return NULL;
 
-  images = IVY_MALLOC(*swapchainImageCount * sizeof(*images));
+  images = ivyAllocateMemory(allocator, *swapchainImageCount * sizeof(*images));
   if (!images)
     return NULL;
 
@@ -391,7 +401,7 @@ static VkImage *ivyAllocateVulkanSwapchainImages(
       swapchainImageCount,
       images);
   if (vulkanResult) {
-    IVY_FREE(images);
+    ivyFreeMemory(allocator, images);
     return NULL;
   }
 
@@ -399,8 +409,9 @@ static VkImage *ivyAllocateVulkanSwapchainImages(
 }
 
 static IvyGraphicsFrame *ivyAllocateAndCreateGraphicsFrames(
+    IvyAnyMemoryAllocator         allocator,
     IvyGraphicsContext           *context,
-    IvyAnyGraphicsMemoryAllocator allocator,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     int32_t                       width,
     int32_t                       height,
     VkRenderPass                  mainRenderPass,
@@ -411,14 +422,17 @@ static IvyGraphicsFrame *ivyAllocateAndCreateGraphicsFrames(
   uint32_t          i;
   IvyGraphicsFrame *frames;
 
-  frames = IVY_CALLOC(swapchainImageCount, sizeof(*frames));
+  frames = ivyAllocateAndZeroMemory(
+      allocator,
+      swapchainImageCount,
+      sizeof(*frames));
   if (!frames)
     return NULL;
 
   for (i = 0; i < swapchainImageCount; ++i) {
     IvyCode ivyCode = ivyCreateGraphicsFrame(
         context,
-        allocator,
+        graphicsAllocator,
         width,
         height,
         mainRenderPass,
@@ -436,14 +450,15 @@ static IvyGraphicsFrame *ivyAllocateAndCreateGraphicsFrames(
 
 error:
   for (i = 0; i < swapchainImageCount; ++i)
-    ivyDestroyGraphicsFrame(context, allocator, &frames[i]);
-  IVY_FREE(frames);
+    ivyDestroyGraphicsFrame(context, graphicsAllocator, &frames[i]);
+  ivyFreeMemory(allocator, frames);
   return NULL;
 }
 
 static VkSwapchainKHR ivyCreateVulkanSwapchain(
+    IvyAnyMemoryAllocator         allocator,
     IvyGraphicsContext           *context,
-    IvyAnyGraphicsMemoryAllocator allocator,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkRenderPass                  mainRenderPass,
     uint32_t                      minSwapchainImageCount,
     int32_t                       width,
@@ -507,6 +522,7 @@ static VkSwapchainKHR ivyCreateVulkanSwapchain(
     goto error;
 
   swapchainImages = ivyAllocateVulkanSwapchainImages(
+      allocator,
       context->device,
       swapchain,
       swapchainImageCount);
@@ -514,8 +530,9 @@ static VkSwapchainKHR ivyCreateVulkanSwapchain(
     goto error;
 
   *frames = ivyAllocateAndCreateGraphicsFrames(
-      context,
       allocator,
+      context,
+      graphicsAllocator,
       width,
       height,
       mainRenderPass,
@@ -527,6 +544,7 @@ static VkSwapchainKHR ivyCreateVulkanSwapchain(
     goto error;
 
   *renderSemaphores = ivyAllocateAndCreateGraphicsRenderSemaphores(
+      allocator,
       context->device,
       *swapchainImageCount);
   if (!*renderSemaphores)
@@ -538,13 +556,13 @@ error:
   if (*frames) {
     uint32_t i;
     for (i = 0; i < *swapchainImageCount; ++i)
-      ivyDestroyGraphicsFrame(context, allocator, &(*frames)[i]);
-    IVY_FREE(*frames);
+      ivyDestroyGraphicsFrame(context, graphicsAllocator, &(*frames)[i]);
+    ivyFreeMemory(allocator, *frames);
     *frames = NULL;
   }
 
   if (swapchainImages)
-    IVY_FREE(swapchainImages);
+    ivyFreeMemory(allocator, swapchainImages);
 
   if (swapchain)
     vkDestroySwapchainKHR(context->device, swapchain, NULL);
@@ -853,6 +871,7 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
   renderer->requiresSwapchainRebuild = 0;
 
   renderer->swapchain = ivyCreateVulkanSwapchain(
+      &renderer->graphicsContext.globalMemoryAllocator,
       &renderer->graphicsContext,
       &renderer->defaultGraphicsMemoryAllocator,
       renderer->mainRenderPass,
@@ -906,7 +925,9 @@ void ivyDestroyRenderer(IvyRenderer *renderer) {
       ivyDestroyGraphicsRenderSemaphores(
           renderer->graphicsContext.device,
           &renderer->renderSemaphores[i]);
-    IVY_FREE(renderer->renderSemaphores);
+    ivyFreeMemory(
+        &renderer->graphicsContext.globalMemoryAllocator,
+        renderer->renderSemaphores);
     renderer->renderSemaphores = NULL;
   }
 
@@ -917,7 +938,9 @@ void ivyDestroyRenderer(IvyRenderer *renderer) {
           &renderer->graphicsContext,
           &renderer->defaultGraphicsMemoryAllocator,
           &renderer->frames[i]);
-    IVY_FREE(renderer->frames);
+    ivyFreeMemory(
+        &renderer->graphicsContext.globalMemoryAllocator,
+        renderer->frames);
     renderer->frames = NULL;
   }
 
@@ -1002,7 +1025,9 @@ ivyDestroyGraphicsResourcesForSwapchainRebuild(IvyRenderer *renderer) {
       ivyDestroyGraphicsRenderSemaphores(
           renderer->graphicsContext.device,
           &renderer->renderSemaphores[i]);
-    IVY_FREE(renderer->renderSemaphores);
+    ivyFreeMemory(
+        &renderer->graphicsContext.globalMemoryAllocator,
+        renderer->renderSemaphores);
     renderer->renderSemaphores = NULL;
   }
 
@@ -1013,7 +1038,9 @@ ivyDestroyGraphicsResourcesForSwapchainRebuild(IvyRenderer *renderer) {
           &renderer->graphicsContext,
           &renderer->defaultGraphicsMemoryAllocator,
           &renderer->frames[i]);
-    IVY_FREE(renderer->frames);
+    ivyFreeMemory(
+        &renderer->graphicsContext.globalMemoryAllocator,
+        renderer->frames);
     renderer->frames = NULL;
   }
 
@@ -1069,7 +1096,9 @@ IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
     goto error;
 
   renderer->requiresSwapchainRebuild = 0;
-  renderer->swapchain                = ivyCreateVulkanSwapchain(
+
+  renderer->swapchain = ivyCreateVulkanSwapchain(
+      &renderer->graphicsContext.globalMemoryAllocator,
       &renderer->graphicsContext,
       &renderer->defaultGraphicsMemoryAllocator,
       renderer->mainRenderPass,

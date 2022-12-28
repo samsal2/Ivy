@@ -35,13 +35,6 @@ typedef int IvyBool;
 #endif
 
 #if 1
-#include <stdlib.h>
-#define IVY_MALLOC malloc
-#define IVY_FREE free
-#define IVY_CALLOC calloc
-#endif
-
-#if 1
 #include <stddef.h>
 #define IVY_OFFSETOF offsetof
 #endif

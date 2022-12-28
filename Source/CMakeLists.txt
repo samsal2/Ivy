@@ -4,6 +4,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyDeclarations.h
   IvyDummyGraphicsMemoryAllocator.c
   IvyDummyGraphicsMemoryAllocator.h
+  IvyDummyMemoryAllocator.c
+  IvyDummyMemoryAllocator.h
   IvyGraphicsAttachment.c
   IvyGraphicsAttachment.h
   IvyGraphicsContext.c
@@ -20,6 +22,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyGraphicsTemporaryBuffer.h
   IvyGraphicsTexture.c
   IvyGraphicsTexture.h
+  IvyMemoryAllocator.c
+  IvyMemoryAllocator.h
   IvyRenderer.c
   IvyRenderer.h
   IvyVectorMath.c

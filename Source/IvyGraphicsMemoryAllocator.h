@@ -55,8 +55,8 @@ typedef struct IvyGraphicsMemoryAllocatorBase {
 } IvyGraphicsMemoryAllocatorBase;
 
 void ivySetupGraphicsMemoryAllocatorBase(
-    IvyGraphicsMemoryAllocatorBase           *base,
-    IvyGraphicsMemoryAllocatorDispatch const *dispatch);
+    IvyGraphicsMemoryAllocatorDispatch const *dispatch,
+    IvyGraphicsMemoryAllocatorBase           *base);
 
 void ivyDestroyGraphicsMemoryAllocator(
     IvyGraphicsContext           *context,

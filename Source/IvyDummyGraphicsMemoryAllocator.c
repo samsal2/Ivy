@@ -108,8 +108,8 @@ IvyCode ivyCreateDummyGraphicsMemoryAllocator(
   IVY_MEMSET(allocator, 0, sizeof(*allocator));
 
   ivySetupGraphicsMemoryAllocatorBase(
-      &allocator->base,
-      &dummyGraphicsMemoryAllocatorDispatch);
+      &dummyGraphicsMemoryAllocatorDispatch,
+      &allocator->base);
 
   allocator->occupiedChunkCount = 0;
   for (i = 0; i < IVY_ARRAY_LENGTH(allocator->chunks); ++i)

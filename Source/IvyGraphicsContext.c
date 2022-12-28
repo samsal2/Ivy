@@ -156,12 +156,14 @@ ivyCreateVulkanDebugMessenger(VkInstance instance) {
 #endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
 
 static VkQueueFamilyProperties *ivyAllocateVulkanQueueFamilyProperties(
-    VkPhysicalDevice device,
-    uint32_t        *count) {
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      device,
+    uint32_t             *count) {
   VkQueueFamilyProperties *properties;
 
   vkGetPhysicalDeviceQueueFamilyProperties(device, count, NULL);
-  if (!(properties = IVY_MALLOC(*count * sizeof(*properties))))
+  properties = ivyAllocateMemory(allocator, *count * sizeof(*properties));
+  if (!properties)
     return NULL;
   vkGetPhysicalDeviceQueueFamilyProperties(device, count, properties);
   return properties;
@@ -175,10 +177,11 @@ static IvyBool ivyAreVulkanQueueFamilyIndicesValid(
 }
 
 static void ivyFindVulkanQueueFamilyIndices(
-    VkPhysicalDevice device,
-    VkSurfaceKHR     surface,
-    uint32_t        *graphicsQueueFamilyIndex,
-    uint32_t        *presentQueuefamilyIndex) {
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      device,
+    VkSurfaceKHR          surface,
+    uint32_t             *graphicsQueueFamilyIndex,
+    uint32_t             *presentQueuefamilyIndex) {
   uint32_t                 i;
   uint32_t                 queueFamilyPropertiesCount;
   VkQueueFamilyProperties *queueFamilyProperties;
@@ -187,6 +190,7 @@ static void ivyFindVulkanQueueFamilyIndices(
   *presentQueuefamilyIndex  = (uint32_t)-1;
 
   queueFamilyProperties = ivyAllocateVulkanQueueFamilyProperties(
+      allocator,
       device,
       &queueFamilyPropertiesCount);
   if (!queueFamilyProperties)
@@ -213,7 +217,7 @@ static void ivyFindVulkanQueueFamilyIndices(
   }
 
 cleanup:
-  IVY_FREE(queueFamilyProperties);
+  ivyFreeMemory(allocator, queueFamilyProperties);
 }
 
 static void ivyFindAvailableVulkanPhysicalDevices(
@@ -245,11 +249,13 @@ static void ivyFindAvailableVulkanPhysicalDevices(
 }
 
 static VkExtensionProperties *ivyAllocateVulkanExtensionsProperties(
-    VkPhysicalDevice physicalDevice,
-    uint32_t        *count) {
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      physicalDevice,
+    uint32_t             *count) {
   VkExtensionProperties *extensions;
   vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count, NULL);
-  if (!(extensions = IVY_MALLOC(*count * sizeof(*extensions))))
+  extensions = ivyAllocateMemory(allocator, *count * sizeof(*extensions));
+  if (!extensions)
     return NULL;
   vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count, extensions);
   return extensions;
@@ -281,14 +287,16 @@ static IvyBool ivyDoAllVulkanRequiredExtensionsExist(
 }
 
 static int ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(
-    VkPhysicalDevice   physicalDevice,
-    uint32_t           requiredExtensionCount,
-    char const *const *requiredExtensions) {
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      physicalDevice,
+    uint32_t              requiredExtensionCount,
+    char const *const    *requiredExtensions) {
   int                    exist;
   uint32_t               availableExtensionCount;
   VkExtensionProperties *availableExtensions;
 
   availableExtensions = ivyAllocateVulkanExtensionsProperties(
+      allocator,
       physicalDevice,
       &availableExtensionCount);
   if (!availableExtensions || !availableExtensionCount)
@@ -300,7 +308,7 @@ static int ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(
       requiredExtensionCount,
       requiredExtensions);
 
-  IVY_FREE(availableExtensions);
+  ivyFreeMemory(allocator, availableExtensions);
 
   return exist;
 }
@@ -321,15 +329,17 @@ static VkFormat ivySelectVulkanDepthFormat(VkPhysicalDevice device) {
 #undef IVY_TEST_VULKAN_DEPTH_FORMAT
 
 static VkSurfaceFormatKHR *ivyAllocateVulkanSurfaceFormats(
-    VkPhysicalDevice device,
-    VkSurfaceKHR     surface,
-    uint32_t        *count) {
-  VkSurfaceFormatKHR *surfaceFormats;
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      device,
+    VkSurfaceKHR          surface,
+    uint32_t             *count) {
+  VkSurfaceFormatKHR *formats;
   vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, NULL);
-  if (!(surfaceFormats = IVY_MALLOC(*count * sizeof(*surfaceFormats))))
+  formats = ivyAllocateMemory(allocator, *count * sizeof(*formats));
+  if (!formats)
     return NULL;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, surfaceFormats);
-  return surfaceFormats;
+  vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, count, formats);
+  return formats;
 }
 
 static IvyBool ivyDoesVulkanFormatExists(
@@ -353,15 +363,17 @@ static IvyBool ivyDoesVulkanFormatExists(
 }
 
 static IvyBool ivyDoesVulkanPhysicalDeviceSupportFormat(
-    VkPhysicalDevice device,
-    VkSurfaceKHR     surface,
-    VkFormat         format,
-    VkColorSpaceKHR  colorSpace) {
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      device,
+    VkSurfaceKHR          surface,
+    VkFormat              format,
+    VkColorSpaceKHR       colorSpace) {
   int                 exist;
   uint32_t            surfaceFormatCount;
   VkSurfaceFormatKHR *surfaceFormats;
 
   surfaceFormats = ivyAllocateVulkanSurfaceFormats(
+      allocator,
       device,
       surface,
       &surfaceFormatCount);
@@ -374,7 +386,7 @@ static IvyBool ivyDoesVulkanPhysicalDeviceSupportFormat(
       format,
       colorSpace);
 
-  IVY_FREE(surfaceFormats);
+  ivyFreeMemory(allocator, surfaceFormats);
   return exist;
 }
 
@@ -391,12 +403,14 @@ static IvyBool ivyDoesVulkanPresentModeExist(
 }
 
 static VkPresentModeKHR *ivyAllocateVulkanPresentModes(
-    VkPhysicalDevice device,
-    VkSurfaceKHR     surface,
-    uint32_t        *count) {
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      device,
+    VkSurfaceKHR          surface,
+    uint32_t             *count) {
   VkPresentModeKHR *presentModes;
   vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, count, NULL);
-  if (!(presentModes = IVY_MALLOC(*count * sizeof(*presentModes))))
+  presentModes = ivyAllocateMemory(allocator, *count * sizeof(*presentModes));
+  if (!presentModes)
     return NULL;
   vkGetPhysicalDeviceSurfacePresentModesKHR(
       device,
@@ -407,14 +421,16 @@ static VkPresentModeKHR *ivyAllocateVulkanPresentModes(
 }
 
 static IvyBool ivyDoesVulkanPhysicalDeviceSupportPresentMode(
-    VkPhysicalDevice device,
-    VkSurfaceKHR     surface,
-    VkPresentModeKHR requiredPresentMode) {
+    IvyAnyMemoryAllocator allocator,
+    VkPhysicalDevice      device,
+    VkSurfaceKHR          surface,
+    VkPresentModeKHR      requiredPresentMode) {
   int               exists;
   uint32_t          presentModeCount;
   VkPresentModeKHR *presentModes;
 
   presentModes = ivyAllocateVulkanPresentModes(
+      allocator,
       device,
       surface,
       &presentModeCount);
@@ -426,7 +442,7 @@ static IvyBool ivyDoesVulkanPhysicalDeviceSupportPresentMode(
       presentModes,
       requiredPresentMode);
 
-  IVY_FREE(presentModes);
+  ivyFreeMemory(allocator, presentModes);
   return exists;
 }
 
@@ -449,6 +465,7 @@ static char const *const requiredVulkanExtensions[] = {
 };
 
 static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
+    IvyAnyMemoryAllocator allocator,
     VkSurfaceKHR          surface,
     uint32_t              physicalDeviceCount,
     VkPhysicalDevice      physicalDevices[IVY_MAX_AVAILABLE_DEVICES],
@@ -464,12 +481,14 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
     VkPhysicalDevice device = physicalDevices[i];
 
     if (!ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(
+            allocator,
             device,
             IVY_ARRAY_LENGTH(requiredVulkanExtensions),
             requiredVulkanExtensions))
       continue;
 
     ivyFindVulkanQueueFamilyIndices(
+        allocator,
         device,
         surface,
         selectedGraphicsQueueFamilyIndex,
@@ -484,6 +503,7 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
       continue;
 
     if (!ivyDoesVulkanPhysicalDeviceSupportFormat(
+            allocator,
             device,
             surface,
             format,
@@ -491,6 +511,7 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
       continue;
 
     if (!ivyDoesVulkanPhysicalDeviceSupportPresentMode(
+            allocator,
             device,
             surface,
             presentMode))
@@ -506,6 +527,7 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
 }
 
 static VkDevice ivyCreateVulkanDevice(
+    IvyAnyMemoryAllocator allocator,
     VkInstance            instance,
     VkSurfaceKHR          surface,
     uint32_t              availablePhysicalDeviceCount,
@@ -528,6 +550,7 @@ static VkDevice ivyCreateVulkanDevice(
   VkDeviceCreateInfo       deviceCreateInfo;
 
   *selectedPhysicalDevice = ivySelectVulkanPhysicalDevice(
+      allocator,
       surface,
       availablePhysicalDeviceCount,
       availablePhysicalDevices,
@@ -649,6 +672,8 @@ void ivyDestroyGraphicsContext(IvyGraphicsContext *context) {
     vkDestroyInstance(context->instance, NULL);
     context->instance = VK_NULL_HANDLE;
   }
+
+  ivyDestroyMemoryAllocator(&context->globalMemoryAllocator);
 }
 
 VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
@@ -703,9 +728,14 @@ VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
 IvyCode ivyCreateGraphicsContext(
     IvyApplication     *application,
     IvyGraphicsContext *context) {
+  IvyCode ivyCode;
   IVY_MEMSET(context, 0, sizeof(*context));
 
   context->application = application;
+
+  ivyCode = ivyCreateDummyMemoryAllocator(&context->globalMemoryAllocator);
+  if (ivyCode)
+    goto error;
 
   context->instance = ivyCreateVulkanInstance(application);
   IVY_ASSERT(context->instance);
@@ -738,6 +768,7 @@ IvyCode ivyCreateGraphicsContext(
   context->attachmentSampleCounts   = VK_SAMPLE_COUNT_2_BIT;
 
   context->device = ivyCreateVulkanDevice(
+      &context->globalMemoryAllocator,
       context->instance,
       context->surface,
       context->availableDeviceCount,

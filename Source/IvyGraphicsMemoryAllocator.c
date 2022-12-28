@@ -7,8 +7,8 @@
 // TODO(samuel): static assert base is the first element of each allocator
 
 void ivySetupGraphicsMemoryAllocatorBase(
-    IvyGraphicsMemoryAllocatorBase           *base,
-    IvyGraphicsMemoryAllocatorDispatch const *dispatch) {
+    IvyGraphicsMemoryAllocatorDispatch const *dispatch,
+    IvyGraphicsMemoryAllocatorBase           *base) {
   base->magic    = IVY_GRAPHICS_MEMORY_ALLOCATOR_MAGIC;
   base->dispatch = dispatch;
 }

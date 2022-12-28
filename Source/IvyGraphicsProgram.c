@@ -2,7 +2,10 @@
 
 #include <stdio.h>
 
-static char *ivyLoadFileIntoByteBuffer(char const *path, uint64_t *size) {
+static char *ivyLoadFileIntoByteBuffer(
+    IvyAnyMemoryAllocator allocator,
+    char const           *path,
+    uint64_t             *size) {
   FILE *file       = NULL;
   char *buffer     = NULL;
   int   bufferSize = 0;
@@ -20,7 +23,7 @@ static char *ivyLoadFileIntoByteBuffer(char const *path, uint64_t *size) {
   if (0 != fseek(file, 0, SEEK_SET))
     goto error;
 
-  buffer = IVY_MALLOC(bufferSize * sizeof(*buffer));
+  buffer = ivyAllocateMemory(allocator, bufferSize * sizeof(*buffer));
   if (!buffer)
     goto error;
 
@@ -33,7 +36,7 @@ static char *ivyLoadFileIntoByteBuffer(char const *path, uint64_t *size) {
 
 error:
   if (buffer)
-    IVY_FREE(buffer);
+    ivyFreeMemory(allocator, buffer);
 
   if (file)
     fclose(file);
@@ -41,14 +44,20 @@ error:
   return NULL;
 }
 
-VkShaderModule ivyCreateVulkanShader(VkDevice device, char const *path) {
+VkShaderModule ivyCreateVulkanShader(
+    IvyAnyMemoryAllocator allocator,
+    VkDevice              device,
+    char const           *path) {
   uint64_t                 shaderCodeSizeInBytes;
   char                    *shaderCode;
   VkResult                 vulkanResult;
   VkShaderModule           shader;
   VkShaderModuleCreateInfo shaderCreateInfo;
 
-  shaderCode = ivyLoadFileIntoByteBuffer(path, &shaderCodeSizeInBytes);
+  shaderCode = ivyLoadFileIntoByteBuffer(
+      allocator,
+      path,
+      &shaderCodeSizeInBytes);
   if (!shaderCode)
     return VK_NULL_HANDLE;
 
@@ -65,7 +74,7 @@ VkShaderModule ivyCreateVulkanShader(VkDevice device, char const *path) {
   }
 
 cleanup:
-  IVY_FREE(shaderCode);
+  ivyFreeMemory(allocator, shaderCode);
   return shader;
 }
 
@@ -349,12 +358,14 @@ IvyCode ivyCreateGraphicsProgram(
   IVY_MEMSET(program, 0, sizeof(*program));
 
   program->vertexShader = ivyCreateVulkanShader(
+      &context->globalMemoryAllocator,
       context->device,
       vertexShaderPath);
   if (!program->vertexShader)
     goto error;
 
   program->fragmentShader = ivyCreateVulkanShader(
+      &context->globalMemoryAllocator,
       context->device,
       fragmentShaderPath);
   if (!program->vertexShader)

@@ -155,6 +155,7 @@ void ivyAddV4ToV4(IvyV4 lhs, IvyV4 rhs, IvyV4 out) {
   out[3] = lhs[3] + rhs[3];
 }
 
+#if 0
 void ivyAddM2ToM2(IvyM2 lhs, IvyM2 rhs, IvyM2 out);
 void ivyAddM3ToM3(IvyM3 lhs, IvyM3 rhs, IvyM3 out);
 void ivyAddM4ToM4(IvyM4 lhs, IvyM4 rhs, IvyM4 out);

@@ -5,10 +5,12 @@
 
 #include "IvyApplication.h"
 #include "IvyDeclarations.h"
+#include "IvyDummyMemoryAllocator.h"
 
 #define IVY_MAX_AVAILABLE_DEVICES 8
 
 typedef struct IvyGraphicsContext {
+  IvyDummyMemoryAllocator  globalMemoryAllocator;
   IvyApplication          *application;
   VkInstance               instance;
   VkDebugUtilsMessengerEXT debugMessenger;
