@@ -22,8 +22,11 @@ int main(void) {
     return 0;
   }
 
-  while (!ivyShouldApplicationClose(&app))
+  while (!ivyShouldApplicationClose(&app)) {
+    ivyBeginGraphicsFrame(&renderer);
+    ivyEndGraphicsFrame(&renderer);
     ivyPollApplicationEvents(&app);
+  }
 
   ivyDestroyRenderer(&renderer);
   ivyDestroyApplication(&app);

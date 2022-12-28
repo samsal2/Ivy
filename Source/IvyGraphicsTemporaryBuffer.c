@@ -74,6 +74,8 @@ void ivyClearGraphicsTemporaryBufferProvider(
 
     ivyFreeGraphicsMemory(context, allocator, &provider->garbageMemories[i]);
   }
+
+  provider->currentBufferOffset = 0;
 }
 void ivyDestroyGraphicsTemporaryBufferProvider(
     IvyGraphicsContext                 *context,

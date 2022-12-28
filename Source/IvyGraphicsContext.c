@@ -4,6 +4,14 @@
 static char const *const validationLayers[] = {"VK_LAYER_KHRONOS_validation"};
 #endif
 
+static VkInstanceCreateFlagBits ivyGetVulkanInstanceCreateFlagBits(void) {
+#ifdef __APPLE__
+  return VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#else
+  return 0;
+#endif
+}
+
 static VkInstance ivyCreateVulkanInstance(IvyApplication *application) {
   VkResult             vulkanResult;
   VkInstance           instance;
@@ -20,7 +28,7 @@ static VkInstance ivyCreateVulkanInstance(IvyApplication *application) {
 
   instanceCreateInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   instanceCreateInfo.pNext            = NULL;
-  instanceCreateInfo.flags            = 0;
+  instanceCreateInfo.flags            = ivyGetVulkanInstanceCreateFlagBits();
   instanceCreateInfo.pApplicationInfo = &applicationInfo;
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   instanceCreateInfo.enabledLayerCount   = IVY_ARRAY_LENGTH(validationLayers);
@@ -75,15 +83,19 @@ static VKAPI_ATTR VKAPI_CALL VkBool32 ivyLogVulkanMessages(
   IVY_UNUSED(user);
 
   if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+#if 0
     fprintf(
         stderr,
         "\033[32m[VALIDATION_LAYER]\033[0m \033[34m(VERBOSE)\033[0m %s\n",
         data->pMessage);
+#endif
   } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+#if 0
     fprintf(
         stderr,
         "\033[32m[VALIDATION_LAYER]\033[0m \033[33m(INFO)\033[0m %s\n",
         data->pMessage);
+#endif
   } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
     fprintf(
         stderr,
@@ -428,7 +440,13 @@ static IvyBool ivyDoesVulkanPhysicalDeviceSupportSampleCount(
 }
 
 static char const *const requiredVulkanExtensions[] = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+#if __APPLE__
+    ,
+    "VK_KHR_portability_subset"
+// , "VK_KHR_get_physical_device_properties2"
+#endif
+};
 
 static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
     VkSurfaceKHR          surface,
@@ -499,7 +517,9 @@ static VkDevice ivyCreateVulkanDevice(
     VkPhysicalDevice     *selectedPhysicalDevice,
     VkFormat             *selectedDepthFormat,
     uint32_t             *selectedGraphicsQueueFamilyIndex,
-    uint32_t             *selectedPresentQueueFamilyIndex) {
+    uint32_t             *selectedPresentQueueFamilyIndex,
+    VkQueue              *graphicsQueue,
+    VkQueue              *presentQueue) {
   float const              queuePriority = 1.0F;
   VkResult                 vulkanResult;
   VkDevice                 device;
@@ -518,7 +538,7 @@ static VkDevice ivyCreateVulkanDevice(
       selectedGraphicsQueueFamilyIndex,
       selectedPresentQueueFamilyIndex,
       selectedDepthFormat);
-
+  IVY_ASSERT(*selectedPhysicalDevice);
   if (!*selectedPhysicalDevice)
     return VK_NULL_HANDLE;
 
@@ -559,8 +579,12 @@ static VkDevice ivyCreateVulkanDevice(
       &deviceCreateInfo,
       NULL,
       &device);
+  IVY_ASSERT(!vulkanResult);
   if (vulkanResult)
     return VK_NULL_HANDLE;
+
+  vkGetDeviceQueue(device, *selectedGraphicsQueueFamilyIndex, 0, graphicsQueue);
+  vkGetDeviceQueue(device, *selectedPresentQueueFamilyIndex, 0, presentQueue);
 
   return device;
 }
@@ -684,16 +708,19 @@ IvyCode ivyCreateGraphicsContext(
   context->application = application;
 
   context->instance = ivyCreateVulkanInstance(application);
+  IVY_ASSERT(context->instance);
   if (!context->instance)
     goto error;
 
   context->debugMessenger = ivyCreateVulkanDebugMessenger(context->instance);
+  IVY_ASSERT(context->debugMessenger);
   if (!context->debugMessenger)
     goto error;
 
   context->surface = ivyCreateVulkanSurface(
       context->instance,
       context->application);
+  IVY_ASSERT(context->surface);
   if (!context->surface)
     goto error;
 
@@ -701,6 +728,7 @@ IvyCode ivyCreateGraphicsContext(
       context->instance,
       &context->availableDeviceCount,
       context->availableDevices);
+  IVY_ASSERT(context->availableDeviceCount);
   if (!context->availableDeviceCount)
     goto error;
 
@@ -721,18 +749,23 @@ IvyCode ivyCreateGraphicsContext(
       &context->physicalDevice,
       &context->depthFormat,
       &context->graphicsQueueFamilyIndex,
-      &context->presentQueueFamilyIndex);
+      &context->presentQueueFamilyIndex,
+      &context->graphicsQueue,
+      &context->presentQueue);
+  IVY_ASSERT(context->device);
   if (!context->device)
     goto error;
 
   context->transientCommandPool = ivyCreateVulkanTransientCommandPool(
       context->device,
       context->graphicsQueueFamilyIndex);
+  IVY_ASSERT(context->transientCommandPool);
   if (!context->transientCommandPool)
     goto error;
 
   context->globalDescriptorPool = ivyCreateVulkanGlobalDescriptorPool(
       context->device);
+  IVY_ASSERT(context->globalDescriptorPool);
   if (!context->globalDescriptorPool)
     goto error;
 
@@ -743,8 +776,31 @@ error:
   return IVY_PLATAFORM_ERROR;
 }
 
+VkCommandBuffer
+ivyAllocateVulkanCommandBuffer(VkDevice device, VkCommandPool commandPool) {
+  VkResult                    vulkanResult;
+  VkCommandBuffer             commandBuffer;
+  VkCommandBufferAllocateInfo commandBufferAllocateInfo;
+
+  commandBufferAllocateInfo
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  commandBufferAllocateInfo.pNext       = NULL;
+  commandBufferAllocateInfo.commandPool = commandPool;
+  commandBufferAllocateInfo.level       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  commandBufferAllocateInfo.commandBufferCount = 1;
+
+  vulkanResult = vkAllocateCommandBuffers(
+      device,
+      &commandBufferAllocateInfo,
+      &commandBuffer);
+  if (vulkanResult)
+    return VK_NULL_HANDLE;
+
+  return commandBuffer;
+}
+
 VkCommandBuffer ivyAllocateOneTimeCommandBuffer(IvyGraphicsContext *context) {
-  VkResult                    result;
+  VkResult                    vulkanResult;
   VkCommandBuffer             commandBuffer;
   VkCommandBufferBeginInfo    beginInfo;
   VkCommandBufferAllocateInfo commandBufferCreateInfo;
@@ -752,26 +808,19 @@ VkCommandBuffer ivyAllocateOneTimeCommandBuffer(IvyGraphicsContext *context) {
   if (!context)
     return VK_NULL_HANDLE;
 
-  commandBufferCreateInfo
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  commandBufferCreateInfo.pNext              = NULL;
-  commandBufferCreateInfo.commandPool        = context->transientCommandPool;
-  commandBufferCreateInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  commandBufferCreateInfo.commandBufferCount = 1;
-
-  result = vkAllocateCommandBuffers(
+  commandBuffer = ivyAllocateVulkanCommandBuffer(
       context->device,
-      &commandBufferCreateInfo,
-      &commandBuffer);
-  if (result)
-    return VK_NULL_HANDLE;
+      context->transientCommandPool);
+  if (!commandBuffer)
+    goto error;
 
   beginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   beginInfo.pNext            = NULL;
   beginInfo.flags            = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
   beginInfo.pInheritanceInfo = NULL;
-  result                     = vkBeginCommandBuffer(commandBuffer, &beginInfo);
-  if (result)
+
+  vulkanResult = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+  if (vulkanResult)
     goto error;
 
   return commandBuffer;

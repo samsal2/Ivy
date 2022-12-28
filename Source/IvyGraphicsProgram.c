@@ -1,6 +1,7 @@
 #include "IvyGraphicsProgram.h"
 
 #include <stdio.h>
+
 static char *ivyLoadFileIntoByteBuffer(char const *path, uint64_t *size) {
   FILE *file       = NULL;
   char *buffer     = NULL;

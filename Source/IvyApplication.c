@@ -129,11 +129,15 @@ IvyWindow *ivyAddWindow(
   glfwSetFramebufferSizeCallback(window->opaque, ivyFramebufferSizeCallback);
   glfwSetWindowSizeCallback(window->opaque, ivyWindowSizeCallback);
 
-  window->resized           = 0;
-  window->windowWidth       = width;
-  window->windowHeight      = height;
-  window->framebufferWidth  = width;
-  window->framebufferHeight = height;
+  window->resized = 0;
+  glfwGetWindowSize(
+      window->opaque,
+      &window->windowWidth,
+      &window->windowHeight);
+  glfwGetFramebufferSize(
+      window->opaque,
+      &window->framebufferWidth,
+      &window->framebufferHeight);
 
   return application->lastAddedWindow = window;
 }
@@ -237,7 +241,7 @@ ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count) {
     return NULL;
   }
 
-  if (IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS <= (*count + 2)) {
+  if (IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS <= (*count + 3)) {
     *count = 0;
     return NULL;
   }
@@ -248,6 +252,11 @@ ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count) {
       *count * sizeof(*defaultExtensions));
 
   extensions[(*count)++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+
+#if __APPLE__
+  extensions[(*count)++] = "VK_KHR_portability_enumeration";
+  extensions[(*count)++] = "VK_KHR_get_physical_device_properties2";
+#endif
 
   return extensions;
 #else  /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */

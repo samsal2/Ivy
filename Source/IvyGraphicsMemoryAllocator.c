@@ -89,7 +89,6 @@ IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
   return IVY_OK;
 }
 
-#include <stdio.h>
 IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
     IvyGraphicsContext           *context,
     IvyAnyGraphicsMemoryAllocator allocator,

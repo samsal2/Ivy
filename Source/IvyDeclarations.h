@@ -7,10 +7,11 @@ typedef int IvyCode;
 typedef int IvyBool;
 
 #define IVY_OK 0
-#define IVY_INVALID_VALUE -1
-#define IVY_ALREADY_INITIALIZED -2
-#define IVY_PLATAFORM_ERROR -3
-#define IVY_NO_GRAPHICS_MEMORY -4
+#define IVY_UNKNOWN_ERROR -1
+#define IVY_INVALID_VALUE -2
+#define IVY_ALREADY_INITIALIZED -3
+#define IVY_PLATAFORM_ERROR -4
+#define IVY_NO_GRAPHICS_MEMORY -5
 
 #define IVY_UNUSED(e) (void)e
 #define IVY_ARRAY_LENGTH(a) (sizeof(a) / sizeof((a)[0]))
@@ -43,6 +44,11 @@ typedef int IvyBool;
 #if 1
 #include <stddef.h>
 #define IVY_OFFSETOF offsetof
+#endif
+
+#if 1
+#define IVY_STR(argument) #argument
+#define IVY_LOG(format, ...) printf(IVY_STR(format) "\n  " format, __VA_ARGS__);
 #endif
 
 #endif

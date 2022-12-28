@@ -1,7 +1,5 @@
 #include "IvyGraphicsMemoryChunk.h"
 
-#include <stdio.h>
-
 static VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(uint32_t flags) {
   VkMemoryPropertyFlagBits properties = 0;
 

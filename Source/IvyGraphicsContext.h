@@ -45,4 +45,7 @@ void ivyFreeOneTimeCommandBuffer(
     IvyGraphicsContext *context,
     VkCommandBuffer     commandBuffer);
 
+VkCommandBuffer
+ivyAllocateVulkanCommandBuffer(VkDevice device, VkCommandPool commandPool);
+
 #endif

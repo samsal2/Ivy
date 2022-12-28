@@ -1,8 +1,6 @@
 #include "IvyDummyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsMemoryChunk.h"
 
-#include <stdio.h>
-
 static IvyBool ivyIsGraphicsMemoryChunkEmpty(IvyGraphicsMemoryChunk *chunk) {
   IVY_ASSERT(chunk);
   return !chunk->memory;
