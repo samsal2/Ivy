@@ -2,9 +2,7 @@
 
 #include <math.h>
 
-static float ivySqrt(float value) {
-  return sqrtf(value);
-}
+static float ivySqrt(float value) { return sqrtf(value); }
 
 void ivyCopyV3(IvyV3 vector, IvyV3 out) {
   out[0] = vector[0];
@@ -19,8 +17,7 @@ void ivyCopyV4(IvyV4 vector, IvyV4 out) {
   out[4] = vector[4];
 }
 
-void ivyIdentityM3(IvyM3 matrix)
-{
+void ivyIdentityM3(IvyM3 matrix) {
   matrix[0][0] = 1.0F;
   matrix[0][1] = 0.0F;
   matrix[0][2] = 0.0F;
@@ -32,8 +29,7 @@ void ivyIdentityM3(IvyM3 matrix)
   matrix[2][2] = 1.0F;
 }
 
-void ivyIdentityM4(IvyM4 matrix)
-{
+void ivyIdentityM4(IvyM4 matrix) {
   matrix[0][0] = 1.0F;
   matrix[0][1] = 0.0F;
   matrix[0][2] = 0.0F;
@@ -115,17 +111,11 @@ void ivyNormalizeV4(IvyV4 vector) {
   ivyScaleV4(1 / magnitude, vector);
 }
 
-void ivyZeroV2(IvyV2 out) {
-  ivyBroadcastV2(0.0F, out);
-}
+void ivyZeroV2(IvyV2 out) { ivyBroadcastV2(0.0F, out); }
 
-void ivyZeroV3(IvyV3 out) {
-  ivyBroadcastV3(0.0F, out);
-}
+void ivyZeroV3(IvyV3 out) { ivyBroadcastV3(0.0F, out); }
 
-void ivyZeroV4(IvyV4 out) {
-  ivyBroadcastV4(0.0F, out);
-}
+void ivyZeroV4(IvyV4 out) { ivyBroadcastV4(0.0F, out); }
 
 void ivyInvM2(IvyM2 out);
 void ivyInvM3(IvyM3 out);
