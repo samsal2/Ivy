@@ -17,5 +17,9 @@ void main() {
   outColor = inColor;
   outUV = inUV;
 
+#if 0
   gl_Position = ubo.projection * ubo.view * ubo.model * vec4(inPosition, 1.0);
+#else
+  gl_Position = vec4(inPosition, 1.0);
+#endif
 }

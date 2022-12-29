@@ -17,10 +17,16 @@ typedef struct IvyGraphicsTemporaryBufferProvider {
 } IvyGraphicsTemporaryBufferProvider;
 
 typedef struct IvyGraphicsTemporaryBuffer {
+  void *data;
   uint64_t        offset;
   VkBuffer        buffer;
   VkDescriptorSet descriptorSet;
 } IvyGraphicsTemporaryBuffer;
+
+VkDescriptorSet ivyAllocateVulkanDescriptorSet(
+    VkDevice              device,
+    VkDescriptorPool      descriptorPool,
+    VkDescriptorSetLayout descriptorSetLayout);
 
 IvyCode ivyCreateGraphicsTemporaryBufferProvider(
     IvyGraphicsContext                 *context,

@@ -467,18 +467,18 @@ static char const *const requiredVulkanExtensions[] = {
 static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
     IvyAnyMemoryAllocator allocator,
     VkSurfaceKHR          surface,
-    uint32_t              physicalDeviceCount,
-    VkPhysicalDevice      physicalDevices[IVY_MAX_AVAILABLE_DEVICES],
-    VkFormat              format,
-    VkColorSpaceKHR       colorSpace,
-    VkPresentModeKHR      presentMode,
-    VkSampleCountFlagBits samples,
+    uint32_t              availablePhysicalDeviceCount,
+    VkPhysicalDevice      availablePhysicalDevices[IVY_MAX_AVAILABLE_DEVICES],
+    VkFormat              requestedFormat,
+    VkColorSpaceKHR       requestedColorSpace,
+    VkPresentModeKHR      requestedPresentMode,
+    VkSampleCountFlagBits requestedSampleCount,
     uint32_t             *selectedGraphicsQueueFamilyIndex,
     uint32_t             *selectedPresentQueueFamilyIndex,
     VkFormat             *selectedDepthFormat) {
   uint32_t i;
-  for (i = 0; i < physicalDeviceCount; ++i) {
-    VkPhysicalDevice device = physicalDevices[i];
+  for (i = 0; i < availablePhysicalDeviceCount; ++i) {
+    VkPhysicalDevice device = availablePhysicalDevices[i];
 
     if (!ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(
             allocator,
@@ -506,18 +506,20 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
             allocator,
             device,
             surface,
-            format,
-            colorSpace))
+            requestedFormat,
+            requestedColorSpace))
       continue;
 
     if (!ivyDoesVulkanPhysicalDeviceSupportPresentMode(
             allocator,
             device,
             surface,
-            presentMode))
+            requestedPresentMode))
       continue;
 
-    if (!ivyDoesVulkanPhysicalDeviceSupportSampleCount(device, samples))
+    if (!ivyDoesVulkanPhysicalDeviceSupportSampleCount(
+            device,
+            requestedSampleCount))
       continue;
 
     return device;
@@ -528,7 +530,6 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
 
 static VkDevice ivyCreateVulkanDevice(
     IvyAnyMemoryAllocator allocator,
-    VkInstance            instance,
     VkSurfaceKHR          surface,
     uint32_t              availablePhysicalDeviceCount,
     VkPhysicalDevice      availablePhysicalDevices[IVY_MAX_AVAILABLE_DEVICES],
@@ -769,7 +770,6 @@ IvyCode ivyCreateGraphicsContext(
 
   context->device = ivyCreateVulkanDevice(
       &context->globalMemoryAllocator,
-      context->instance,
       context->surface,
       context->availableDeviceCount,
       context->availableDevices,
@@ -831,10 +831,9 @@ ivyAllocateVulkanCommandBuffer(VkDevice device, VkCommandPool commandPool) {
 }
 
 VkCommandBuffer ivyAllocateOneTimeCommandBuffer(IvyGraphicsContext *context) {
-  VkResult                    vulkanResult;
-  VkCommandBuffer             commandBuffer;
-  VkCommandBufferBeginInfo    beginInfo;
-  VkCommandBufferAllocateInfo commandBufferCreateInfo;
+  VkResult                 vulkanResult;
+  VkCommandBuffer          commandBuffer;
+  VkCommandBufferBeginInfo beginInfo;
 
   if (!context)
     return VK_NULL_HANDLE;
@@ -883,6 +882,8 @@ IvyCode ivySubmitOneTimeCommandBuffer(
 
   if (!context || !commandBuffer)
     return IVY_INVALID_VALUE;
+
+  vkEndCommandBuffer(commandBuffer);
 
   submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.pNext                = NULL;

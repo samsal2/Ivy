@@ -14,7 +14,7 @@ typedef int IvyBool;
 #define IVY_NO_GRAPHICS_MEMORY -5
 
 #define IVY_UNUSED(e) (void)e
-#define IVY_ARRAY_LENGTH(a) (sizeof(a) / sizeof((a)[0]))
+#define IVY_ARRAY_LENGTH(a) (long)(sizeof(a) / sizeof((a)[0]))
 
 #if 1
 #include <assert.h>
@@ -37,11 +37,6 @@ typedef int IvyBool;
 #if 1
 #include <stddef.h>
 #define IVY_OFFSETOF offsetof
-#endif
-
-#if 1
-#define IVY_STR(argument) #argument
-#define IVY_LOG(format, ...) printf(IVY_STR(format) "\n  " format, __VA_ARGS__);
 #endif
 
 #endif

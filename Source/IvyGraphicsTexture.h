@@ -16,6 +16,8 @@ typedef struct IvyGraphicsTexture {
   VkImage           image;
   VkImageView       imageView;
   IvyGraphicsMemory memory;
+  VkDescriptorSet   descriptorSet;
+  VkSampler         sampler;
 } IvyGraphicsTexture;
 
 VkImage ivyCreateVulkanImage(
@@ -33,9 +35,17 @@ VkImageView ivyCreateVulkanImageView(
     VkImageAspectFlags aspect,
     VkFormat           format);
 
+IvyCode ivyCreateGraphicsTextureFromFile(
+    IvyGraphicsContext           *context,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator,
+    VkDescriptorSetLayout         textureDescriptorSetLayout,
+    char const                   *path,
+    IvyGraphicsTexture           *texture);
+
 IvyCode ivyCreateGraphicsTexture(
     IvyGraphicsContext           *context,
-    IvyAnyGraphicsMemoryAllocator allocator,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator,
+    VkDescriptorSetLayout         textureDescriptorSetLayout,
     int32_t                       width,
     int32_t                       height,
     IvyPixelFormat                format,

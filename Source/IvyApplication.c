@@ -233,6 +233,7 @@ ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count) {
   char const       **defaultExtensions;
   static char const *extensions[IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS];
 
+  IVY_UNUSED(application);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
   defaultExtensions = glfwGetRequiredInstanceExtensions(count);

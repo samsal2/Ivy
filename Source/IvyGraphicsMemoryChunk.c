@@ -103,9 +103,15 @@ int ivyAllocateGraphicsMemoryChunk(
     return IVY_NO_GRAPHICS_MEMORY;
 
   if (IVY_CPU_VISIBLE & flags) {
-    VkResult result;
-    vkMapMemory(context->device, chunk->memory, 0, size, 0, &chunk->data);
-    if (result) {
+    VkResult vulkanResult;
+    vulkanResult = vkMapMemory(
+        context->device,
+        chunk->memory,
+        0,
+        size,
+        0,
+        &chunk->data);
+    if (vulkanResult) {
       ivyFreeGraphicsMemoryChunk(context, chunk);
       return IVY_NO_GRAPHICS_MEMORY;
     }

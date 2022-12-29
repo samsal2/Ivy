@@ -1,5 +1,9 @@
 #include "IvyGraphicsTexture.h"
 #include "IvyGraphicsDataUploader.h"
+#include "IvyGraphicsTemporaryBuffer.h"
+
+// TODO: custom stb_image with custom allocator
+#include <stb_image.h>
 
 #ifndef IVY_FLOOR
 #include <math.h>
@@ -14,29 +18,6 @@ static VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
 
   case IVY_RGBA8_SRGB:
     return VK_FORMAT_R8G8B8A8_SRGB;
-  }
-}
-
-static IvyPixelFormat ivyAsPixelFormat(VkFormat format) {
-  switch (format) {
-  case VK_FORMAT_R8_UNORM:
-    return IVY_R8_UNORM;
-
-  case VK_FORMAT_R8G8B8A8_SRGB:
-    return IVY_RGBA8_SRGB;
-
-  default:
-    return 0;
-  }
-}
-
-static uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
-  switch (format) {
-  case IVY_R8_UNORM:
-    return 1 * sizeof(uint8_t);
-
-  case IVY_RGBA8_SRGB:
-    return 4 * sizeof(uint8_t);
   }
 }
 
@@ -346,9 +327,131 @@ IvyCode ivyGenerateVulkanImageMips(
   return ivyCode;
 }
 
+static VkSampler ivyCreateVulkanSampler(VkDevice device) {
+  VkResult            vulkanResult;
+  VkSampler           sampler;
+  VkSamplerCreateInfo samplerCreateInfo;
+
+  samplerCreateInfo.sType      = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+  samplerCreateInfo.pNext      = NULL;
+  samplerCreateInfo.flags      = 0;
+  samplerCreateInfo.magFilter  = VK_FILTER_LINEAR;
+  samplerCreateInfo.minFilter  = VK_FILTER_LINEAR;
+  samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+#if 0
+  samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+#else
+  samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+  samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+  samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+#endif
+  samplerCreateInfo.mipLodBias              = 0.0F;
+  samplerCreateInfo.anisotropyEnable        = VK_TRUE;
+  samplerCreateInfo.maxAnisotropy           = 16.0F;
+  samplerCreateInfo.compareEnable           = VK_FALSE;
+  samplerCreateInfo.compareOp               = VK_COMPARE_OP_ALWAYS;
+  samplerCreateInfo.minLod                  = 0.0F;
+  samplerCreateInfo.maxLod                  = VK_LOD_CLAMP_NONE;
+  samplerCreateInfo.borderColor             = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+  samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+
+  vulkanResult = vkCreateSampler(device, &samplerCreateInfo, NULL, &sampler);
+  if (vulkanResult)
+    return VK_NULL_HANDLE;
+
+  return sampler;
+}
+
+static void ivyWriteVulkanTextureDynamicDescriptorSet(
+    VkDevice        device,
+    VkImageView     imageView,
+    VkSampler       sampler,
+    VkImageLayout   imageLayout,
+    VkDescriptorSet descriptorSet) {
+  VkDescriptorImageInfo descriptorImageInfos[2];
+  VkWriteDescriptorSet  writeDescriptorSets[2];
+
+  descriptorImageInfos[0].sampler     = VK_NULL_HANDLE;
+  descriptorImageInfos[0].imageView   = imageView;
+  descriptorImageInfos[0].imageLayout = imageLayout;
+
+  descriptorImageInfos[1].sampler     = sampler;
+  descriptorImageInfos[1].imageView   = NULL;
+  descriptorImageInfos[1].imageLayout = imageLayout;
+
+  writeDescriptorSets[0].sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSets[0].pNext      = NULL;
+  writeDescriptorSets[0].dstSet     = descriptorSet;
+  writeDescriptorSets[0].dstBinding = 0;
+  writeDescriptorSets[0].dstArrayElement  = 0;
+  writeDescriptorSets[0].descriptorCount  = 1;
+  writeDescriptorSets[0].descriptorType   = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+  writeDescriptorSets[0].pImageInfo       = &descriptorImageInfos[0];
+  writeDescriptorSets[0].pBufferInfo      = NULL;
+  writeDescriptorSets[0].pTexelBufferView = NULL;
+
+  writeDescriptorSets[1].sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSets[1].pNext      = NULL;
+  writeDescriptorSets[1].dstSet     = descriptorSet;
+  writeDescriptorSets[1].dstBinding = 1;
+  writeDescriptorSets[1].dstArrayElement  = 0;
+  writeDescriptorSets[1].descriptorCount  = 1;
+  writeDescriptorSets[1].descriptorType   = VK_DESCRIPTOR_TYPE_SAMPLER;
+  writeDescriptorSets[1].pImageInfo       = &descriptorImageInfos[1];
+  writeDescriptorSets[1].pBufferInfo      = NULL;
+  writeDescriptorSets[1].pTexelBufferView = NULL;
+
+  vkUpdateDescriptorSets(
+      device,
+      IVY_ARRAY_LENGTH(writeDescriptorSets),
+      writeDescriptorSets,
+      0,
+      NULL);
+}
+
+IvyCode ivyCreateGraphicsTextureFromFile(
+    IvyGraphicsContext           *context,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator,
+    VkDescriptorSetLayout         textureDescriptorSetLayout,
+    char const                   *path,
+    IvyGraphicsTexture           *texture) {
+  IvyCode ivyCode;
+  int     width;
+  int     height;
+  int     channels;
+  void   *data = NULL;
+
+  IVY_ASSERT(context);
+  IVY_ASSERT(graphicsAllocator);
+  IVY_ASSERT(textureDescriptorSetLayout);
+  IVY_ASSERT(path);
+  IVY_ASSERT(texture);
+
+  data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
+  if (!data)
+    return IVY_UNKNOWN_ERROR;
+
+  ivyCode = ivyCreateGraphicsTexture(
+      context,
+      graphicsAllocator,
+      textureDescriptorSetLayout,
+      width,
+      height,
+      IVY_RGBA8_SRGB,
+      data,
+      texture);
+
+  stbi_image_free(data);
+
+  return ivyCode;
+}
+
 IvyCode ivyCreateGraphicsTexture(
     IvyGraphicsContext           *context,
-    IvyAnyGraphicsMemoryAllocator allocator,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator,
+    VkDescriptorSetLayout         textureDescriptorSetLayout,
     int32_t                       width,
     int32_t                       height,
     IvyPixelFormat                format,
@@ -371,16 +474,18 @@ IvyCode ivyCreateGraphicsTexture(
       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
           VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       ivyAsVulkanFormat(texture->format));
+  IVY_ASSERT(texture->image);
   if (!texture->image)
     goto error;
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(
       context,
-      allocator,
+      graphicsAllocator,
       IVY_GPU_LOCAL,
       texture->image,
       &texture->memory);
-  if (!texture->memory.memory)
+  IVY_ASSERT(!ivyCode);
+  if (ivyCode)
     goto error;
 
   texture->imageView = ivyCreateVulkanImageView(
@@ -388,6 +493,7 @@ IvyCode ivyCreateGraphicsTexture(
       texture->image,
       VK_IMAGE_ASPECT_COLOR_BIT,
       ivyAsVulkanFormat(texture->format));
+  IVY_ASSERT(texture->imageView);
   if (!texture->imageView)
     goto error;
 
@@ -398,17 +504,19 @@ IvyCode ivyCreateGraphicsTexture(
         texture->image,
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    IVY_ASSERT(!ivyCode);
     if (ivyCode)
       goto error;
 
     ivyCode = ivyUploadDataToVulkanImage(
         context,
-        allocator,
+        graphicsAllocator,
         texture->width,
         texture->height,
         texture->format,
         data,
         texture->image);
+    IVY_ASSERT(!ivyCode);
     if (ivyCode)
       goto error;
 
@@ -418,14 +526,35 @@ IvyCode ivyCreateGraphicsTexture(
         texture->height,
         texture->mipLevels,
         texture->image);
+    IVY_ASSERT(!ivyCode);
     if (ivyCode)
       goto error;
   }
 
+  texture->descriptorSet = ivyAllocateVulkanDescriptorSet(
+      context->device,
+      context->globalDescriptorPool,
+      textureDescriptorSetLayout);
+  IVY_ASSERT(texture->descriptorSet);
+  if (!texture->descriptorSet)
+    goto error;
+
+  texture->sampler = ivyCreateVulkanSampler(context->device);
+  IVY_ASSERT(texture->sampler);
+  if (!texture->sampler)
+    goto error;
+
+  ivyWriteVulkanTextureDynamicDescriptorSet(
+      context->device,
+      texture->imageView,
+      texture->sampler,
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      texture->descriptorSet);
+
   return IVY_OK;
 
 error:
-  ivyDestroyGraphicsTexture(context, allocator, texture);
+  ivyDestroyGraphicsTexture(context, graphicsAllocator, texture);
   return IVY_NO_GRAPHICS_MEMORY;
 }
 
@@ -435,6 +564,25 @@ void ivyDestroyGraphicsTexture(
     IvyGraphicsTexture           *texture) {
   if (!context || !allocator || !texture)
     return;
+
+  if (context->device) {
+    // FIXME: stopping the device just to destroy a texture...
+    vkDeviceWaitIdle(context->device);
+  }
+
+  if (texture->sampler) {
+    vkDestroySampler(context->device, texture->sampler, NULL);
+    texture->sampler = VK_NULL_HANDLE;
+  }
+
+  if (texture->descriptorSet) {
+    vkFreeDescriptorSets(
+        context->device,
+        context->globalDescriptorPool,
+        1,
+        &texture->descriptorSet);
+    texture->descriptorSet = VK_NULL_HANDLE;
+  }
 
   if (texture->memory.memory) {
     ivyFreeGraphicsMemory(context, allocator, &texture->memory);

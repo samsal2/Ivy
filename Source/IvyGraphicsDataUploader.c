@@ -18,6 +18,7 @@ static VkBuffer ivyCreateAndAllocateUploadBuffer(
       context->device,
       IVY_SOURCE_BUFFER,
       size);
+  IVY_ASSERT(uploadBuffer);
   if (!uploadBuffer)
     goto error;
 
@@ -27,10 +28,13 @@ static VkBuffer ivyCreateAndAllocateUploadBuffer(
       IVY_HOST_VISIBLE,
       uploadBuffer,
       memory);
+  IVY_ASSERT(!ivyCode);
   if (ivyCode)
     goto error;
 
   IVY_MEMCPY(memory->data, data, size);
+
+  return uploadBuffer;
 
 error:
   if (memory->memory) {
@@ -71,6 +75,7 @@ IvyCode ivyUploadDataToVulkanImage(
   uploadMemory.memory = VK_NULL_HANDLE;
 
   commandBuffer = ivyAllocateOneTimeCommandBuffer(context);
+  IVY_ASSERT(commandBuffer);
   if (!commandBuffer)
     goto error;
 
@@ -80,6 +85,7 @@ IvyCode ivyUploadDataToVulkanImage(
       width * height * ivyGetPixelFormatSize(format),
       data,
       &uploadMemory);
+  IVY_ASSERT(uploadBuffer);
   if (!uploadBuffer)
     goto error;
 
@@ -106,6 +112,7 @@ IvyCode ivyUploadDataToVulkanImage(
       &bufferImageCopy);
 
   ivyCode = ivySubmitOneTimeCommandBuffer(context, commandBuffer);
+  IVY_ASSERT(!ivyCode);
   if (ivyCode)
     goto error;
 

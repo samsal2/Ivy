@@ -15,17 +15,9 @@ set_target_properties(${PROJECT_NAME}
         C_STANDARD_REQUIRED ON
         C_EXTENSIONS        OFF)
 
-# link libraries
-target_link_libraries(${PROJECT_NAME} 
-  PUBLIC ${Vulkan_LIBRARIES})
-
-# includes
-target_include_directories(${PROJECT_NAME} 
-  PUBLIC ${Vulkan_INCLUDE_DIR} Source)
-
 # compile options
 target_compile_options(${PROJECT_NAME} PUBLIC
-	"$<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:"
+	"$<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:"
 		-Wall
 		-Wshadow
 		-Wextra
@@ -35,25 +27,37 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 		-Walloca 
 		-Wvla 
 		-fdiagnostics-color=always
+
+    -Wno-long-long # C99 extension
+    -Wno-comment # C99 extension
+    -Wno-typedef-redefinition # C11 extensions (vulkan requires it)
 	">"
-	"$<$<AND:$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>,$<CONFIG:Debug>>:"
+	"$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
 		-O0
 		-g
 		-fsanitize=address
 		-fsanitize=undefined
 		-fsanitize=bounds
 	">"
-	"$<$<AND:$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>,$<CONFIG:Release>>:"
+	"$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Release>>:"
 		-Ofast
 	">")
 
 # link options
 target_link_options(${PROJECT_NAME} PUBLIC
-	"$<$<AND:$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>,$<CONFIG:Debug>>:"
+	"$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
 		-fsanitize=address
 		-fsanitize=undefined
 		-fsanitize=bounds
 	">")
+
+# link libraries
+target_link_libraries(${PROJECT_NAME} 
+  PUBLIC ${Vulkan_LIBRARIES})
+
+# includes
+target_include_directories(${PROJECT_NAME} 
+  PUBLIC ${Vulkan_INCLUDE_DIR} Source)
 
 # add sources
 add_subdirectory(Dependencies)

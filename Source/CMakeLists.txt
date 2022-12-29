@@ -2,6 +2,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyApplication.c
   IvyApplication.h
   IvyDeclarations.h
+  IvyDraw.c
+  IvyDraw.h
   IvyDummyGraphicsMemoryAllocator.c
   IvyDummyGraphicsMemoryAllocator.h
   IvyDummyMemoryAllocator.c

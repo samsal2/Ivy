@@ -2,52 +2,14 @@
 
 #include "IvyGraphicsTexture.h"
 
+#if 0
 static IvyCode ivyVulkanResultToIvyCode(VkResult vulkanResult) {
   switch (vulkanResult) {
   default:
     return IVY_UNKNOWN_ERROR;
   }
 }
-
-static VkImageView *ivyAllocateAndCreateVulkanSwapchainImageViews(
-    IvyAnyMemoryAllocator *allocator,
-    VkDevice               device,
-    VkFormat               surfaceFormat,
-    uint32_t               swapchainImageCount,
-    VkImage               *swapchainImages) {
-  uint32_t     i;
-  VkImageView *imageViews = NULL;
-
-  imageViews = ivyAllocateMemory(
-      allocator,
-      swapchainImageCount * sizeof(*imageViews));
-  if (!imageViews)
-    return NULL;
-
-  for (i = 0; i < swapchainImageCount; ++i)
-    imageViews[i] = VK_NULL_HANDLE;
-
-  for (i = 0; i < swapchainImageCount; ++i) {
-    imageViews[i] = ivyCreateVulkanImageView(
-        device,
-        swapchainImages[i],
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        surfaceFormat);
-    if (!imageViews[i])
-      goto error;
-  }
-
-  return imageViews;
-
-error:
-  for (i = 0; i < swapchainImageCount; ++i)
-    if (imageViews[i])
-      vkDestroyImageView(device, imageViews[i], NULL);
-
-  ivyFreeMemory(allocator, imageViews);
-
-  return NULL;
-}
+#endif
 
 static VkFramebuffer ivyCreateVulkanSwapchainFramebuffer(
     VkDevice     device,
@@ -60,11 +22,11 @@ static VkFramebuffer ivyCreateVulkanSwapchainFramebuffer(
   VkResult                vulkanResult;
   VkFramebuffer           framebuffer;
   VkFramebufferCreateInfo framebufferCreateInfo;
+  VkImageView             attachments[3];
 
-  VkImageView attachments[] = {
-      colorAttachmentImageView,
-      depthAttachmentImageView,
-      swapchainImageView};
+  attachments[0] = colorAttachmentImageView,
+  attachments[1] = depthAttachmentImageView,
+  attachments[2] = swapchainImageView;
 
   framebufferCreateInfo.sType      = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   framebufferCreateInfo.pNext      = NULL;
@@ -85,53 +47,6 @@ static VkFramebuffer ivyCreateVulkanSwapchainFramebuffer(
     return VK_NULL_HANDLE;
 
   return framebuffer;
-}
-
-static VkFramebuffer *ivyAllocateAndCreateVulkanSwapchainFramebuffers(
-    IvyAnyMemoryAllocator allocator,
-    VkDevice              device,
-    uint32_t              swapchainImageCount,
-    VkImageView          *swapchainImageViews,
-    int32_t               width,
-    int32_t               height,
-    VkRenderPass          mainRenderPass,
-    VkImageView           colorAttachmentImageView,
-    VkImageView           depthAttachmentImageView) {
-  uint32_t       i;
-  VkFramebuffer *framebuffers = NULL;
-
-  framebuffers = ivyAllocateMemory(
-      allocator,
-      swapchainImageCount * sizeof(*framebuffers));
-  if (!framebuffers)
-    return NULL;
-
-  for (i = 0; i < swapchainImageCount; ++i)
-    framebuffers[i] = VK_NULL_HANDLE;
-
-  for (i = 0; i < swapchainImageCount; ++i) {
-    framebuffers[i] = ivyCreateVulkanSwapchainFramebuffer(
-        device,
-        width,
-        height,
-        mainRenderPass,
-        swapchainImageViews[i],
-        colorAttachmentImageView,
-        depthAttachmentImageView);
-    if (!framebuffers[i])
-      goto error;
-  }
-
-  return framebuffers;
-
-error:
-  for (i = 0; i < swapchainImageCount; ++i)
-    if (framebuffers[i])
-      vkDestroyFramebuffer(device, framebuffers[i], NULL);
-
-  ivyFreeMemory(allocator, framebuffers);
-
-  return NULL;
 }
 
 VkCommandPool ivyCreateVulkanCommandPool(
@@ -244,8 +159,7 @@ static IvyCode ivyCreateGraphicsFrame(
     VkImageView                   colorAttachmentImageView,
     VkImageView                   depthAttachmentImageView,
     IvyGraphicsFrame             *frame) {
-  IvyCode  ivyCode;
-  VkResult vulkanResult;
+  IvyCode ivyCode;
 
   IVY_MEMSET(frame, 0, sizeof(*frame));
 
@@ -473,10 +387,10 @@ static VkSwapchainKHR ivyCreateVulkanSwapchain(
   VkSwapchainKHR           swapchain       = VK_NULL_HANDLE;
   VkSurfaceCapabilitiesKHR surfaceCapabilities;
   VkSwapchainCreateInfoKHR swapchainCreateInfo;
+  uint32_t                 queueFamilyIndices[2];
 
-  uint32_t queueFamilyIndices[2] = {
-      context->graphicsQueueFamilyIndex,
-      context->presentQueueFamilyIndex};
+  queueFamilyIndices[0] = context->graphicsQueueFamilyIndex;
+  queueFamilyIndices[1] = context->presentQueueFamilyIndex;
 
   *swapchainImageCount = 0;
   *frames              = NULL;
@@ -763,9 +677,10 @@ static VkPipelineLayout ivyCreateVulkanMainPipelineLayout(
   VkResult                   vulkanResult;
   VkPipelineLayout           pipelineLayout;
   VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo;
-  VkDescriptorSetLayout      descriptorSetLayouts[] = {
-      uniformDescriptorSetLayout,
-      textureDescriptorSetLayout};
+  VkDescriptorSetLayout      descriptorSetLayouts[2];
+
+  descriptorSetLayouts[0] = uniformDescriptorSetLayout;
+  descriptorSetLayouts[1] = textureDescriptorSetLayout;
 
   pipelineLayoutCreateInfo
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -895,8 +810,8 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
       renderer->mainPipelineLayout,
       renderer->swapchainWidth,
       renderer->swapchainHeight,
-      "../GLSL/basic.vert.spv",
-      "../GLSL/basic.frag.spv",
+      "../GLSL/Basic.vert.spv",
+      "../GLSL/Basic.frag.spv",
       IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
           IVY_CULL_FRONT | IVY_FRONT_FACE_COUNTERCLOCKWISE,
       &renderer->basicGraphicsProgram);
@@ -1185,12 +1100,11 @@ IvyCode ivyRequestGraphicsTemporaryBufferFromRenderer(
 }
 
 IvyCode ivyBeginGraphicsFrame(IvyRenderer *renderer) {
-  IvyCode                      ivyCode;
-  VkResult                     vulkanResult;
-  VkCommandBufferBeginInfo     commandBufferBeginInfo;
-  VkRenderPassBeginInfo        renderPassBeginInfo;
-  IvyGraphicsFrame            *frame;
-  IvyGraphicsRenderSemaphores *semaphores;
+  IvyCode                  ivyCode;
+  VkResult                 vulkanResult;
+  VkCommandBufferBeginInfo commandBufferBeginInfo;
+  VkRenderPassBeginInfo    renderPassBeginInfo;
+  IvyGraphicsFrame        *frame;
 
   if (renderer->requiresSwapchainRebuild)
     ivyRebuildGraphicsSwapchain(renderer);
@@ -1198,8 +1112,7 @@ IvyCode ivyBeginGraphicsFrame(IvyRenderer *renderer) {
   ivyCode = ivyAcquireNextVulkanSwapchainImageIndex(renderer);
   IVY_ASSERT(!ivyCode);
 
-  frame      = ivyGetCurrentGraphicsFrame(renderer);
-  semaphores = ivyGetCurrentGraphicsRenderSemaphores(renderer);
+  frame = ivyGetCurrentGraphicsFrame(renderer);
 
   IVY_ASSERT(frame);
   IVY_ASSERT(frame->inFlightFence);
@@ -1313,5 +1226,20 @@ IvyCode ivyEndGraphicsFrame(IvyRenderer *renderer) {
   if (renderer->currentSemaphoreIndex == renderer->swapchainImageCount)
     renderer->currentSemaphoreIndex = 0;
 
+  renderer->boundGraphicsProgram = NULL;
+
   return IVY_OK;
+}
+
+void ivyBindGraphicsProgramInRenderer(
+    IvyRenderer        *renderer,
+    IvyGraphicsProgram *program) {
+  if (renderer->boundGraphicsProgram != program) {
+    IvyGraphicsFrame *frame        = ivyGetCurrentGraphicsFrame(renderer);
+    renderer->boundGraphicsProgram = program;
+    vkCmdBindPipeline(
+        frame->commandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        program->pipeline);
+  }
 }

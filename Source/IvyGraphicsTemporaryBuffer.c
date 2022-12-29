@@ -1,4 +1,5 @@
 #include "IvyGraphicsTemporaryBuffer.h"
+#include "IvyGraphicsProgram.h"
 
 static VkBufferUsageFlagBits ivyAsVulkanBufferUsage(uint32_t flags) {
   VkBufferUsageFlagBits bufferUsage = 0;
@@ -36,6 +37,7 @@ VkBuffer ivyCreateVulkanBuffer(VkDevice device, uint32_t flags, uint64_t size) {
   bufferCreateInfo.pQueueFamilyIndices   = NULL;
 
   vulkanResult = vkCreateBuffer(device, &bufferCreateInfo, NULL, &buffer);
+  IVY_ASSERT(!vulkanResult);
   if (vulkanResult)
     return VK_NULL_HANDLE;
 
@@ -105,6 +107,8 @@ void ivyDestroyGraphicsTemporaryBufferProvider(
 static uint64_t ivyAlignTo256(uint64_t value) { return ivyAlignTo(value, 256); }
 
 static uint64_t ivyNextGraphicsTemporaryBufferProviderSize(uint64_t size) {
+  if (!size)
+    return 4096;
   return ivyAlignTo256(size * 2);
 }
 
@@ -112,8 +116,10 @@ static void ivyProvideGraphicsTemporaryBuffer(
     IvyGraphicsTemporaryBufferProvider *provider,
     uint64_t                            size,
     IvyGraphicsTemporaryBuffer         *buffer) {
-  uint64_t nextOffset = ivyAlignTo256(provider->currentBufferOffset + size);
+  uint64_t curretOffset = provider->currentBufferOffset;
+  uint64_t nextOffset = ivyAlignTo256(curretOffset + size);
 
+  buffer->data = ((uint8_t*)provider->currentMemory.data) + curretOffset;
   buffer->offset        = provider->currentBufferOffset;
   buffer->buffer        = provider->currentBuffer;
   buffer->descriptorSet = provider->currentDescriptorSet;
@@ -136,7 +142,7 @@ static IvyCode ivyMoveCurrentBufferToGarbageInGraphicsTemporaryBufferProvider(
   return IVY_OK;
 }
 
-static VkDescriptorSet ivyAllocateVulkanDescriptorSet(
+VkDescriptorSet ivyAllocateVulkanDescriptorSet(
     VkDevice              device,
     VkDescriptorPool      descriptorPool,
     VkDescriptorSetLayout descriptorSetLayout) {
@@ -161,9 +167,35 @@ static VkDescriptorSet ivyAllocateVulkanDescriptorSet(
   return descriptorSet;
 }
 
+static void ivyWriteVulkanUniformDynamicDescriptorSet(
+    VkDevice        device,
+    VkBuffer        buffer,
+    VkDescriptorSet descriptorSet,
+    uint64_t        uniformSize) {
+  VkDescriptorBufferInfo descriptorBufferInfo;
+  VkWriteDescriptorSet   writeDescriptorSet;
+
+  descriptorBufferInfo.buffer = buffer;
+  descriptorBufferInfo.offset = 0;
+  descriptorBufferInfo.range  = uniformSize;
+
+  writeDescriptorSet.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSet.pNext           = NULL;
+  writeDescriptorSet.dstSet          = descriptorSet;
+  writeDescriptorSet.dstBinding      = 0;
+  writeDescriptorSet.dstArrayElement = 0;
+  writeDescriptorSet.descriptorCount = 1;
+  writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+  writeDescriptorSet.pImageInfo     = NULL;
+  writeDescriptorSet.pBufferInfo    = &descriptorBufferInfo;
+  writeDescriptorSet.pTexelBufferView = NULL;
+
+  vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, NULL);
+}
+
 IvyCode ivyRequestGraphicsTemporaryBuffer(
     IvyGraphicsContext                 *context,
-    IvyAnyGraphicsMemoryAllocator       allocator,
+    IvyAnyGraphicsMemoryAllocator       graphicsAllocator,
     IvyGraphicsTemporaryBufferProvider *provider,
     VkDescriptorSetLayout               uniformDescriptorSetLayout,
     uint64_t                            size,
@@ -188,7 +220,7 @@ IvyCode ivyRequestGraphicsTemporaryBuffer(
 
     ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(
         context,
-        allocator,
+        graphicsAllocator,
         IVY_HOST_VISIBLE,
         newBuffer,
         &newMemory);
@@ -202,10 +234,16 @@ IvyCode ivyRequestGraphicsTemporaryBuffer(
         context->globalDescriptorPool,
         uniformDescriptorSetLayout);
     if (!newDescriptorSet) {
-      ivyFreeGraphicsMemory(context, allocator, &newMemory);
+      ivyFreeGraphicsMemory(context, graphicsAllocator, &newMemory);
       vkDestroyBuffer(context->device, newBuffer, NULL);
       return IVY_NO_GRAPHICS_MEMORY;
     }
+
+    ivyWriteVulkanUniformDynamicDescriptorSet(
+        context->device,
+        newBuffer,
+        newDescriptorSet,
+        sizeof(IvyGraphicsProgramUniform));
 
     ivyCode = ivyMoveCurrentBufferToGarbageInGraphicsTemporaryBufferProvider(
         provider);
@@ -215,11 +253,12 @@ IvyCode ivyRequestGraphicsTemporaryBuffer(
           context->globalDescriptorPool,
           1,
           &newDescriptorSet);
-      ivyFreeGraphicsMemory(context, allocator, &newMemory);
+      ivyFreeGraphicsMemory(context, graphicsAllocator, &newMemory);
       vkDestroyBuffer(context->device, newBuffer, NULL);
       return IVY_NO_GRAPHICS_MEMORY;
     }
 
+    provider->currentDescriptorSet = newDescriptorSet;
     provider->currentBufferSize    = newSize;
     provider->currentBufferOffset  = 0;
     provider->currentBuffer        = newBuffer;

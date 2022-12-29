@@ -1,6 +1,6 @@
 set(IVY_GLSL_SHADERS
-  basic.frag
-  basic.vert)
+  Basic.frag
+  Basic.vert)
 
 if ("${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}" STREQUAL "")
   message(AUTHOR_WARNING "missing Vulkan_GLSLANG_VALIDATOR_EXECUTABLE"

@@ -28,7 +28,6 @@ static IvyCode ivyAllocateGraphicsMemoryFromDummyAllocator(
     uint64_t                      size,
     IvyGraphicsMemory            *memory) {
   IvyCode                          ivyCode;
-  int32_t                          slot;
   IvyGraphicsMemoryChunk          *chunk;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 

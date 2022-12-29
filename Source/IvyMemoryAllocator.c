@@ -1,5 +1,7 @@
 #include "IvyMemoryAllocator.h"
 
+#include "IvyDeclarations.h"
+
 #define IVY_MEMORY_ALLOCATOR_MAGIC 0xA50A6AAA
 
 void ivySetupMemoryAllocatorBase(
@@ -11,6 +13,10 @@ void ivySetupMemoryAllocatorBase(
 
 void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator, uint64_t size) {
   IvyMemoryAllocatorBase *base = allocator;
+  IVY_ASSERT(base);
+  IVY_ASSERT(base->dispatch);
+  IVY_ASSERT(base->dispatch->allocate);
+  IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
   return base->dispatch->allocate(allocator, size);
 }
 
@@ -19,15 +25,27 @@ void *ivyAllocateAndZeroMemory(
     uint64_t              count,
     uint64_t              elementSize) {
   IvyMemoryAllocatorBase *base = allocator;
+  IVY_ASSERT(base);
+  IVY_ASSERT(base->dispatch);
+  IVY_ASSERT(base->dispatch->allocateAndZero);
+  IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
   return base->dispatch->allocateAndZero(allocator, count, elementSize);
 }
 
 void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data) {
   IvyMemoryAllocatorBase *base = allocator;
+  IVY_ASSERT(base);
+  IVY_ASSERT(base->dispatch);
+  IVY_ASSERT(base->dispatch->free);
+  IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
   base->dispatch->free(allocator, data);
 }
 
 void ivyDestroyMemoryAllocator(IvyAnyMemoryAllocator allocator) {
   IvyMemoryAllocatorBase *base = allocator;
+  IVY_ASSERT(base);
+  IVY_ASSERT(base->dispatch);
+  IVY_ASSERT(base->dispatch->destroy);
+  IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
   base->dispatch->destroy(allocator);
 }
