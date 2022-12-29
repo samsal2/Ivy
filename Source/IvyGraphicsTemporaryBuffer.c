@@ -57,21 +57,21 @@ IvyCode ivyCreateGraphicsTemporaryBufferProvider(IvyGraphicsContext *context,
 void ivyClearGraphicsTemporaryBufferProvider(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTemporaryBufferProvider *provider) {
-  int32_t i;
-  for (i = 0; i < provider->garbageBufferCount; ++i) {
-    if (provider->garbageBuffers[i]) {
-      vkDestroyBuffer(context->device, provider->garbageBuffers[i], NULL);
-      provider->garbageBuffers[i] = VK_NULL_HANDLE;
+  int32_t index;
+  for (index = 0; index < provider->garbageBufferCount; ++index) {
+    if (provider->garbageBuffers[index]) {
+      vkDestroyBuffer(context->device, provider->garbageBuffers[index], NULL);
+      provider->garbageBuffers[index] = VK_NULL_HANDLE;
     }
 
-    if (provider->garbageDescriptorSets[i]) {
+    if (provider->garbageDescriptorSets[index]) {
       vkFreeDescriptorSets(context->device, context->globalDescriptorPool, 1,
-          &provider->garbageDescriptorSets[i]);
-      provider->garbageDescriptorSets[i] = VK_NULL_HANDLE;
+          &provider->garbageDescriptorSets[index]);
+      provider->garbageDescriptorSets[index] = VK_NULL_HANDLE;
     }
 
     ivyFreeGraphicsMemory(context, graphicsAllocator,
-        &provider->garbageMemories[i]);
+        &provider->garbageMemories[index]);
   }
 
   provider->currentBufferOffset = 0;
@@ -102,9 +102,11 @@ static uint64_t ivyAlignTo256(uint64_t value) {
   return ivyAlignTo(value, 256);
 }
 
+#define IVY_DEFAULT_TEMPORARY_BUFFER_SIZE 4096
+
 static uint64_t ivyNextGraphicsTemporaryBufferProviderSize(uint64_t size) {
   if (!size)
-    return 4096;
+    return IVY_DEFAULT_TEMPORARY_BUFFER_SIZE;
   return ivyAlignTo256(size * 2);
 }
 

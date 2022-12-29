@@ -11,6 +11,9 @@ typedef void *(*IvyAllocateMemoryCallback)(IvyAnyMemoryAllocator allocator,
 typedef void *(*IvyAllocateAndZeroMemoryCallback)(
     IvyAnyMemoryAllocator allocator, uint64_t count, uint64_t elementSize);
 
+typedef void *(*IvyReallocateMemoryCallback)(IvyAnyMemoryAllocator allocator,
+    void *data, uint64_t newSize);
+
 typedef void (
     *IvyFreeMemoryCallback)(IvyAnyMemoryAllocator allocator, void *data);
 
@@ -19,6 +22,7 @@ typedef void (*IvyDestroyMemoryAllocator)(IvyAnyMemoryAllocator allocator);
 typedef struct IvyMemoryAllocatorDispatch {
   IvyAllocateMemoryCallback allocate;
   IvyAllocateAndZeroMemoryCallback allocateAndZero;
+  IvyReallocateMemoryCallback reallocate;
   IvyFreeMemoryCallback free;
   IvyDestroyMemoryAllocator destroy;
 } IvyMemoryAllocatorDispatch;
@@ -32,6 +36,9 @@ void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch *dispatch,
     IvyMemoryAllocatorBase *base);
 
 void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator, uint64_t size);
+
+void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
+    uint64_t newSize);
 
 void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator, uint64_t count,
     uint64_t elementSize);

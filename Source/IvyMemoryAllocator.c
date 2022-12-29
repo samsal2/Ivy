@@ -29,6 +29,16 @@ void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator, uint64_t count,
   return base->dispatch->allocateAndZero(allocator, count, elementSize);
 }
 
+void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
+    uint64_t newSize) {
+  IvyMemoryAllocatorBase *base = allocator;
+  IVY_ASSERT(base);
+  IVY_ASSERT(base->dispatch);
+  IVY_ASSERT(base->dispatch->allocateAndZero);
+  IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
+  return base->dispatch->reallocate(allocator, data, newSize);
+}
+
 void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data) {
   IvyMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);

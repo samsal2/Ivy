@@ -169,7 +169,7 @@ static void ivyFindVulkanQueueFamilyIndices(IvyAnyMemoryAllocator allocator,
     VkPhysicalDevice device, VkSurfaceKHR surface,
     uint32_t *selectedGraphicsQueueFamilyIndex,
     uint32_t *selectedPresentQueueFamilyIndex) {
-  uint32_t i;
+  uint32_t index;
   uint32_t queueFamilyPropertiesCount;
   VkQueueFamilyProperties *queueFamilyProperties;
 
@@ -181,16 +181,16 @@ static void ivyFindVulkanQueueFamilyIndices(IvyAnyMemoryAllocator allocator,
   if (!queueFamilyProperties)
     return;
 
-  for (i = 0; i < queueFamilyPropertiesCount; ++i) {
+  for (index = 0; index < queueFamilyPropertiesCount; ++index) {
     VkBool32 isSurfaceSupported;
 
-    if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-      *selectedGraphicsQueueFamilyIndex = i;
+    if (queueFamilyProperties[index].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+      *selectedGraphicsQueueFamilyIndex = index;
 
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface,
+    vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface,
         &isSurfaceSupported);
     if (isSurfaceSupported)
-      *selectedPresentQueueFamilyIndex = i;
+      *selectedPresentQueueFamilyIndex = index;
 
     if (ivyAreVulkanQueueFamilyIndicesValid(*selectedGraphicsQueueFamilyIndex,
             *selectedPresentQueueFamilyIndex))
@@ -241,14 +241,18 @@ static IvyBool ivyDoAllVulkanRequiredExtensionsExist(
     uint32_t availableExtensionCount,
     VkExtensionProperties *availableExtensions,
     uint32_t requiredExtensionCount, char const *const *requiredExtensions) {
-  uint32_t i;
-  for (i = 0; i < requiredExtensionCount; ++i) {
+  uint32_t requiredExtensionIndex;
+  for (requiredExtensionIndex = 0;
+       requiredExtensionIndex < requiredExtensionCount;
+       ++requiredExtensionIndex) {
     IvyBool existsInAvailableExtensions = 0;
-    uint32_t j;
-    for (j = 0; j < availableExtensionCount && !existsInAvailableExtensions;
-         ++j) {
-      if (!IVY_STRNCMP(requiredExtensions[i],
-              availableExtensions[j].extensionName,
+    uint32_t availableExtensionIndex;
+    for (availableExtensionIndex = 0;
+         availableExtensionIndex < availableExtensionCount &&
+         !existsInAvailableExtensions;
+         ++availableExtensionIndex) {
+      if (!IVY_STRNCMP(requiredExtensions[requiredExtensionIndex],
+              availableExtensions[availableExtensionIndex].extensionName,
               VK_MAX_EXTENSION_NAME_SIZE))
         existsInAvailableExtensions = 1;
     }
@@ -310,13 +314,13 @@ static VkSurfaceFormatKHR *ivyAllocateVulkanSurfaceFormats(
 static IvyBool ivyDoesVulkanFormatExists(uint32_t surfaceFormatCount,
     VkSurfaceFormatKHR *surfaceFormats, VkFormat format,
     VkColorSpaceKHR colorSpace) {
-  uint32_t i;
+  uint32_t index;
 
-  for (i = 0; i < surfaceFormatCount; ++i) {
-    if (format != surfaceFormats[i].format)
+  for (index = 0; index < surfaceFormatCount; ++index) {
+    if (format != surfaceFormats[index].format)
       continue;
 
-    if (colorSpace != surfaceFormats[i].colorSpace)
+    if (colorSpace != surfaceFormats[index].colorSpace)
       continue;
 
     return 1;
@@ -345,10 +349,11 @@ static IvyBool ivyDoesVulkanPhysicalDeviceSupportFormat(
 }
 
 static IvyBool ivyDoesVulkanPresentModeExist(uint32_t presentModeCount,
-    VkPresentModeKHR *presentModes, VkPresentModeKHR requiredPresentMode) {
-  uint32_t i;
-  for (i = 0; i < presentModeCount; ++i)
-    if (presentModes[i] == requiredPresentMode)
+    VkPresentModeKHR const *presentModes,
+    VkPresentModeKHR requiredPresentMode) {
+  uint32_t index;
+  for (index = 0; index < presentModeCount; ++index)
+    if (presentModes[index] == requiredPresentMode)
       return 1;
 
   return 0;
@@ -412,9 +417,9 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
     VkSampleCountFlagBits requestedSampleCount,
     uint32_t *selectedGraphicsQueueFamilyIndex,
     uint32_t *selectedPresentQueueFamilyIndex, VkFormat *selectedDepthFormat) {
-  uint32_t i;
-  for (i = 0; i < availablePhysicalDeviceCount; ++i) {
-    VkPhysicalDevice device = availablePhysicalDevices[i];
+  uint32_t index;
+  for (index = 0; index < availablePhysicalDeviceCount; ++index) {
+    VkPhysicalDevice device = availablePhysicalDevices[index];
 
     if (!ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(allocator,
             device, IVY_ARRAY_LENGTH(requiredVulkanExtensions),
@@ -578,31 +583,34 @@ void ivyDestroyGraphicsContext(IvyGraphicsContext *context) {
   ivyDestroyMemoryAllocator(&context->globalMemoryAllocator);
 }
 
+#define IVY_MAX_DESCRIPTOR_POOL_TYPES 7
+#define IVY_DEFAULT_DESCRIPTOR_COUNT 256
+
 VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
   VkResult vulkanResult;
   VkDescriptorPool descriptorPool;
-  VkDescriptorPoolSize descriptorPoolSizes[7];
   VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
+  VkDescriptorPoolSize descriptorPoolSizes[IVY_MAX_DESCRIPTOR_POOL_TYPES];
 
-  descriptorPoolSizes[0].descriptorCount = 256;
+  descriptorPoolSizes[0].descriptorCount = IVY_DEFAULT_DESCRIPTOR_COUNT;
   descriptorPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 
-  descriptorPoolSizes[1].descriptorCount = 256;
+  descriptorPoolSizes[1].descriptorCount = IVY_DEFAULT_DESCRIPTOR_COUNT;
   descriptorPoolSizes[1].type = VK_DESCRIPTOR_TYPE_SAMPLER;
 
-  descriptorPoolSizes[2].descriptorCount = 256;
+  descriptorPoolSizes[2].descriptorCount = IVY_DEFAULT_DESCRIPTOR_COUNT;
   descriptorPoolSizes[2].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 
-  descriptorPoolSizes[3].descriptorCount = 256;
+  descriptorPoolSizes[3].descriptorCount = IVY_DEFAULT_DESCRIPTOR_COUNT;
   descriptorPoolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
-  descriptorPoolSizes[4].descriptorCount = 256;
+  descriptorPoolSizes[4].descriptorCount = IVY_DEFAULT_DESCRIPTOR_COUNT;
   descriptorPoolSizes[4].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-  descriptorPoolSizes[5].descriptorCount = 256;
+  descriptorPoolSizes[5].descriptorCount = IVY_DEFAULT_DESCRIPTOR_COUNT;
   descriptorPoolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-  descriptorPoolSizes[6].descriptorCount = 256;
+  descriptorPoolSizes[6].descriptorCount = IVY_DEFAULT_DESCRIPTOR_COUNT;
   descriptorPoolSizes[6].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
   descriptorPoolCreateInfo.sType =
@@ -611,7 +619,7 @@ VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
   descriptorPoolCreateInfo.flags =
       VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
   descriptorPoolCreateInfo.maxSets =
-      256 * IVY_ARRAY_LENGTH(descriptorPoolSizes);
+      IVY_DEFAULT_DESCRIPTOR_COUNT * IVY_ARRAY_LENGTH(descriptorPoolSizes);
   descriptorPoolCreateInfo.poolSizeCount =
       IVY_ARRAY_LENGTH(descriptorPoolSizes);
   descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes;
