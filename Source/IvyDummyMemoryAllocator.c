@@ -4,13 +4,15 @@
 
 static void *ivyAllocateMemoryFromDummyMemoryAllocator(
     IvyAnyMemoryAllocator allocator, uint64_t size) {
-  IVY_UNUSED(allocator);
+  IvyDummyMemoryAllocator *dummyAllocator = allocator;
+  ++dummyAllocator->aliveAllocationCount;
   return malloc(size);
 }
 
 static void *ivyAllocateAndZeroMemoryFromDummyMemoryAllocator(
     IvyAnyMemoryAllocator allocator, uint64_t count, uint64_t elementSize) {
-  IVY_UNUSED(allocator);
+  IvyDummyMemoryAllocator *dummyAllocator = allocator;
+  ++dummyAllocator->aliveAllocationCount;
   return calloc(count, elementSize);
 }
 
@@ -22,12 +24,19 @@ static void *ivyReallocateMemoryFromDummyMemoryAllocator(
 
 static void ivyFreeMemoryFromDummyMemoryAllocator(
     IvyAnyMemoryAllocator allocator, void *data) {
-  IVY_UNUSED(allocator);
-  free(data);
+  if (data) {
+    IvyDummyMemoryAllocator *dummyAllocator = allocator;
+    --dummyAllocator->aliveAllocationCount;
+    free(data);
+  }
 }
 
+#include <stdio.h>
 static void ivyDestroyDummyMemoryAllocator(IvyAnyMemoryAllocator allocator) {
-  IVY_UNUSED(allocator);
+  IvyDummyMemoryAllocator *dummyAllocator = allocator;
+  printf("%s\n %p->aliveAllocationCount: %i\n", __PRETTY_FUNCTION__, allocator,
+      dummyAllocator->aliveAllocationCount);
+  IVY_ASSERT(!dummyAllocator->aliveAllocationCount);
 }
 
 static IvyMemoryAllocatorDispatch dummyMemoryAllocatorDispatch = {
@@ -38,5 +47,6 @@ static IvyMemoryAllocatorDispatch dummyMemoryAllocatorDispatch = {
 
 IvyCode ivyCreateDummyMemoryAllocator(IvyDummyMemoryAllocator *allocator) {
   ivySetupMemoryAllocatorBase(&dummyMemoryAllocatorDispatch, &allocator->base);
+  allocator->aliveAllocationCount = 0;
   return IVY_OK;
 }

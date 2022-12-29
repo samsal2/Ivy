@@ -104,6 +104,8 @@ int ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context, uint32_t flags,
 
 void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
     IvyGraphicsMemoryChunk *chunk) {
-  vkFreeMemory(context->device, chunk->memory, NULL);
-  ivySetupEmptyGraphicsMemoryChunk(chunk);
+  if (chunk->memory) {
+    vkFreeMemory(context->device, chunk->memory, NULL);
+    chunk->memory = VK_NULL_HANDLE;
+  }
 }

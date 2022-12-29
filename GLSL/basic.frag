@@ -10,5 +10,11 @@ layout(location = 1) in vec2 inUV;
 layout(location = 0) out vec4 outColor;
 
 void main() {
+#if 0
   outColor = vec4(inColor, 1.0) * texture(sampler2D(texture0, sampler0), inUV);
+#elif 0
+  outColor = vec4(0.0, 1.0, 1.0, 1.0);
+#else
+  outColor = texture(sampler2D(texture0, sampler0), inUV);
+#endif
 }

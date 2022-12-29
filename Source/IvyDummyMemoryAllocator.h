@@ -6,6 +6,7 @@
 
 typedef struct IvyDummyMemoryAllocator {
   IvyMemoryAllocatorBase base;
+  int32_t aliveAllocationCount;
 } IvyDummyMemoryAllocator;
 
 IvyCode ivyCreateDummyMemoryAllocator(IvyDummyMemoryAllocator *allocator);

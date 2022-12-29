@@ -179,7 +179,7 @@ IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
 
 IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
     int32_t height, uint32_t mipLevels, VkImage image) {
-  uint32_t i;
+  uint32_t index;
   IvyCode ivyCode;
   VkImageMemoryBarrier imageMemoryBarrier;
   VkCommandBuffer commandBuffer;
@@ -205,10 +205,10 @@ IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
   imageMemoryBarrier.subresourceRange.layerCount = 1;
   imageMemoryBarrier.subresourceRange.levelCount = 1;
 
-  for (i = 0; i < (mipLevels - 1); ++i) {
+  for (index = 0; index < (mipLevels - 1); ++index) {
     VkImageBlit imageBlit;
 
-    imageMemoryBarrier.subresourceRange.baseMipLevel = i;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = index;
     imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
     imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -225,7 +225,7 @@ IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
     imageBlit.srcOffsets[1].y = height;
     imageBlit.srcOffsets[1].z = 1;
     imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageBlit.srcSubresource.mipLevel = i;
+    imageBlit.srcSubresource.mipLevel = index;
     imageBlit.srcSubresource.baseArrayLayer = 0;
     imageBlit.srcSubresource.layerCount = 1;
     imageBlit.dstOffsets[0].x = 0;
@@ -235,7 +235,7 @@ IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
     imageBlit.dstOffsets[1].y = (height > 1) ? (height /= 2) : 1;
     imageBlit.dstOffsets[1].z = 1;
     imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageBlit.dstSubresource.mipLevel = i + 1;
+    imageBlit.dstSubresource.mipLevel = index + 1;
     imageBlit.dstSubresource.baseArrayLayer = 0;
     imageBlit.dstSubresource.layerCount = 1;
 

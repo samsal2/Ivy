@@ -19,6 +19,7 @@ typedef struct IvyGraphicsTemporaryBufferProvider {
 typedef struct IvyGraphicsTemporaryBuffer {
   void *data;
   uint64_t offset;
+  uint64_t size;
   VkBuffer buffer;
   VkDescriptorSet descriptorSet;
 } IvyGraphicsTemporaryBuffer;

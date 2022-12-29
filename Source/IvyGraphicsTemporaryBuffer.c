@@ -117,6 +117,7 @@ static void ivyProvideGraphicsTemporaryBuffer(
   uint64_t nextOffset = ivyAlignTo256(curretOffset + size);
 
   buffer->data = ((uint8_t *)provider->currentMemory.data) + curretOffset;
+  buffer->size = size;
   buffer->offset = provider->currentBufferOffset;
   buffer->buffer = provider->currentBuffer;
   buffer->descriptorSet = provider->currentDescriptorSet;

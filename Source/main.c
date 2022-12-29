@@ -36,7 +36,7 @@ int main(void) {
 
   while (!ivyShouldApplicationClose(&app)) {
     ivyBeginGraphicsFrame(&renderer);
-    ivyDrawRectangle(&renderer, 0, 0, 1, 1, 1, 1, 1, &texture);
+    ivyDrawRectangle(&renderer, -1, -1, 1, 1, 1, 1, 1, &texture);
     ivyEndGraphicsFrame(&renderer);
     ivyPollApplicationEvents(&app);
   }

@@ -12,6 +12,7 @@ typedef int IvyBool;
 #define IVY_ALREADY_INITIALIZED -3
 #define IVY_PLATAFORM_ERROR -4
 #define IVY_NO_GRAPHICS_MEMORY -5
+#define IVY_NO_MEMORY -6
 
 #define IVY_UNUSED(e) (void)e
 #define IVY_ARRAY_LENGTH(a) (long)(sizeof(a) / sizeof((a)[0]))

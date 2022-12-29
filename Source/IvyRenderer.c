@@ -374,6 +374,8 @@ static VkSwapchainKHR ivyCreateVulkanSwapchain(IvyAnyMemoryAllocator allocator,
   if (!*renderSemaphores)
     goto error;
 
+  ivyFreeMemory(allocator, swapchainImages);
+
   return swapchain;
 
 error:
@@ -690,7 +692,7 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
       renderer->swapchainWidth, renderer->swapchainHeight,
       "../GLSL/Basic.vert.spv", "../GLSL/Basic.frag.spv",
       IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
-          IVY_CULL_FRONT | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+          IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
       &renderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode)
@@ -829,6 +831,8 @@ IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
 
   ivyDestroyGraphicsResourcesForSwapchainRebuild(renderer);
 
+  renderer->currentSemaphoreIndex = 0;
+  renderer->currentSwapchainImageIndex = 0;
   renderer->swapchainWidth = application->lastAddedWindow->framebufferWidth;
   renderer->swapchainHeight = application->lastAddedWindow->framebufferHeight;
 
@@ -868,7 +872,7 @@ IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
       renderer->swapchainWidth, renderer->swapchainHeight,
       "../GLSL/basic.vert.spv", "../GLSL/basic.frag.spv",
       IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
-          IVY_CULL_FRONT | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+          IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
       &renderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode)
@@ -880,7 +884,7 @@ error:
   return ivyCode;
 }
 
-static IvyBool ivyCheckVulkanResultIfRequiresSwapchainRebuild(
+static IvyBool ivyCheckIfVulkanSwapchainRequiresRebuild(
     VkResult vulkanResult) {
   return VK_SUBOPTIMAL_KHR == vulkanResult ||
          VK_ERROR_OUT_OF_DATE_KHR == vulkanResult;
@@ -905,7 +909,7 @@ static IvyCode ivyAcquireNextVulkanSwapchainImageIndex(IvyRenderer *renderer) {
       &renderer->currentSwapchainImageIndex);
 
   renderer->requiresSwapchainRebuild =
-      ivyCheckVulkanResultIfRequiresSwapchainRebuild(vulkanResult);
+      ivyCheckIfVulkanSwapchainRequiresRebuild(vulkanResult);
 
   return IVY_OK;
 }

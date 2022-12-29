@@ -79,16 +79,14 @@ static VKAPI_ATTR VKAPI_CALL VkBool32 ivyLogVulkanMessages(
   IVY_UNUSED(user);
 
   if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-#if 0
-    fprintf(
-        stderr,
+#if 1
+    fprintf(stderr,
         "\033[32m[VALIDATION_LAYER]\033[0m \033[34m(VERBOSE)\033[0m %s\n",
         data->pMessage);
 #endif
   } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-#if 0
-    fprintf(
-        stderr,
+#if 1
+    fprintf(stderr,
         "\033[32m[VALIDATION_LAYER]\033[0m \033[33m(INFO)\033[0m %s\n",
         data->pMessage);
 #endif

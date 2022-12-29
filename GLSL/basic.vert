@@ -19,7 +19,9 @@ void main() {
 
 #if 0
   gl_Position = ubo.projection * ubo.view * ubo.model * vec4(inPosition, 1.0);
-#else
+#elif 1
   gl_Position = vec4(inPosition, 1.0);
+#else
+  gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
 #endif
 }
