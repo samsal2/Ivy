@@ -7,12 +7,11 @@
 
 typedef struct IvyDummyGraphicsMemoryAllocator {
   IvyGraphicsMemoryAllocatorBase base;
-  int32_t                        occupiedChunkCount;
-  IvyGraphicsMemoryChunk         chunks[64];
+  int32_t occupiedChunkCount;
+  IvyGraphicsMemoryChunk chunks[64];
 } IvyDummyGraphicsMemoryAllocator;
 
-IvyCode ivyCreateDummyGraphicsMemoryAllocator(
-    IvyGraphicsContext              *context,
+IvyCode ivyCreateDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
     IvyDummyGraphicsMemoryAllocator *allocator);
 
 #endif

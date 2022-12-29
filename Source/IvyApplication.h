@@ -8,7 +8,7 @@
 #define IVY_MAX_WINDOWS 4
 
 typedef struct IvyWindow {
-  void   *opaque;
+  void *opaque;
   IvyBool resized;
   int32_t windowWidth;
   int32_t windowHeight;
@@ -17,20 +17,17 @@ typedef struct IvyWindow {
 } IvyWindow;
 
 typedef struct IvyApplication {
-  void       *opaque;
+  void *opaque;
   char const *name;
-  IvyWindow  *lastAddedWindow;
-  IvyWindow   windows[IVY_MAX_WINDOWS];
+  IvyWindow *lastAddedWindow;
+  IvyWindow windows[IVY_MAX_WINDOWS];
 } IvyApplication;
 
 IvyCode ivyCreateApplication(IvyApplication *application);
-void    ivyDestroyApplication(IvyApplication *application);
+void ivyDestroyApplication(IvyApplication *application);
 
-IvyWindow *ivyAddWindow(
-    IvyApplication *application,
-    int32_t         width,
-    int32_t         height,
-    char const     *title);
+IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
+    int32_t height, char const *title);
 
 IvyCode ivyDestroyWindow(IvyApplication *application, IvyWindow *window);
 
@@ -38,10 +35,10 @@ IvyBool ivyShouldApplicationClose(IvyApplication *application);
 
 void ivyPollApplicationEvents(IvyApplication *application);
 
-char const *const *
-ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count);
+char const *const *ivyGetRequiredVulkanExtensions(IvyApplication *application,
+    uint32_t *count);
 
-VkSurfaceKHR
-ivyCreateVulkanSurface(VkInstance instance, IvyApplication *application);
+VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,
+    IvyApplication *application);
 
 #endif

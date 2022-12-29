@@ -65,20 +65,10 @@ void ivyMulM4ToM4(IvyM4 lhs, IvyM4 rhs, IvyM4 out);
 void ivyMakeRotateM4(float angle, IvyV3 axis, IvyM4 out);
 void ivyTranslateM4(IvyV3 offset, IvyM4 inOut);
 
-void ivyCreateOrthographicM4(
-    float left,
-    float right,
-    float bottom,
-    float top,
-    float near,
-    float far,
-    IvyM4 out);
+void ivyCreateOrthographicM4(float left, float right, float bottom, float top,
+    float near, float far, IvyM4 out);
 
-void ivyCreatePerspectiveM4(
-    float fov,
-    float ratio,
-    float near,
-    float far,
+void ivyCreatePerspectiveM4(float fov, float ratio, float near, float far,
     IvyM4 out);
 
 void ivyCreateLookAtM4(IvyV3 eye, IvyV3 at, IvyV3 up, IvyM4 out);

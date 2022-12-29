@@ -10,24 +10,19 @@ typedef enum IvyGraphicsAttachmentType {
 
 typedef struct IvyGraphicsAttachment {
   IvyGraphicsAttachmentType type;
-  int32_t                   width;
-  int32_t                   height;
-  VkImage                   image;
-  VkImageView               imageView;
-  IvyGraphicsMemory         memory;
+  int32_t width;
+  int32_t height;
+  VkImage image;
+  VkImageView imageView;
+  IvyGraphicsMemory memory;
 } IvyGraphicsAttachment;
 
-IvyCode ivyCreateGraphicsAttachment(
-    IvyGraphicsContext           *context,
-    IvyAnyGraphicsMemoryAllocator allocator,
-    int32_t                       width,
-    int32_t                       height,
-    IvyGraphicsAttachmentType     type,
-    IvyGraphicsAttachment        *attachment);
+IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
+    IvyAnyGraphicsMemoryAllocator allocator, int32_t width, int32_t height,
+    IvyGraphicsAttachmentType type, IvyGraphicsAttachment *attachment);
 
-void ivyDestroyGraphicsAttachment(
-    IvyGraphicsContext           *context,
+void ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator,
-    IvyGraphicsAttachment        *attachment);
+    IvyGraphicsAttachment *attachment);
 
 #endif

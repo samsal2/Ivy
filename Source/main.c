@@ -1,12 +1,12 @@
 #include "IvyApplication.h"
-#include "IvyRenderer.h"
-#include "IvyGraphicsTexture.h"
 #include "IvyDraw.h"
+#include "IvyGraphicsTexture.h"
+#include "IvyRenderer.h"
 
 #include <stdio.h>
 
 IvyApplication app;
-IvyRenderer    renderer;
+IvyRenderer renderer;
 IvyGraphicsTexture texture;
 
 int main(void) {
@@ -26,7 +26,10 @@ int main(void) {
     goto error;
   }
 
-  if (0 > ivyCreateGraphicsTextureFromFile(&renderer.graphicsContext, &renderer.defaultGraphicsMemoryAllocator, renderer.textureDescriptorSetLayout, "../Resources/Ivy.jpg", &texture)) {
+  if (0 > ivyCreateGraphicsTextureFromFile(&renderer.graphicsContext,
+              &renderer.defaultGraphicsMemoryAllocator,
+              renderer.textureDescriptorSetLayout, "../Resources/Ivy.jpg",
+              &texture)) {
     printf("failed to create texture\n");
     goto error;
   }
@@ -39,7 +42,8 @@ int main(void) {
   }
 
 error:
-  ivyDestroyGraphicsTexture(&renderer.graphicsContext, &renderer.defaultGraphicsMemoryAllocator, &texture);
+  ivyDestroyGraphicsTexture(&renderer.graphicsContext,
+      &renderer.defaultGraphicsMemoryAllocator, &texture);
   ivyDestroyRenderer(&renderer);
   ivyDestroyApplication(&app);
 

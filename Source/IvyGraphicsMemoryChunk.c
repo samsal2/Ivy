@@ -12,16 +12,13 @@ static VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(uint32_t flags) {
   return properties;
 }
 
-static uint32_t ivyFindVulkanMemoryTypeIndex(
-    IvyGraphicsContext *context,
-    uint32_t            flags,
-    uint32_t            type) {
-  uint32_t                         index;
-  VkMemoryPropertyFlagBits         memoryProperties;
+static uint32_t ivyFindVulkanMemoryTypeIndex(IvyGraphicsContext *context,
+    uint32_t flags, uint32_t type) {
+  uint32_t index;
+  VkMemoryPropertyFlagBits memoryProperties;
   VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
 
-  vkGetPhysicalDeviceMemoryProperties(
-      context->physicalDevice,
+  vkGetPhysicalDeviceMemoryProperties(context->physicalDevice,
       &physicalDeviceMemoryProperties);
 
   memoryProperties = ivyGetVulkanMemoryProperties(flags);
@@ -29,11 +26,11 @@ static uint32_t ivyFindVulkanMemoryTypeIndex(
   index = 0;
   while (index < physicalDeviceMemoryProperties.memoryTypeCount) {
     VkPhysicalDeviceMemoryProperties *properties;
-    VkMemoryType                     *memoryType;
-    uint32_t                          propertyFlags;
+    VkMemoryType *memoryType;
+    uint32_t propertyFlags;
 
-    properties    = &physicalDeviceMemoryProperties;
-    memoryType    = &properties->memoryTypes[index];
+    properties = &physicalDeviceMemoryProperties;
+    memoryType = &properties->memoryTypes[index];
     propertyFlags = memoryType->propertyFlags;
 
     if ((propertyFlags & memoryProperties) && (type & (1U << index)))
@@ -45,33 +42,25 @@ static uint32_t ivyFindVulkanMemoryTypeIndex(
   return (uint32_t)-1;
 }
 
-static VkDeviceMemory ivyAllocateVulkanMemory(
-    IvyGraphicsContext *context,
-    uint32_t            flags,
-    uint32_t            type,
-    uint64_t            size) {
-  VkResult             vulkanResult;
-  VkDeviceMemory       memory;
+static VkDeviceMemory ivyAllocateVulkanMemory(IvyGraphicsContext *context,
+    uint32_t flags, uint32_t type, uint64_t size) {
+  VkResult vulkanResult;
+  VkDeviceMemory memory;
   VkMemoryAllocateInfo memoryAllocateInfo;
 
   IVY_ASSERT(context);
 
-  memoryAllocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  memoryAllocateInfo.pNext           = NULL;
-  memoryAllocateInfo.allocationSize  = size;
-  memoryAllocateInfo.memoryTypeIndex = ivyFindVulkanMemoryTypeIndex(
-      context,
-      flags,
-      type);
+  memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  memoryAllocateInfo.pNext = NULL;
+  memoryAllocateInfo.allocationSize = size;
+  memoryAllocateInfo.memoryTypeIndex =
+      ivyFindVulkanMemoryTypeIndex(context, flags, type);
   IVY_ASSERT((uint32_t)-1 != memoryAllocateInfo.memoryTypeIndex);
   if ((uint32_t)-1 == memoryAllocateInfo.memoryTypeIndex)
     return VK_NULL_HANDLE;
 
-  vulkanResult = vkAllocateMemory(
-      context->device,
-      &memoryAllocateInfo,
-      NULL,
-      &memory);
+  vulkanResult =
+      vkAllocateMemory(context->device, &memoryAllocateInfo, NULL, &memory);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult)
     return VK_NULL_HANDLE;
@@ -80,23 +69,19 @@ static VkDeviceMemory ivyAllocateVulkanMemory(
 }
 
 void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk) {
-  chunk->data   = NULL;
-  chunk->flags  = 0;
-  chunk->type   = 0;
-  chunk->size   = 0;
+  chunk->data = NULL;
+  chunk->flags = 0;
+  chunk->type = 0;
+  chunk->size = 0;
   chunk->owners = 0;
   chunk->memory = VK_NULL_HANDLE;
 }
 
-int ivyAllocateGraphicsMemoryChunk(
-    IvyGraphicsContext     *context,
-    uint32_t                flags,
-    uint32_t                type,
-    uint64_t                size,
-    IvyGraphicsMemoryChunk *chunk) {
-  chunk->flags  = flags;
-  chunk->type   = type;
-  chunk->size   = size;
+int ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context, uint32_t flags,
+    uint32_t type, uint64_t size, IvyGraphicsMemoryChunk *chunk) {
+  chunk->flags = flags;
+  chunk->type = type;
+  chunk->size = size;
   chunk->owners = 1;
   chunk->memory = ivyAllocateVulkanMemory(context, flags, type, size);
   if (!chunk->memory)
@@ -104,13 +89,8 @@ int ivyAllocateGraphicsMemoryChunk(
 
   if (IVY_CPU_VISIBLE & flags) {
     VkResult vulkanResult;
-    vulkanResult = vkMapMemory(
-        context->device,
-        chunk->memory,
-        0,
-        size,
-        0,
-        &chunk->data);
+    vulkanResult =
+        vkMapMemory(context->device, chunk->memory, 0, size, 0, &chunk->data);
     if (vulkanResult) {
       ivyFreeGraphicsMemoryChunk(context, chunk);
       return IVY_NO_GRAPHICS_MEMORY;
@@ -122,8 +102,7 @@ int ivyAllocateGraphicsMemoryChunk(
   return IVY_OK;
 }
 
-void ivyFreeGraphicsMemoryChunk(
-    IvyGraphicsContext     *context,
+void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
     IvyGraphicsMemoryChunk *chunk) {
   vkFreeMemory(context->device, chunk->memory, NULL);
   ivySetupEmptyGraphicsMemoryChunk(chunk);

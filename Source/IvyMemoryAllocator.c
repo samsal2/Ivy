@@ -4,10 +4,9 @@
 
 #define IVY_MEMORY_ALLOCATOR_MAGIC 0xA50A6AAA
 
-void ivySetupMemoryAllocatorBase(
-    IvyMemoryAllocatorDispatch *dispatch,
-    IvyMemoryAllocatorBase     *base) {
-  base->magic    = IVY_MEMORY_ALLOCATOR_MAGIC;
+void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch *dispatch,
+    IvyMemoryAllocatorBase *base) {
+  base->magic = IVY_MEMORY_ALLOCATOR_MAGIC;
   base->dispatch = dispatch;
 }
 
@@ -20,10 +19,8 @@ void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator, uint64_t size) {
   return base->dispatch->allocate(allocator, size);
 }
 
-void *ivyAllocateAndZeroMemory(
-    IvyAnyMemoryAllocator allocator,
-    uint64_t              count,
-    uint64_t              elementSize) {
+void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator, uint64_t count,
+    uint64_t elementSize) {
   IvyMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(base->dispatch);

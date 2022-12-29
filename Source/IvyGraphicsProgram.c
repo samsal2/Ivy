@@ -2,13 +2,11 @@
 
 #include <stdio.h>
 
-static char *ivyLoadFileIntoByteBuffer(
-    IvyAnyMemoryAllocator allocator,
-    char const           *path,
-    uint64_t             *size) {
-  FILE *file       = NULL;
-  char *buffer     = NULL;
-  int   bufferSize = 0;
+static char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
+    char const *path, uint64_t *size) {
+  FILE *file = NULL;
+  char *buffer = NULL;
+  int bufferSize = 0;
 
   file = fopen(path, "r");
   if (!file)
@@ -44,30 +42,27 @@ error:
   return NULL;
 }
 
-VkShaderModule ivyCreateVulkanShader(
-    IvyAnyMemoryAllocator allocator,
-    VkDevice              device,
-    char const           *path) {
-  uint64_t                 shaderCodeSizeInBytes;
-  char                    *shaderCode;
-  VkResult                 vulkanResult;
-  VkShaderModule           shader;
+VkShaderModule ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
+    VkDevice device, char const *path) {
+  uint64_t shaderCodeSizeInBytes;
+  char *shaderCode;
+  VkResult vulkanResult;
+  VkShaderModule shader;
   VkShaderModuleCreateInfo shaderCreateInfo;
 
-  shaderCode = ivyLoadFileIntoByteBuffer(
-      allocator,
-      path,
-      &shaderCodeSizeInBytes);
+  shaderCode =
+      ivyLoadFileIntoByteBuffer(allocator, path, &shaderCodeSizeInBytes);
   if (!shaderCode)
     return VK_NULL_HANDLE;
 
-  shaderCreateInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-  shaderCreateInfo.pNext    = NULL;
-  shaderCreateInfo.flags    = 0;
+  shaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+  shaderCreateInfo.pNext = NULL;
+  shaderCreateInfo.flags = 0;
   shaderCreateInfo.codeSize = shaderCodeSizeInBytes;
-  shaderCreateInfo.pCode    = (uint32_t *)shaderCode;
+  shaderCreateInfo.pCode = (uint32_t *)shaderCode;
 
-  vulkanResult = vkCreateShaderModule(device, &shaderCreateInfo, NULL, &shader);
+  vulkanResult =
+      vkCreateShaderModule(device, &shaderCreateInfo, NULL, &shader);
   if (vulkanResult) {
     shader = VK_NULL_HANDLE;
     goto cleanup;
@@ -78,100 +73,91 @@ cleanup:
   return shader;
 }
 
-VkPipeline ivyCreateVulkanPipeline(
-    VkDevice              device,
-    int32_t               width,
-    int32_t               height,
-    uint64_t              flags,
-    VkSampleCountFlagBits sampleCounts,
-    VkRenderPass          renderPass,
-    VkPipelineLayout      pipelineLayout,
-    VkShaderModule        vertexShader,
-    VkShaderModule        fragmentShader) {
-  VkResult                               vulkanResult;
-  VkPipeline                             pipeline;
-  VkVertexInputBindingDescription        vertexInputBindingDescription;
-  VkVertexInputAttributeDescription      vertexInputAttributesDescriptions[3];
-  VkPipelineVertexInputStateCreateInfo   vertexInputStateCreateInfo;
+VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
+    int32_t height, uint64_t flags, VkSampleCountFlagBits sampleCounts,
+    VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
+    VkShaderModule vertexShader, VkShaderModule fragmentShader) {
+  VkResult vulkanResult;
+  VkPipeline pipeline;
+  VkVertexInputBindingDescription vertexInputBindingDescription;
+  VkVertexInputAttributeDescription vertexInputAttributesDescriptions[3];
+  VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo;
-  VkViewport                             viewport;
-  VkRect2D                               scissor;
-  VkPipelineViewportStateCreateInfo      viewportStateCreateInfo;
+  VkViewport viewport;
+  VkRect2D scissor;
+  VkPipelineViewportStateCreateInfo viewportStateCreateInfo;
   VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
-  VkPipelineMultisampleStateCreateInfo   multisampleStateCreateInfo;
-  VkPipelineColorBlendAttachmentState    colorBlendAttachmentState;
-  VkPipelineColorBlendStateCreateInfo    colorBlendStateCreateInfo;
-  VkPipelineDepthStencilStateCreateInfo  depthStencilStateCreateInfo;
-  VkPipelineShaderStageCreateInfo        shaderStageCreateInfos[2];
-  VkGraphicsPipelineCreateInfo           pipelineCreateInfo;
+  VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo;
+  VkPipelineColorBlendAttachmentState colorBlendAttachmentState;
+  VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
+  VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo;
+  VkPipelineShaderStageCreateInfo shaderStageCreateInfos[2];
+  VkGraphicsPipelineCreateInfo pipelineCreateInfo;
 
-  vertexInputBindingDescription.binding   = 0;
-  vertexInputBindingDescription.stride    = sizeof(IvyGraphicsProgramVertex);
+  vertexInputBindingDescription.binding = 0;
+  vertexInputBindingDescription.stride = sizeof(IvyGraphicsProgramVertex);
   vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-  vertexInputAttributesDescriptions[0].binding  = 0;
+  vertexInputAttributesDescriptions[0].binding = 0;
   vertexInputAttributesDescriptions[0].location = 0;
-  vertexInputAttributesDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
-  vertexInputAttributesDescriptions[0].offset   = IVY_OFFSETOF(
-      IvyGraphicsProgramVertex,
-      position);
+  vertexInputAttributesDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+  vertexInputAttributesDescriptions[0].offset =
+      IVY_OFFSETOF(IvyGraphicsProgramVertex, position);
 
-  vertexInputAttributesDescriptions[1].binding  = 0;
+  vertexInputAttributesDescriptions[1].binding = 0;
   vertexInputAttributesDescriptions[1].location = 1;
-  vertexInputAttributesDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
-  vertexInputAttributesDescriptions[1].offset   = IVY_OFFSETOF(
-      IvyGraphicsProgramVertex,
-      color);
+  vertexInputAttributesDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+  vertexInputAttributesDescriptions[1].offset =
+      IVY_OFFSETOF(IvyGraphicsProgramVertex, color);
 
-  vertexInputAttributesDescriptions[2].binding  = 0;
+  vertexInputAttributesDescriptions[2].binding = 0;
   vertexInputAttributesDescriptions[2].location = 2;
-  vertexInputAttributesDescriptions[2].format   = VK_FORMAT_R32G32_SFLOAT;
-  vertexInputAttributesDescriptions[2].offset   = IVY_OFFSETOF(
-      IvyGraphicsProgramVertex,
-      uv);
+  vertexInputAttributesDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+  vertexInputAttributesDescriptions[2].offset =
+      IVY_OFFSETOF(IvyGraphicsProgramVertex, uv);
 
-  vertexInputStateCreateInfo
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertexInputStateCreateInfo.pNext                         = NULL;
-  vertexInputStateCreateInfo.flags                         = 0;
+  vertexInputStateCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+  vertexInputStateCreateInfo.pNext = NULL;
+  vertexInputStateCreateInfo.flags = 0;
   vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
-  vertexInputStateCreateInfo
-      .pVertexBindingDescriptions = &vertexInputBindingDescription;
-  vertexInputStateCreateInfo.vertexAttributeDescriptionCount = IVY_ARRAY_LENGTH(
-      vertexInputAttributesDescriptions);
-  vertexInputStateCreateInfo
-      .pVertexAttributeDescriptions = vertexInputAttributesDescriptions;
+  vertexInputStateCreateInfo.pVertexBindingDescriptions =
+      &vertexInputBindingDescription;
+  vertexInputStateCreateInfo.vertexAttributeDescriptionCount =
+      IVY_ARRAY_LENGTH(vertexInputAttributesDescriptions);
+  vertexInputStateCreateInfo.pVertexAttributeDescriptions =
+      vertexInputAttributesDescriptions;
 
-  inputAssemblyStateCreateInfo
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-  inputAssemblyStateCreateInfo.pNext    = NULL;
-  inputAssemblyStateCreateInfo.flags    = 0;
+  inputAssemblyStateCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+  inputAssemblyStateCreateInfo.pNext = NULL;
+  inputAssemblyStateCreateInfo.flags = 0;
   inputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
 
-  viewport.x        = 0.0F;
-  viewport.y        = 0.0F;
-  viewport.width    = width;
-  viewport.height   = height;
+  viewport.x = 0.0F;
+  viewport.y = 0.0F;
+  viewport.width = width;
+  viewport.height = height;
   viewport.minDepth = 0.0F;
   viewport.maxDepth = 1.0F;
 
-  scissor.offset.x      = 0;
-  scissor.offset.y      = 0;
-  scissor.extent.width  = width;
+  scissor.offset.x = 0;
+  scissor.offset.y = 0;
+  scissor.extent.width = width;
   scissor.extent.height = height;
 
-  viewportStateCreateInfo
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  viewportStateCreateInfo.pNext         = NULL;
-  viewportStateCreateInfo.flags         = 0;
+  viewportStateCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewportStateCreateInfo.pNext = NULL;
+  viewportStateCreateInfo.flags = 0;
   viewportStateCreateInfo.viewportCount = 1;
-  viewportStateCreateInfo.pViewports    = &viewport;
-  viewportStateCreateInfo.scissorCount  = 1;
-  viewportStateCreateInfo.pScissors     = &scissor;
+  viewportStateCreateInfo.pViewports = &viewport;
+  viewportStateCreateInfo.scissorCount = 1;
+  viewportStateCreateInfo.pScissors = &scissor;
 
-  rasterizationStateCreateInfo
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+  rasterizationStateCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   rasterizationStateCreateInfo.pNext = NULL;
   rasterizationStateCreateInfo.flags = 0;
   if (IVY_DEPTH_ENABLE & flags)
@@ -204,41 +190,41 @@ VkPipeline ivyCreateVulkanPipeline(
   else
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
-  rasterizationStateCreateInfo.depthBiasEnable         = VK_FALSE;
+  rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
   rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0F;
-  rasterizationStateCreateInfo.depthBiasClamp          = 0.0F;
-  rasterizationStateCreateInfo.depthBiasSlopeFactor    = 0.0F;
-  rasterizationStateCreateInfo.lineWidth               = 1.0F;
+  rasterizationStateCreateInfo.depthBiasClamp = 0.0F;
+  rasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0F;
+  rasterizationStateCreateInfo.lineWidth = 1.0F;
 
-  multisampleStateCreateInfo
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-  multisampleStateCreateInfo.pNext                 = NULL;
-  multisampleStateCreateInfo.flags                 = 0;
-  multisampleStateCreateInfo.rasterizationSamples  = sampleCounts;
-  multisampleStateCreateInfo.sampleShadingEnable   = VK_FALSE;
-  multisampleStateCreateInfo.minSampleShading      = 1.0F;
-  multisampleStateCreateInfo.pSampleMask           = NULL;
+  multisampleStateCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+  multisampleStateCreateInfo.pNext = NULL;
+  multisampleStateCreateInfo.flags = 0;
+  multisampleStateCreateInfo.rasterizationSamples = sampleCounts;
+  multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
+  multisampleStateCreateInfo.minSampleShading = 1.0F;
+  multisampleStateCreateInfo.pSampleMask = NULL;
   multisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;
-  multisampleStateCreateInfo.alphaToOneEnable      = VK_FALSE;
+  multisampleStateCreateInfo.alphaToOneEnable = VK_FALSE;
 
   if (IVY_BLEND_ENABLE & flags) {
-    colorBlendAttachmentState.blendEnable         = VK_TRUE;
+    colorBlendAttachmentState.blendEnable = VK_TRUE;
     colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-    colorBlendAttachmentState
-        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    colorBlendAttachmentState.colorBlendOp        = VK_BLEND_OP_ADD;
+    colorBlendAttachmentState.dstColorBlendFactor =
+        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
     colorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-    colorBlendAttachmentState
-        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachmentState.dstAlphaBlendFactor =
+        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     colorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
   } else {
-    colorBlendAttachmentState.blendEnable         = VK_FALSE;
+    colorBlendAttachmentState.blendEnable = VK_FALSE;
     colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
     colorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-    colorBlendAttachmentState.colorBlendOp        = VK_BLEND_OP_ADD;
+    colorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
     colorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
     colorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-    colorBlendAttachmentState.alphaBlendOp        = VK_BLEND_OP_ADD;
+    colorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
   }
   colorBlendAttachmentState.colorWriteMask = 0;
   colorBlendAttachmentState.colorWriteMask |= VK_COLOR_COMPONENT_R_BIT;
@@ -246,111 +232,101 @@ VkPipeline ivyCreateVulkanPipeline(
   colorBlendAttachmentState.colorWriteMask |= VK_COLOR_COMPONENT_B_BIT;
   colorBlendAttachmentState.colorWriteMask |= VK_COLOR_COMPONENT_A_BIT;
 
-  colorBlendStateCreateInfo
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-  colorBlendStateCreateInfo.pNext             = NULL;
-  colorBlendStateCreateInfo.flags             = 0;
-  colorBlendStateCreateInfo.logicOpEnable     = VK_FALSE;
-  colorBlendStateCreateInfo.logicOp           = VK_LOGIC_OP_COPY;
-  colorBlendStateCreateInfo.attachmentCount   = 1;
-  colorBlendStateCreateInfo.pAttachments      = &colorBlendAttachmentState;
+  colorBlendStateCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+  colorBlendStateCreateInfo.pNext = NULL;
+  colorBlendStateCreateInfo.flags = 0;
+  colorBlendStateCreateInfo.logicOpEnable = VK_FALSE;
+  colorBlendStateCreateInfo.logicOp = VK_LOGIC_OP_COPY;
+  colorBlendStateCreateInfo.attachmentCount = 1;
+  colorBlendStateCreateInfo.pAttachments = &colorBlendAttachmentState;
   colorBlendStateCreateInfo.blendConstants[0] = 0.0F;
   colorBlendStateCreateInfo.blendConstants[1] = 0.0F;
   colorBlendStateCreateInfo.blendConstants[2] = 0.0F;
   colorBlendStateCreateInfo.blendConstants[3] = 0.0F;
 
-  depthStencilStateCreateInfo
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+  depthStencilStateCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
   depthStencilStateCreateInfo.pNext = NULL;
   depthStencilStateCreateInfo.flags = 0;
   if (IVY_DEPTH_ENABLE & flags) {
-    depthStencilStateCreateInfo.depthTestEnable  = VK_TRUE;
+    depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
     depthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
   } else {
-    depthStencilStateCreateInfo.depthTestEnable  = VK_FALSE;
+    depthStencilStateCreateInfo.depthTestEnable = VK_FALSE;
     depthStencilStateCreateInfo.depthWriteEnable = VK_FALSE;
   }
-  depthStencilStateCreateInfo.depthCompareOp        = VK_COMPARE_OP_LESS;
+  depthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
   depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
-  depthStencilStateCreateInfo.stencilTestEnable     = VK_FALSE;
-  depthStencilStateCreateInfo.front.failOp          = VK_STENCIL_OP_ZERO;
-  depthStencilStateCreateInfo.front.passOp          = VK_STENCIL_OP_ZERO;
-  depthStencilStateCreateInfo.front.depthFailOp     = VK_STENCIL_OP_ZERO;
-  depthStencilStateCreateInfo.front.compareOp       = VK_COMPARE_OP_NEVER;
-  depthStencilStateCreateInfo.front.compareMask     = 0;
-  depthStencilStateCreateInfo.front.writeMask       = 0;
-  depthStencilStateCreateInfo.front.reference       = 0;
-  depthStencilStateCreateInfo.back.failOp           = VK_STENCIL_OP_ZERO;
-  depthStencilStateCreateInfo.back.passOp           = VK_STENCIL_OP_ZERO;
-  depthStencilStateCreateInfo.back.depthFailOp      = VK_STENCIL_OP_ZERO;
-  depthStencilStateCreateInfo.back.compareOp        = VK_COMPARE_OP_NEVER;
-  depthStencilStateCreateInfo.back.compareMask      = 0;
-  depthStencilStateCreateInfo.back.writeMask        = 0;
-  depthStencilStateCreateInfo.back.reference        = 0;
-  depthStencilStateCreateInfo.minDepthBounds        = 0.0F;
-  depthStencilStateCreateInfo.maxDepthBounds        = 1.0F;
+  depthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
+  depthStencilStateCreateInfo.front.failOp = VK_STENCIL_OP_ZERO;
+  depthStencilStateCreateInfo.front.passOp = VK_STENCIL_OP_ZERO;
+  depthStencilStateCreateInfo.front.depthFailOp = VK_STENCIL_OP_ZERO;
+  depthStencilStateCreateInfo.front.compareOp = VK_COMPARE_OP_NEVER;
+  depthStencilStateCreateInfo.front.compareMask = 0;
+  depthStencilStateCreateInfo.front.writeMask = 0;
+  depthStencilStateCreateInfo.front.reference = 0;
+  depthStencilStateCreateInfo.back.failOp = VK_STENCIL_OP_ZERO;
+  depthStencilStateCreateInfo.back.passOp = VK_STENCIL_OP_ZERO;
+  depthStencilStateCreateInfo.back.depthFailOp = VK_STENCIL_OP_ZERO;
+  depthStencilStateCreateInfo.back.compareOp = VK_COMPARE_OP_NEVER;
+  depthStencilStateCreateInfo.back.compareMask = 0;
+  depthStencilStateCreateInfo.back.writeMask = 0;
+  depthStencilStateCreateInfo.back.reference = 0;
+  depthStencilStateCreateInfo.minDepthBounds = 0.0F;
+  depthStencilStateCreateInfo.maxDepthBounds = 1.0F;
 
-  shaderStageCreateInfos[0]
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  shaderStageCreateInfos[0].pNext               = NULL;
-  shaderStageCreateInfos[0].flags               = 0;
-  shaderStageCreateInfos[0].stage               = VK_SHADER_STAGE_VERTEX_BIT;
-  shaderStageCreateInfos[0].module              = vertexShader;
-  shaderStageCreateInfos[0].pName               = "main";
+  shaderStageCreateInfos[0].sType =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  shaderStageCreateInfos[0].pNext = NULL;
+  shaderStageCreateInfos[0].flags = 0;
+  shaderStageCreateInfos[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+  shaderStageCreateInfos[0].module = vertexShader;
+  shaderStageCreateInfos[0].pName = "main";
   shaderStageCreateInfos[0].pSpecializationInfo = NULL;
 
-  shaderStageCreateInfos[1]
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  shaderStageCreateInfos[1].pNext               = NULL;
-  shaderStageCreateInfos[1].flags               = 0;
-  shaderStageCreateInfos[1].stage               = VK_SHADER_STAGE_FRAGMENT_BIT;
-  shaderStageCreateInfos[1].module              = fragmentShader;
-  shaderStageCreateInfos[1].pName               = "main";
+  shaderStageCreateInfos[1].sType =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  shaderStageCreateInfos[1].pNext = NULL;
+  shaderStageCreateInfos[1].flags = 0;
+  shaderStageCreateInfos[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  shaderStageCreateInfos[1].module = fragmentShader;
+  shaderStageCreateInfos[1].pName = "main";
   shaderStageCreateInfos[1].pSpecializationInfo = NULL;
 
   pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   pipelineCreateInfo.pNext = NULL;
   pipelineCreateInfo.flags = 0;
   pipelineCreateInfo.stageCount = IVY_ARRAY_LENGTH(shaderStageCreateInfos);
-  pipelineCreateInfo.pStages    = shaderStageCreateInfos;
-  pipelineCreateInfo.pVertexInputState   = &vertexInputStateCreateInfo;
+  pipelineCreateInfo.pStages = shaderStageCreateInfos;
+  pipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
   pipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
-  pipelineCreateInfo.pTessellationState  = NULL;
-  pipelineCreateInfo.pViewportState      = &viewportStateCreateInfo;
+  pipelineCreateInfo.pTessellationState = NULL;
+  pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
   pipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
-  pipelineCreateInfo.pMultisampleState   = &multisampleStateCreateInfo;
-  pipelineCreateInfo.pDepthStencilState  = &depthStencilStateCreateInfo;
-  pipelineCreateInfo.pColorBlendState    = &colorBlendStateCreateInfo;
-  pipelineCreateInfo.pDynamicState       = NULL;
-  pipelineCreateInfo.layout              = pipelineLayout;
-  pipelineCreateInfo.renderPass          = renderPass;
-  pipelineCreateInfo.subpass             = 0;
-  pipelineCreateInfo.basePipelineHandle  = VK_NULL_HANDLE;
-  pipelineCreateInfo.basePipelineIndex   = -1;
+  pipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
+  pipelineCreateInfo.pDepthStencilState = &depthStencilStateCreateInfo;
+  pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+  pipelineCreateInfo.pDynamicState = NULL;
+  pipelineCreateInfo.layout = pipelineLayout;
+  pipelineCreateInfo.renderPass = renderPass;
+  pipelineCreateInfo.subpass = 0;
+  pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+  pipelineCreateInfo.basePipelineIndex = -1;
 
-  vulkanResult = vkCreateGraphicsPipelines(
-      device,
-      VK_NULL_HANDLE,
-      1,
-      &pipelineCreateInfo,
-      NULL,
-      &pipeline);
+  vulkanResult = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
+      &pipelineCreateInfo, NULL, &pipeline);
   if (vulkanResult)
     return VK_NULL_HANDLE;
 
   return pipeline;
 }
 
-IvyCode ivyCreateGraphicsProgram(
-    IvyGraphicsContext *context,
-    VkRenderPass        renderPass,
-    VkPipelineLayout    pipelineLayout,
-    int32_t             viewportWidth,
-    int32_t             viewportHeight,
-    char const         *vertexShaderPath,
-    char const         *fragmentShaderPath,
-    uint64_t            flags,
-    IvyGraphicsProgram *program) {
+IvyCode ivyCreateGraphicsProgram(IvyGraphicsContext *context,
+    VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
+    int32_t viewportWidth, int32_t viewportHeight,
+    char const *vertexShaderPath, char const *fragmentShaderPath,
+    uint64_t flags, IvyGraphicsProgram *program) {
   IVY_ASSERT(program);
   IVY_ASSERT(vertexShaderPath);
   IVY_ASSERT(fragmentShaderPath);
@@ -358,29 +334,18 @@ IvyCode ivyCreateGraphicsProgram(
   IVY_MEMSET(program, 0, sizeof(*program));
 
   program->vertexShader = ivyCreateVulkanShader(
-      &context->globalMemoryAllocator,
-      context->device,
-      vertexShaderPath);
+      &context->globalMemoryAllocator, context->device, vertexShaderPath);
   if (!program->vertexShader)
     goto error;
 
   program->fragmentShader = ivyCreateVulkanShader(
-      &context->globalMemoryAllocator,
-      context->device,
-      fragmentShaderPath);
+      &context->globalMemoryAllocator, context->device, fragmentShaderPath);
   if (!program->vertexShader)
     goto error;
 
-  program->pipeline = ivyCreateVulkanPipeline(
-      context->device,
-      viewportWidth,
-      viewportHeight,
-      flags,
-      context->attachmentSampleCounts,
-      renderPass,
-      pipelineLayout,
-      program->vertexShader,
-      program->fragmentShader);
+  program->pipeline = ivyCreateVulkanPipeline(context->device, viewportWidth,
+      viewportHeight, flags, context->attachmentSampleCounts, renderPass,
+      pipelineLayout, program->vertexShader, program->fragmentShader);
   if (!program->pipeline)
     goto error;
 
@@ -392,8 +357,7 @@ error:
   return IVY_NO_GRAPHICS_MEMORY;
 }
 
-void ivyDestroyGraphicsProgram(
-    IvyGraphicsContext *context,
+void ivyDestroyGraphicsProgram(IvyGraphicsContext *context,
     IvyGraphicsProgram *program) {
   if (program->pipeline) {
     vkDestroyPipeline(context->device, program->pipeline, NULL);

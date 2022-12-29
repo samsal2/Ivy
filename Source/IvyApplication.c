@@ -13,26 +13,26 @@ static int doesAnApplicationAlreadyExist = 0;
 #define IVY_IS_VALID_WINDOW(w) (!!(w)->opaque)
 
 static void ivyWindowSizeCallback(GLFWwindow *opaque, int width, int height) {
-  IvyWindow *window    = glfwGetWindowUserPointer(opaque);
-  window->windowWidth  = width;
+  IvyWindow *window = glfwGetWindowUserPointer(opaque);
+  window->windowWidth = width;
   window->windowHeight = height;
-  window->resized      = 1;
+  window->resized = 1;
 }
 
-static void
-ivyFramebufferSizeCallback(GLFWwindow *opaque, int width, int height) {
-  IvyWindow *window         = glfwGetWindowUserPointer(opaque);
-  window->framebufferWidth  = width;
+static void ivyFramebufferSizeCallback(GLFWwindow *opaque, int width,
+    int height) {
+  IvyWindow *window = glfwGetWindowUserPointer(opaque);
+  window->framebufferWidth = width;
   window->framebufferHeight = height;
 }
 
 static void ivyInvalidateWindow(IvyWindow *window) {
   IVY_ASSERT(window);
 
-  window->opaque            = NULL;
-  window->windowWidth       = 0;
-  window->windowHeight      = 0;
-  window->framebufferWidth  = 0;
+  window->opaque = NULL;
+  window->windowWidth = 0;
+  window->windowHeight = 0;
+  window->framebufferWidth = 0;
   window->framebufferHeight = 0;
 }
 
@@ -42,7 +42,7 @@ IvyCode ivyCreateApplication(IvyApplication *application) {
   if (!application)
     return IVY_INVALID_VALUE;
 
-  application->opaque          = NULL;
+  application->opaque = NULL;
   application->lastAddedWindow = NULL;
 
   if (doesAnApplicationAlreadyExist)
@@ -103,11 +103,8 @@ static IvyWindow *ivyNextInvalidWindow(IvyApplication *application) {
   return NULL;
 }
 
-IvyWindow *ivyAddWindow(
-    IvyApplication *application,
-    int32_t         width,
-    int32_t         height,
-    char const     *title) {
+IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
+    int32_t height, char const *title) {
   IvyWindow *window;
 
   IVY_ASSERT(application);
@@ -121,7 +118,8 @@ IvyWindow *ivyAddWindow(
   if (!window)
     return NULL;
 
-  window->opaque = glfwCreateWindow((int)width, (int)height, title, NULL, NULL);
+  window->opaque =
+      glfwCreateWindow((int)width, (int)height, title, NULL, NULL);
   if (!window->opaque)
     return NULL;
 
@@ -130,20 +128,16 @@ IvyWindow *ivyAddWindow(
   glfwSetWindowSizeCallback(window->opaque, ivyWindowSizeCallback);
 
   window->resized = 0;
-  glfwGetWindowSize(
-      window->opaque,
-      &window->windowWidth,
+  glfwGetWindowSize(window->opaque, &window->windowWidth,
       &window->windowHeight);
-  glfwGetFramebufferSize(
-      window->opaque,
-      &window->framebufferWidth,
+  glfwGetFramebufferSize(window->opaque, &window->framebufferWidth,
       &window->framebufferHeight);
 
   return application->lastAddedWindow = window;
 }
 
-static IvyBool
-ivyIsWindowInApplication(IvyApplication *application, IvyWindow *window) {
+static IvyBool ivyIsWindowInApplication(IvyApplication *application,
+    IvyWindow *window) {
   int i;
 
   IVY_ASSERT(application);
@@ -227,10 +221,10 @@ void ivyPollApplicationEvents(IvyApplication *application) {
 
 #define IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS 64
 
-char const *const *
-ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count) {
+char const *const *ivyGetRequiredVulkanExtensions(IvyApplication *application,
+    uint32_t *count) {
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
-  char const       **defaultExtensions;
+  char const **defaultExtensions;
   static char const *extensions[IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS];
 
   IVY_UNUSED(application);
@@ -247,9 +241,7 @@ ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count) {
     return NULL;
   }
 
-  IVY_MEMCPY(
-      extensions,
-      defaultExtensions,
+  IVY_MEMCPY(extensions, defaultExtensions,
       *count * sizeof(*defaultExtensions));
 
   extensions[(*count)++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
@@ -267,11 +259,11 @@ ivyGetRequiredVulkanExtensions(IvyApplication *application, uint32_t *count) {
 #endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
 }
 
-VkSurfaceKHR
-ivyCreateVulkanSurface(VkInstance instance, IvyApplication *application) {
-  VkResult     result;
+VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,
+    IvyApplication *application) {
+  VkResult result;
   VkSurfaceKHR surface;
-  IvyWindow   *window;
+  IvyWindow *window;
 
   IVY_ASSERT(instance);
   IVY_ASSERT(application);

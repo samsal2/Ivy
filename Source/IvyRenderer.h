@@ -10,12 +10,12 @@
 #define IVY_MAX_SWAPCHAIN_IMAGES 8
 
 typedef struct IvyGraphicsFrame {
-  VkCommandPool                      commandPool;
-  VkCommandBuffer                    commandBuffer;
-  VkImage                            image;
-  VkImageView                        imageView;
-  VkFramebuffer                      framebuffer;
-  VkFence                            inFlightFence;
+  VkCommandPool commandPool;
+  VkCommandBuffer commandBuffer;
+  VkImage image;
+  VkImageView imageView;
+  VkFramebuffer framebuffer;
+  VkFence inFlightFence;
   IvyGraphicsTemporaryBufferProvider temporaryBufferProvider;
 } IvyGraphicsFrame;
 
@@ -25,27 +25,27 @@ typedef struct IvyGraphicsRenderSemaphores {
 } IvyGraphicsRenderSemaphores;
 
 typedef struct IvyRenderer {
-  IvyGraphicsContext              graphicsContext;
+  IvyGraphicsContext graphicsContext;
   IvyDummyGraphicsMemoryAllocator defaultGraphicsMemoryAllocator;
-  VkClearValue                    clearValues[2];
-  VkRenderPass                    mainRenderPass;
-  VkDescriptorSetLayout           uniformDescriptorSetLayout;
-  VkDescriptorSetLayout           textureDescriptorSetLayout;
-  VkPipelineLayout                mainPipelineLayout;
-  IvyGraphicsAttachment           colorAttachment;
-  IvyGraphicsAttachment           depthAttachment;
-  IvyBool                         requiresSwapchainRebuild;
-  int32_t                         swapchainWidth;
-  int32_t                         swapchainHeight;
-  VkSwapchainKHR                  swapchain;
-  uint32_t                        swapchainImageCount;
-  uint32_t                        currentSwapchainImageIndex;
-  uint32_t                        currentSemaphoreIndex;
-  uint32_t                        frameCount;
-  IvyGraphicsFrame               *frames;
-  IvyGraphicsRenderSemaphores    *renderSemaphores;
-  IvyGraphicsProgram              basicGraphicsProgram;
-  IvyGraphicsProgram             *boundGraphicsProgram;
+  VkClearValue clearValues[2];
+  VkRenderPass mainRenderPass;
+  VkDescriptorSetLayout uniformDescriptorSetLayout;
+  VkDescriptorSetLayout textureDescriptorSetLayout;
+  VkPipelineLayout mainPipelineLayout;
+  IvyGraphicsAttachment colorAttachment;
+  IvyGraphicsAttachment depthAttachment;
+  IvyBool requiresSwapchainRebuild;
+  int32_t swapchainWidth;
+  int32_t swapchainHeight;
+  VkSwapchainKHR swapchain;
+  uint32_t swapchainImageCount;
+  uint32_t currentSwapchainImageIndex;
+  uint32_t currentSemaphoreIndex;
+  uint32_t frameCount;
+  IvyGraphicsFrame *frames;
+  IvyGraphicsRenderSemaphores *renderSemaphores;
+  IvyGraphicsProgram basicGraphicsProgram;
+  IvyGraphicsProgram *boundGraphicsProgram;
 } IvyRenderer;
 
 IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer);
@@ -56,13 +56,10 @@ IvyGraphicsFrame *ivyGetCurrentGraphicsFrame(IvyRenderer *renderer);
 
 IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer);
 
-IvyCode ivyRequestGraphicsTemporaryBufferFromRenderer(
-    IvyRenderer                *renderer,
-    uint64_t                    size,
-    IvyGraphicsTemporaryBuffer *temporaryBuffer);
+IvyCode ivyRequestGraphicsTemporaryBufferFromRenderer(IvyRenderer *renderer,
+    uint64_t size, IvyGraphicsTemporaryBuffer *temporaryBuffer);
 
-void ivyBindGraphicsProgramInRenderer(
-    IvyRenderer        *renderer,
+void ivyBindGraphicsProgramInRenderer(IvyRenderer *renderer,
     IvyGraphicsProgram *program);
 
 IvyCode ivyBeginGraphicsFrame(IvyRenderer *renderer);

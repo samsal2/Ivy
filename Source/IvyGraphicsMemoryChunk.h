@@ -12,25 +12,21 @@ struct ivy_graphics_context;
 #define IVY_CPU_VISIBLE 0x0002
 
 typedef struct IvyGraphicsMemoryChunk {
-  void          *data;
-  uint32_t       flags;
-  uint32_t       type;
-  uint64_t       size;
-  int32_t        owners;
+  void *data;
+  uint32_t flags;
+  uint32_t type;
+  uint64_t size;
+  int32_t owners;
   VkDeviceMemory memory;
 } IvyGraphicsMemoryChunk;
 
 void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk);
 
-IvyCode ivyAllocateGraphicsMemoryChunk(
-    IvyGraphicsContext     *context,
-    uint32_t                flags,
-    uint32_t                type,
-    uint64_t                size,
+IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
+    uint32_t flags, uint32_t type, uint64_t size,
     IvyGraphicsMemoryChunk *chunk);
 
-void ivyFreeGraphicsMemoryChunk(
-    IvyGraphicsContext     *context,
+void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
     IvyGraphicsMemoryChunk *chunk);
 
 #endif
