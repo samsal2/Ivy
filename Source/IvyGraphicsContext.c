@@ -202,8 +202,7 @@ cleanup:
 }
 
 static void ivyFindAvailableVulkanPhysicalDevices(VkInstance instance,
-    uint32_t *physicalDeviceCount,
-    VkPhysicalDevice physicalDevices[IVY_MAX_AVAILABLE_DEVICES]) {
+    uint32_t *physicalDeviceCount, VkPhysicalDevice *physicalDevices) {
   VkResult vulkanResult;
 
   vulkanResult =
@@ -411,9 +410,8 @@ static char const *const requiredVulkanExtensions[] = {
 static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
     IvyAnyMemoryAllocator allocator, VkSurfaceKHR surface,
     uint32_t availablePhysicalDeviceCount,
-    VkPhysicalDevice availablePhysicalDevices[IVY_MAX_AVAILABLE_DEVICES],
-    VkFormat requestedFormat, VkColorSpaceKHR requestedColorSpace,
-    VkPresentModeKHR requestedPresentMode,
+    VkPhysicalDevice *availablePhysicalDevices, VkFormat requestedFormat,
+    VkColorSpaceKHR requestedColorSpace, VkPresentModeKHR requestedPresentMode,
     VkSampleCountFlagBits requestedSampleCount,
     uint32_t *selectedGraphicsQueueFamilyIndex,
     uint32_t *selectedPresentQueueFamilyIndex, VkFormat *selectedDepthFormat) {
@@ -456,14 +454,13 @@ static VkPhysicalDevice ivySelectVulkanPhysicalDevice(
 
 static VkDevice ivyCreateVulkanDevice(IvyAnyMemoryAllocator allocator,
     VkSurfaceKHR surface, uint32_t availablePhysicalDeviceCount,
-    VkPhysicalDevice availablePhysicalDevices[IVY_MAX_AVAILABLE_DEVICES],
-    VkFormat requiredFormat, VkColorSpaceKHR requiredColorSpace,
-    VkPresentModeKHR requiredPresentMode,
+    VkPhysicalDevice *availablePhysicalDevices, VkFormat requiredFormat,
+    VkColorSpaceKHR requiredColorSpace, VkPresentModeKHR requiredPresentMode,
     VkSampleCountFlagBits requiredSampleCount,
     VkPhysicalDevice *selectedPhysicalDevice, VkFormat *selectedDepthFormat,
     uint32_t *selectedGraphicsQueueFamilyIndex,
-    uint32_t *selectedPresentQueueFamilyIndex, VkQueue *graphicsQueue,
-    VkQueue *presentQueue) {
+    uint32_t *selectedPresentQueueFamilyIndex, VkQueue *createdGraphicsQueue,
+    VkQueue *createdPresentQueue) {
   float const queuePriority = 1.0F;
   VkResult vulkanResult;
   VkDevice device;
@@ -520,8 +517,9 @@ static VkDevice ivyCreateVulkanDevice(IvyAnyMemoryAllocator allocator,
     return VK_NULL_HANDLE;
 
   vkGetDeviceQueue(device, *selectedGraphicsQueueFamilyIndex, 0,
-      graphicsQueue);
-  vkGetDeviceQueue(device, *selectedPresentQueueFamilyIndex, 0, presentQueue);
+      createdGraphicsQueue);
+  vkGetDeviceQueue(device, *selectedPresentQueueFamilyIndex, 0,
+      createdPresentQueue);
 
   return device;
 }
