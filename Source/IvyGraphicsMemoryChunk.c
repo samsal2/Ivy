@@ -3,11 +3,13 @@
 static VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(uint32_t flags) {
   VkMemoryPropertyFlagBits properties = 0;
 
-  if (IVY_GPU_LOCAL & flags)
+  if (IVY_GPU_LOCAL & flags) {
     properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+  }
 
-  if (IVY_CPU_VISIBLE & flags)
+  if (IVY_CPU_VISIBLE & flags) {
     properties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+  }
 
   return properties;
 }
@@ -33,8 +35,9 @@ static uint32_t ivyFindVulkanMemoryTypeIndex(IvyGraphicsContext *context,
     memoryType = &properties->memoryTypes[index];
     propertyFlags = memoryType->propertyFlags;
 
-    if ((propertyFlags & memoryProperties) && (type & (1U << index)))
+    if ((propertyFlags & memoryProperties) && (type & (1U << index))) {
       return index;
+    }
 
     ++index;
   }
@@ -56,14 +59,16 @@ static VkDeviceMemory ivyAllocateVulkanMemory(IvyGraphicsContext *context,
   memoryAllocateInfo.memoryTypeIndex =
       ivyFindVulkanMemoryTypeIndex(context, flags, type);
   IVY_ASSERT((uint32_t)-1 != memoryAllocateInfo.memoryTypeIndex);
-  if ((uint32_t)-1 == memoryAllocateInfo.memoryTypeIndex)
+  if ((uint32_t)-1 == memoryAllocateInfo.memoryTypeIndex) {
     return VK_NULL_HANDLE;
+  }
 
   vulkanResult =
       vkAllocateMemory(context->device, &memoryAllocateInfo, NULL, &memory);
   IVY_ASSERT(!vulkanResult);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return memory;
 }
@@ -84,8 +89,9 @@ int ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context, uint32_t flags,
   chunk->size = size;
   chunk->owners = 1;
   chunk->memory = ivyAllocateVulkanMemory(context, flags, type, size);
-  if (!chunk->memory)
+  if (!chunk->memory) {
     return IVY_NO_GRAPHICS_MEMORY;
+  }
 
   if (IVY_CPU_VISIBLE & flags) {
     VkResult vulkanResult;

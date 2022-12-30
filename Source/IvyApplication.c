@@ -144,9 +144,11 @@ static IvyBool ivyIsWindowInApplication(IvyApplication *application,
   IVY_ASSERT(window);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i)
-    if (&application->windows[i] == window)
+  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
+    if (&application->windows[i] == window) {
       return 1;
+    }
+  }
 
   return 0;
 }
@@ -160,8 +162,9 @@ static IvyWindow *ivyFirstValidWindow(IvyApplication *application) {
   for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
     IvyWindow *window = &application->windows[i];
 
-    if (IVY_IS_VALID_WINDOW(window))
+    if (IVY_IS_VALID_WINDOW(window)) {
       return window;
+    }
   }
 
   return NULL;
@@ -170,11 +173,13 @@ static IvyWindow *ivyFirstValidWindow(IvyApplication *application) {
 IvyCode ivyDestroyWindow(IvyApplication *application, IvyWindow *window) {
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  if (!application || !window || !IVY_IS_VALID_WINDOW(window))
+  if (!application || !window || !IVY_IS_VALID_WINDOW(window)) {
     return IVY_INVALID_VALUE;
+  }
 
-  if (!ivyIsWindowInApplication(application, window))
+  if (!ivyIsWindowInApplication(application, window)) {
     return IVY_INVALID_VALUE;
+  }
 
   glfwDestroyWindow(window->opaque);
   window->opaque = NULL;
@@ -190,9 +195,11 @@ IvyBool ivyShouldApplicationClose(IvyApplication *application) {
 
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i)
-    if (IVY_IS_VALID_WINDOW(&application->windows[i]))
+  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
+    if (IVY_IS_VALID_WINDOW(&application->windows[i])) {
       return 0;
+    }
+  }
 
   return 1;
 }
@@ -205,13 +212,15 @@ void ivyPollApplicationEvents(IvyApplication *application) {
   for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
     IvyWindow *window = &application->windows[i];
 
-    if (!IVY_IS_VALID_WINDOW(window))
+    if (!IVY_IS_VALID_WINDOW(window)) {
       continue;
+    }
 
     window->resized = 0;
 
-    if (!glfwWindowShouldClose(window->opaque))
+    if (!glfwWindowShouldClose(window->opaque)) {
       continue;
+    }
 
     ivyDestroyWindow(application, window);
   }
@@ -272,8 +281,9 @@ VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,
 
   result = glfwCreateWindowSurface(instance, window->opaque, NULL, &surface);
 
-  if (result)
+  if (result) {
     return VK_NULL_HANDLE;
+  }
 
   return surface;
 }

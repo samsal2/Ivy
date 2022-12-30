@@ -32,8 +32,9 @@ VkImage ivyCreateVulkanImage(VkDevice device, int32_t width, int32_t height,
   VkImage image;
   VkImageCreateInfo imageCreateInfo;
 
-  if (!device)
+  if (!device) {
     return VK_NULL_HANDLE;
+  }
 
   imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
   imageCreateInfo.pNext = NULL;
@@ -54,8 +55,9 @@ VkImage ivyCreateVulkanImage(VkDevice device, int32_t width, int32_t height,
   imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
   vulkanResult = vkCreateImage(device, &imageCreateInfo, NULL, &image);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return image;
 }
@@ -84,8 +86,9 @@ VkImageView ivyCreateVulkanImageView(VkDevice device, VkImage image,
 
   vulkanResult =
       vkCreateImageView(device, &imageViewCreateInfo, NULL, &imageView);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return imageView;
 }
@@ -102,8 +105,9 @@ IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
   VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_NONE_KHR;
 
   commandBuffer = ivyAllocateOneTimeCommandBuffer(context);
-  if (!commandBuffer)
+  if (!commandBuffer) {
     return IVY_NO_GRAPHICS_MEMORY;
+  }
 
   imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   imageMemoryBarrier.pNext = NULL;
@@ -188,8 +192,9 @@ IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
     return IVY_OK;
 
   commandBuffer = ivyAllocateOneTimeCommandBuffer(context);
-  if (!commandBuffer)
+  if (!commandBuffer) {
     return IVY_NO_GRAPHICS_MEMORY;
+  }
 
   imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   imageMemoryBarrier.pNext = NULL;
@@ -299,8 +304,9 @@ static VkSampler ivyCreateVulkanSampler(VkDevice device) {
   samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
   vulkanResult = vkCreateSampler(device, &samplerCreateInfo, NULL, &sampler);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return sampler;
 }
@@ -362,8 +368,9 @@ IvyCode ivyCreateGraphicsTextureFromFile(IvyGraphicsContext *context,
   IVY_ASSERT(texture);
 
   data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
-  if (!data)
+  if (!data) {
     return IVY_UNKNOWN_ERROR;
+  }
 
   ivyCode = ivyCreateGraphicsTexture(context, graphicsAllocator,
       textureDescriptorSetLayout, width, height, IVY_RGBA8_SRGB, data,
@@ -393,54 +400,62 @@ IvyCode ivyCreateGraphicsTexture(IvyGraphicsContext *context,
           VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       ivyAsVulkanFormat(texture->format));
   IVY_ASSERT(texture->image);
-  if (!texture->image)
+  if (!texture->image) {
     goto error;
+  }
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(context, graphicsAllocator,
       IVY_GPU_LOCAL, texture->image, &texture->memory);
   IVY_ASSERT(!ivyCode);
-  if (ivyCode)
+  if (ivyCode) {
     goto error;
+  }
 
   texture->imageView =
       ivyCreateVulkanImageView(context->device, texture->image,
           VK_IMAGE_ASPECT_COLOR_BIT, ivyAsVulkanFormat(texture->format));
   IVY_ASSERT(texture->imageView);
-  if (!texture->imageView)
+  if (!texture->imageView) {
     goto error;
+  }
 
   if (data) {
     ivyCode =
         ivyChangeVulkanImageLayout(context, texture->mipLevels, texture->image,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     IVY_ASSERT(!ivyCode);
-    if (ivyCode)
+    if (ivyCode) {
       goto error;
+    }
 
     ivyCode =
         ivyUploadDataToVulkanImage(context, graphicsAllocator, texture->width,
             texture->height, texture->format, data, texture->image);
     IVY_ASSERT(!ivyCode);
-    if (ivyCode)
+    if (ivyCode) {
       goto error;
+    }
 
     ivyCode = ivyGenerateVulkanImageMips(context, texture->width,
         texture->height, texture->mipLevels, texture->image);
     IVY_ASSERT(!ivyCode);
-    if (ivyCode)
+    if (ivyCode) {
       goto error;
+    }
   }
 
   texture->descriptorSet = ivyAllocateVulkanDescriptorSet(context->device,
       context->globalDescriptorPool, textureDescriptorSetLayout);
   IVY_ASSERT(texture->descriptorSet);
-  if (!texture->descriptorSet)
+  if (!texture->descriptorSet) {
     goto error;
+  }
 
   texture->sampler = ivyCreateVulkanSampler(context->device);
   IVY_ASSERT(texture->sampler);
-  if (!texture->sampler)
+  if (!texture->sampler) {
     goto error;
+  }
 
   ivyWriteVulkanTextureDynamicDescriptorSet(context->device,
       texture->imageView, texture->sampler,

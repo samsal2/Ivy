@@ -9,21 +9,26 @@ static char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
   int bufferSize = 0;
 
   file = fopen(path, "r");
-  if (!file)
+  if (!file) {
     goto error;
+  }
 
-  if (0 != fseek(file, 0, SEEK_END))
+  if (0 != fseek(file, 0, SEEK_END)) {
     goto error;
+  }
 
-  if (-1 == (bufferSize = ftell(file)))
+  if (-1 == (bufferSize = ftell(file))) {
     goto error;
+  }
 
-  if (0 != fseek(file, 0, SEEK_SET))
+  if (0 != fseek(file, 0, SEEK_SET)) {
     goto error;
+  }
 
   buffer = ivyAllocateMemory(allocator, bufferSize * sizeof(*buffer));
-  if (!buffer)
+  if (!buffer) {
     goto error;
+  }
 
   // FIXME: check for errors
   fread(buffer, bufferSize, 1, file);
@@ -33,11 +38,13 @@ static char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
   return buffer;
 
 error:
-  if (buffer)
+  if (buffer) {
     ivyFreeMemory(allocator, buffer);
+  }
 
-  if (file)
+  if (file) {
     fclose(file);
+  }
 
   return NULL;
 }
@@ -52,8 +59,9 @@ VkShaderModule ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
 
   shaderCode =
       ivyLoadFileIntoByteBuffer(allocator, path, &shaderCodeSizeInBytes);
-  if (!shaderCode)
+  if (!shaderCode) {
     return VK_NULL_HANDLE;
+  }
 
   shaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
   shaderCreateInfo.pNext = NULL;
@@ -160,35 +168,39 @@ VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   rasterizationStateCreateInfo.pNext = NULL;
   rasterizationStateCreateInfo.flags = 0;
-  if (IVY_DEPTH_ENABLE & flags)
+  if (IVY_DEPTH_ENABLE & flags) {
     rasterizationStateCreateInfo.depthClampEnable = VK_TRUE;
-  else
+  } else {
     rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+  }
 
   rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 
-  if (IVY_POLYGON_MODE_FILL & flags)
+  if (IVY_POLYGON_MODE_FILL & flags) {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-  else if (IVY_POLYGON_MODE_LINE & flags)
+  } else if (IVY_POLYGON_MODE_LINE & flags) {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_LINE;
-  else
+  } else {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+  }
 
-  if (IVY_CULL_FRONT & flags && IVY_CULL_BACK & flags)
+  if (IVY_CULL_FRONT & flags && IVY_CULL_BACK & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
-  else if (IVY_CULL_FRONT & flags)
+  } else if (IVY_CULL_FRONT & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
-  else if (IVY_CULL_BACK & flags)
+  } else if (IVY_CULL_BACK & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-  else
+  } else {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
+  }
 
-  if (IVY_FRONT_FACE_COUNTERCLOCKWISE & flags)
+  if (IVY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-  else if (IVY_FRONT_FACE_CLOCKWISE & flags)
+  } else if (IVY_FRONT_FACE_CLOCKWISE & flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
-  else
+  } else {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+  }
 
   rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
   rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0F;
@@ -316,8 +328,9 @@ VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
 
   vulkanResult = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
       &pipelineCreateInfo, NULL, &pipeline);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return pipeline;
 }

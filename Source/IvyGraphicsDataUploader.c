@@ -14,14 +14,16 @@ static VkBuffer ivyCreateAndAllocateUploadBuffer(IvyGraphicsContext *context,
   uploadBuffer =
       ivyCreateVulkanBuffer(context->device, IVY_SOURCE_BUFFER, size);
   IVY_ASSERT(uploadBuffer);
-  if (!uploadBuffer)
+  if (!uploadBuffer) {
     goto error;
+  }
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(context,
       graphicsAllocator, IVY_HOST_VISIBLE, uploadBuffer, graphicsMemory);
   IVY_ASSERT(!ivyCode);
-  if (ivyCode)
+  if (ivyCode) {
     goto error;
+  }
 
   IVY_MEMCPY(graphicsMemory->data, data, size);
 
@@ -62,14 +64,16 @@ IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
 
   commandBuffer = ivyAllocateOneTimeCommandBuffer(context);
   IVY_ASSERT(commandBuffer);
-  if (!commandBuffer)
+  if (!commandBuffer) {
     goto error;
+  }
 
   uploadBuffer = ivyCreateAndAllocateUploadBuffer(context, graphicsAllocator,
       width * height * ivyGetPixelFormatSize(format), data, &uploadMemory);
   IVY_ASSERT(uploadBuffer);
-  if (!uploadBuffer)
+  if (!uploadBuffer) {
     goto error;
+  }
 
   bufferImageCopy.bufferOffset = 0;
   bufferImageCopy.bufferRowLength = 0;
@@ -90,8 +94,9 @@ IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
 
   ivyCode = ivySubmitOneTimeCommandBuffer(context, commandBuffer);
   IVY_ASSERT(!ivyCode);
-  if (ivyCode)
+  if (ivyCode) {
     goto error;
+  }
 
   ivyFreeGraphicsMemory(context, graphicsAllocator, &uploadMemory);
   vkDestroyBuffer(context->device, uploadBuffer, NULL);
@@ -100,14 +105,17 @@ IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
   return IVY_OK;
 
 error:
-  if (uploadMemory.memory)
+  if (uploadMemory.memory) {
     ivyFreeGraphicsMemory(context, graphicsAllocator, &uploadMemory);
+  }
 
-  if (uploadBuffer)
+  if (uploadBuffer) {
     vkDestroyBuffer(context->device, uploadBuffer, NULL);
+  }
 
-  if (commandBuffer)
+  if (commandBuffer) {
     ivyFreeOneTimeCommandBuffer(context, commandBuffer);
+  }
 
   return IVY_NO_GRAPHICS_MEMORY;
 }

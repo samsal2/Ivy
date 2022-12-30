@@ -4,20 +4,25 @@
 static VkBufferUsageFlagBits ivyAsVulkanBufferUsage(uint32_t flags) {
   VkBufferUsageFlagBits bufferUsage = 0;
 
-  if (IVY_VERTEX_BUFFER & flags)
+  if (IVY_VERTEX_BUFFER & flags) {
     bufferUsage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+  }
 
-  if (IVY_INDEX_BUFFER & flags)
+  if (IVY_INDEX_BUFFER & flags) {
     bufferUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+  }
 
-  if (IVY_UNIFORM_BUFFER & flags)
+  if (IVY_UNIFORM_BUFFER & flags) {
     bufferUsage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+  }
 
-  if (IVY_SOURCE_BUFFER & flags)
+  if (IVY_SOURCE_BUFFER & flags) {
     bufferUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+  }
 
-  if (IVY_DESTINATION_BUFFER & flags)
+  if (IVY_DESTINATION_BUFFER & flags) {
     bufferUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  }
 
   return bufferUsage;
 }
@@ -39,8 +44,9 @@ VkBuffer ivyCreateVulkanBuffer(VkDevice device, uint32_t flags,
 
   vulkanResult = vkCreateBuffer(device, &bufferCreateInfo, NULL, &buffer);
   IVY_ASSERT(!vulkanResult);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return buffer;
 }
@@ -105,8 +111,9 @@ static uint64_t ivyAlignTo256(uint64_t value) {
 #define IVY_DEFAULT_TEMPORARY_BUFFER_SIZE 4096
 
 static uint64_t ivyNextGraphicsTemporaryBufferProviderSize(uint64_t size) {
-  if (!size)
+  if (!size) {
     return IVY_DEFAULT_TEMPORARY_BUFFER_SIZE;
+  }
   return ivyAlignTo256(size * 2);
 }
 
@@ -114,7 +121,6 @@ static void ivyProvideGraphicsTemporaryBuffer(
     IvyGraphicsTemporaryBufferProvider *provider, uint64_t size,
     IvyGraphicsTemporaryBuffer *buffer) {
   uint64_t curretOffset = provider->currentBufferOffset;
-  uint64_t nextOffset = ivyAlignTo256(curretOffset + size);
 
   buffer->data = ((uint8_t *)provider->currentMemory.data) + curretOffset;
   buffer->size = size;
@@ -122,7 +128,7 @@ static void ivyProvideGraphicsTemporaryBuffer(
   buffer->buffer = provider->currentBuffer;
   buffer->descriptorSet = provider->currentDescriptorSet;
 
-  provider->currentBufferOffset = nextOffset;
+  provider->currentBufferOffset = ivyAlignTo256(curretOffset + size);
 }
 
 static IvyCode ivyMoveCurrentBufferToGarbageInGraphicsTemporaryBufferProvider(

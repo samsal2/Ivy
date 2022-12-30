@@ -54,6 +54,10 @@ void ivyAddV2ToV2(IvyV2 lhs, IvyV2 rhs, IvyV2 out);
 void ivyAddV3ToV3(IvyV3 lhs, IvyV3 rhs, IvyV3 out);
 void ivyAddV4ToV4(IvyV4 lhs, IvyV4 rhs, IvyV4 out);
 
+void ivySubV2ToV2(IvyV2 lhs, IvyV2 rhs, IvyV2 out);
+void ivySubV3ToV3(IvyV3 lhs, IvyV3 rhs, IvyV3 out);
+void ivySubV4ToV4(IvyV4 lhs, IvyV4 rhs, IvyV4 out);
+
 void ivyAddM2ToM2(IvyM2 lhs, IvyM2 rhs, IvyM2 out);
 void ivyAddM3ToM3(IvyM3 lhs, IvyM3 rhs, IvyM3 out);
 void ivyAddM4ToM4(IvyM4 lhs, IvyM4 rhs, IvyM4 out);
@@ -71,6 +75,7 @@ void ivyCreateOrthographicM4(float left, float right, float bottom, float top,
 void ivyCreatePerspectiveM4(float fov, float ratio, float near, float far,
     IvyM4 out);
 
+void ivyCreateLookM4(IvyV3 eye, IvyV3 direction, IvyV3 up, IvyM4 out);
 void ivyCreateLookAtM4(IvyV3 eye, IvyV3 at, IvyV3 up, IvyM4 out);
 void ivyCreateDirectionV3(float pitch, float yaw, IvyV3 up, IvyV3 out);
 

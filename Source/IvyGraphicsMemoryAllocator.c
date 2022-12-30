@@ -51,15 +51,17 @@ IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(IvyGraphicsContext *context,
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
 
-  if (!allocator || !memory)
+  if (!allocator || !memory) {
     return IVY_INVALID_VALUE;
+  }
 
   vkGetBufferMemoryRequirements(context->device, buffer, &memoryRequirements);
 
   ivyCode = ivyAllocateGraphicsMemory(context, allocator, flags,
       memoryRequirements.memoryTypeBits, memoryRequirements.size, memory);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   vulkanResult = vkBindBufferMemory(context->device, buffer, memory->memory,
       memory->offset);
@@ -78,15 +80,17 @@ IvyCode ivyAllocateAndBindGraphicsMemoryToImage(IvyGraphicsContext *context,
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
 
-  if (!allocator || !allocation)
+  if (!allocator || !allocation) {
     return IVY_INVALID_VALUE;
+  }
 
   vkGetImageMemoryRequirements(context->device, image, &memoryRequirements);
 
   ivyCode = ivyAllocateGraphicsMemory(context, allocator, flags,
       memoryRequirements.memoryTypeBits, memoryRequirements.size, allocation);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   vulkanResult = vkBindImageMemory(context->device, image, allocation->memory,
       allocation->offset);

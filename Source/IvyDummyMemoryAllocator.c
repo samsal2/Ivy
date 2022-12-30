@@ -2,28 +2,28 @@
 
 #include <stdlib.h>
 
-static void *ivyAllocateMemoryFromDummyMemoryAllocator(
-    IvyAnyMemoryAllocator allocator, uint64_t size) {
+static void *ivyDummyMemoryAllocatorAllocate(IvyAnyMemoryAllocator allocator,
+    uint64_t size) {
   IvyDummyMemoryAllocator *dummyAllocator = allocator;
   ++dummyAllocator->aliveAllocationCount;
   return malloc(size);
 }
 
-static void *ivyAllocateAndZeroMemoryFromDummyMemoryAllocator(
+static void *ivyDummyMemoryAllocatorAllocateAndZeroMemory(
     IvyAnyMemoryAllocator allocator, uint64_t count, uint64_t elementSize) {
   IvyDummyMemoryAllocator *dummyAllocator = allocator;
   ++dummyAllocator->aliveAllocationCount;
   return calloc(count, elementSize);
 }
 
-static void *ivyReallocateMemoryFromDummyMemoryAllocator(
-    IvyAnyMemoryAllocator allocator, void *data, uint64_t newSize) {
+static void *ivyDummyMemoryAllocatorReallocate(IvyAnyMemoryAllocator allocator,
+    void *data, uint64_t newSize) {
   IVY_UNUSED(allocator);
   return realloc(data, newSize);
 }
 
-static void ivyFreeMemoryFromDummyMemoryAllocator(
-    IvyAnyMemoryAllocator allocator, void *data) {
+static void ivyDummyMemoryAllocatorFree(IvyAnyMemoryAllocator allocator,
+    void *data) {
   if (data) {
     IvyDummyMemoryAllocator *dummyAllocator = allocator;
     --dummyAllocator->aliveAllocationCount;
@@ -40,10 +40,10 @@ static void ivyDestroyDummyMemoryAllocator(IvyAnyMemoryAllocator allocator) {
 }
 
 static IvyMemoryAllocatorDispatch dummyMemoryAllocatorDispatch = {
-    ivyAllocateMemoryFromDummyMemoryAllocator,
-    ivyAllocateAndZeroMemoryFromDummyMemoryAllocator,
-    ivyReallocateMemoryFromDummyMemoryAllocator,
-    ivyFreeMemoryFromDummyMemoryAllocator, ivyDestroyDummyMemoryAllocator};
+    ivyDummyMemoryAllocatorAllocate,
+    ivyDummyMemoryAllocatorAllocateAndZeroMemory,
+    ivyDummyMemoryAllocatorReallocate, ivyDummyMemoryAllocatorFree,
+    ivyDestroyDummyMemoryAllocator};
 
 IvyCode ivyCreateDummyMemoryAllocator(IvyDummyMemoryAllocator *allocator) {
   ivySetupMemoryAllocatorBase(&dummyMemoryAllocatorDispatch, &allocator->base);

@@ -50,14 +50,16 @@ IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
       ivyAsVulkanImageUsage(attachment->type),
       ivyGetGraphicsAttachmentFormat(context, type));
   IVY_ASSERT(attachment->image);
-  if (!attachment->image)
+  if (!attachment->image) {
     goto error;
+  }
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(context, allocator,
       IVY_GPU_LOCAL, attachment->image, &attachment->memory);
   IVY_ASSERT(!ivyCode);
-  if (ivyCode)
+  if (ivyCode) {
     goto error;
+  }
 
   attachment->imageView = ivyCreateVulkanImageView(context->device,
       attachment->image, ivyAsVulkanImageAspect(attachment->type),

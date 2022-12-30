@@ -8,8 +8,9 @@ static IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
 
   ivyCode = ivyRequestGraphicsTemporaryBufferFromRenderer(renderer,
       vertexCount * sizeof(*vertices), &vertexBuffer);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   IVY_MEMCPY(vertexBuffer.data, vertices, vertexBuffer.size);
 
@@ -27,8 +28,9 @@ static IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
 
   ivyCode = ivyRequestGraphicsTemporaryBufferFromRenderer(renderer,
       indexCount * sizeof(*indices), &indexBuffer);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   IVY_MEMCPY(indexBuffer.data, indices, indexBuffer.size);
 
@@ -47,8 +49,9 @@ static IvyCode IvyBindGraphicsUniformData(IvyRenderer *renderer,
 
   ivyCode = ivyRequestGraphicsTemporaryBufferFromRenderer(renderer,
       sizeof(*uniform), &uniformBuffer);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   IVY_MEMCPY(uniformBuffer.data, uniform, uniformBuffer.size);
 
@@ -119,20 +122,23 @@ IvyCode ivyDrawRectangle(IvyRenderer *renderer, float x0, float y0, float x1,
   ivyCode = ivyBindGraphicsVertexData(renderer, IVY_ARRAY_LENGTH(vertices),
       vertices);
   IVY_ASSERT(!ivyCode);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   ivyCode =
       ivyBindGraphicsIndexData(renderer, IVY_ARRAY_LENGTH(indices), indices);
   IVY_ASSERT(!ivyCode);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   IVY_MEMSET(&uniform, 0, sizeof(uniform));
   ivyCode = IvyBindGraphicsUniformData(renderer, &uniform);
   IVY_ASSERT(!ivyCode);
-  if (ivyCode)
+  if (ivyCode) {
     return ivyCode;
+  }
 
   ivyBindGraphicsTexture(renderer, texture);
 
