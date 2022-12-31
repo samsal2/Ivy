@@ -32,7 +32,7 @@ typedef struct IvyMemoryAllocatorBase {
   IvyMemoryAllocatorDispatch const *dispatch;
 } IvyMemoryAllocatorBase;
 
-void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch *dispatch,
+void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch const *dispatch,
     IvyMemoryAllocatorBase *base);
 
 void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator, uint64_t size);

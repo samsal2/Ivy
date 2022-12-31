@@ -31,10 +31,10 @@ static char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
   }
 
   // FIXME: check for errors
-  fread(buffer, bufferSize, 1, file);
+  IVY_UNUSED(fread(buffer, bufferSize, 1, file));
   *size = (uint64_t)bufferSize;
 
-  fclose(file);
+  IVY_UNUSED(fclose(file));
   return buffer;
 
 error:
@@ -43,7 +43,7 @@ error:
   }
 
   if (file) {
-    fclose(file);
+    IVY_UNUSED(fclose(file));
   }
 
   return NULL;
@@ -348,19 +348,22 @@ IvyCode ivyCreateGraphicsProgram(IvyGraphicsContext *context,
 
   program->vertexShader = ivyCreateVulkanShader(
       &context->globalMemoryAllocator, context->device, vertexShaderPath);
-  if (!program->vertexShader)
+  if (!program->vertexShader) {
     goto error;
+  }
 
   program->fragmentShader = ivyCreateVulkanShader(
       &context->globalMemoryAllocator, context->device, fragmentShaderPath);
-  if (!program->vertexShader)
+  if (!program->vertexShader) {
     goto error;
+  }
 
   program->pipeline = ivyCreateVulkanPipeline(context->device, viewportWidth,
       viewportHeight, flags, context->attachmentSampleCounts, renderPass,
       pipelineLayout, program->vertexShader, program->fragmentShader);
-  if (!program->pipeline)
+  if (!program->pipeline) {
     goto error;
+  }
 
   return IVY_OK;
 

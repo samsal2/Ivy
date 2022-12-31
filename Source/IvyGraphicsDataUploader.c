@@ -35,8 +35,9 @@ error:
     graphicsMemory->memory = VK_NULL_HANDLE;
   }
 
-  if (uploadBuffer)
+  if (uploadBuffer) {
     vkDestroyBuffer(context->device, uploadBuffer, NULL);
+  }
 
   return VK_NULL_HANDLE;
 }

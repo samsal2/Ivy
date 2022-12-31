@@ -8,6 +8,7 @@ static IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
 
   ivyCode = ivyRequestGraphicsTemporaryBufferFromRenderer(renderer,
       vertexCount * sizeof(*vertices), &vertexBuffer);
+  IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     return ivyCode;
   }
@@ -71,8 +72,9 @@ static void ivyBindGraphicsTexture(IvyRenderer *renderer,
       &texture->descriptorSet, 0, NULL);
 }
 
-IvyCode ivyDrawRectangle(IvyRenderer *renderer, float x0, float y0, float x1,
-    float y1, float r, float g, float b, IvyGraphicsTexture *texture) {
+IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX, float topLeftY,
+    float bottomRightX, float bottomRightY, float red, float green, float blue,
+    IvyGraphicsTexture *texture) {
   IvyCode ivyCode;
 
   IvyGraphicsProgramUniform uniform;
@@ -81,39 +83,39 @@ IvyCode ivyDrawRectangle(IvyRenderer *renderer, float x0, float y0, float x1,
 
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
-  vertices[0].position[0] = x0;
-  vertices[0].position[1] = y0;
+  vertices[0].position[0] = topLeftX;
+  vertices[0].position[1] = topLeftY;
   vertices[0].position[2] = 0.0F;
-  vertices[0].color[0] = r;
-  vertices[0].color[1] = g;
-  vertices[0].color[2] = b;
+  vertices[0].color[0] = red;
+  vertices[0].color[1] = green;
+  vertices[0].color[2] = blue;
   vertices[0].uv[0] = 0.0F;
   vertices[0].uv[1] = 0.0F;
 
-  vertices[1].position[0] = x1;
-  vertices[1].position[1] = y0;
+  vertices[1].position[0] = bottomRightX;
+  vertices[1].position[1] = topLeftY;
   vertices[1].position[2] = 0.0F;
-  vertices[1].color[0] = r;
-  vertices[1].color[1] = g;
-  vertices[1].color[2] = b;
+  vertices[1].color[0] = red;
+  vertices[1].color[1] = green;
+  vertices[1].color[2] = blue;
   vertices[1].uv[0] = 1.0F;
   vertices[1].uv[1] = 0.0F;
 
-  vertices[2].position[0] = x0;
-  vertices[2].position[1] = y1;
+  vertices[2].position[0] = topLeftX;
+  vertices[2].position[1] = bottomRightY;
   vertices[2].position[2] = 0.0F;
-  vertices[2].color[0] = r;
-  vertices[2].color[1] = g;
-  vertices[2].color[2] = b;
+  vertices[2].color[0] = red;
+  vertices[2].color[1] = green;
+  vertices[2].color[2] = blue;
   vertices[2].uv[0] = 0.0F;
   vertices[2].uv[1] = 1.0F;
 
-  vertices[3].position[0] = x1;
-  vertices[3].position[1] = y1;
+  vertices[3].position[0] = bottomRightX;
+  vertices[3].position[1] = bottomRightY;
   vertices[3].position[2] = 0.0F;
-  vertices[3].color[0] = r;
-  vertices[3].color[1] = g;
-  vertices[3].color[2] = b;
+  vertices[3].color[0] = red;
+  vertices[3].color[1] = green;
+  vertices[3].color[2] = blue;
   vertices[3].uv[0] = 1.0F;
   vertices[3].uv[1] = 1.0F;
 

@@ -30,7 +30,9 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 
     -Wno-long-long # C99 extension
     -Wno-comment # C99 extension
-    -Wno-typedef-redefinition # C11 extensions (vulkan requires it)
+    -Wno-comment # C99 extension
+    -Wno-variadic-macros # C99 extennsions
+    -Wno-typedef-redefinition # C11 extensions 
 	">"
 	"$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
 		-O0

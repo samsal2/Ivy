@@ -76,7 +76,7 @@ IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(IvyGraphicsContext *context,
 IvyCode ivyAllocateAndBindGraphicsMemoryToImage(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, VkImage image,
     IvyGraphicsMemory *allocation) {
-  int ivyCode;
+  IvyCode ivyCode;
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
 

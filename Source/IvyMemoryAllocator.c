@@ -4,7 +4,7 @@
 
 #define IVY_MEMORY_ALLOCATOR_MAGIC 0xA50A6AAA
 
-void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch *dispatch,
+void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch const *dispatch,
     IvyMemoryAllocatorBase *base) {
   base->magic = IVY_MEMORY_ALLOCATOR_MAGIC;
   base->dispatch = dispatch;

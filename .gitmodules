@@ -4,3 +4,6 @@
 [submodule "Dependencies/Unity/Unity"]
 	path = Dependencies/Unity/Unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
+[submodule "Dependencies/FreeType/freetype"]
+	path = Dependencies/FreeType/freetype
+	url = https://github.com/freetype/freetype.git

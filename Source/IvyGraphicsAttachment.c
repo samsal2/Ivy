@@ -35,8 +35,9 @@ static VkFormat ivyGetGraphicsAttachmentFormat(IvyGraphicsContext *context,
 }
 
 IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, int32_t width, int32_t height,
-    IvyGraphicsAttachmentType type, IvyGraphicsAttachment *attachment) {
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator, int32_t width,
+    int32_t height, IvyGraphicsAttachmentType type,
+    IvyGraphicsAttachment *attachment) {
   IvyCode ivyCode;
 
   IVY_MEMSET(attachment, 0, sizeof(*attachment));
@@ -54,7 +55,7 @@ IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
     goto error;
   }
 
-  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(context, allocator,
+  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(context, graphicsAllocator,
       IVY_GPU_LOCAL, attachment->image, &attachment->memory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -65,13 +66,14 @@ IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
       attachment->image, ivyAsVulkanImageAspect(attachment->type),
       ivyGetGraphicsAttachmentFormat(context, type));
   IVY_ASSERT(attachment->imageView);
-  if (!attachment->imageView)
+  if (!attachment->imageView) {
     goto error;
+  }
 
   return IVY_OK;
 
 error:
-  ivyDestroyGraphicsAttachment(context, allocator, attachment);
+  ivyDestroyGraphicsAttachment(context, graphicsAllocator, attachment);
   return IVY_NO_GRAPHICS_MEMORY;
 }
 

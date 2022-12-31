@@ -3,7 +3,10 @@
 
 #include "IvyGraphicsMemoryAllocator.h"
 
-typedef enum IvyPixelFormat { IVY_RGBA8_SRGB, IVY_R8_UNORM } IvyPixelFormat;
+typedef enum IvyPixelFormat {
+  IVY_RGBA8_SRGB,
+  IVY_R8_UNORM
+} IvyPixelFormat;
 
 typedef struct IvyGraphicsTexture {
   int32_t width;

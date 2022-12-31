@@ -37,24 +37,28 @@ static void ivyInvalidateWindow(IvyWindow *window) {
 }
 
 IvyCode ivyCreateApplication(IvyApplication *application) {
-  int i;
+  int32_t index;
 
-  if (!application)
+  if (!application) {
     return IVY_INVALID_VALUE;
+  }
 
   application->opaque = NULL;
   application->lastAddedWindow = NULL;
 
-  if (doesAnApplicationAlreadyExist)
+  if (doesAnApplicationAlreadyExist) {
     return IVY_ALREADY_INITIALIZED;
+  }
 
-  if (!glfwInit())
+  if (!glfwInit()) {
     return IVY_PLATAFORM_ERROR;
+  }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i)
-    ivyInvalidateWindow(&application->windows[i]);
+  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
+    ivyInvalidateWindow(&application->windows[index]);
+  }
 
   doesAnApplicationAlreadyExist = 1;
 
@@ -67,37 +71,40 @@ void ivyDestroyApplication(IvyApplication *application) {
 }
 
 void ivyDoesAnApplicationAlreadyExists(IvyApplication *application) {
-  int i;
+  int index;
 
   IVY_ASSERT(application);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  if (!application)
+  if (!application) {
     return;
+  }
 
   doesAnApplicationAlreadyExist = 0;
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
-    IvyWindow *window = &application->windows[i];
+  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
+    IvyWindow *window = &application->windows[index];
 
-    if (IVY_IS_VALID_WINDOW(window))
+    if (IVY_IS_VALID_WINDOW(window)) {
       glfwDestroyWindow(window->opaque);
+    }
   }
 
   glfwTerminate();
 }
 
 static IvyWindow *ivyNextInvalidWindow(IvyApplication *application) {
-  int i;
+  int32_t index;
 
   IVY_ASSERT(application);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
-    IvyWindow *window = &application->windows[i];
+  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
+    IvyWindow *window = &application->windows[index];
 
-    if (!IVY_IS_VALID_WINDOW(window))
+    if (!IVY_IS_VALID_WINDOW(window)) {
       return window;
+    }
   }
 
   return NULL;
@@ -111,17 +118,20 @@ IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
   IVY_ASSERT(title);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  if (!application)
+  if (!application) {
     return NULL;
+  }
 
   window = ivyNextInvalidWindow(application);
-  if (!window)
+  if (!window) {
     return NULL;
+  }
 
   window->opaque =
       glfwCreateWindow((int)width, (int)height, title, NULL, NULL);
-  if (!window->opaque)
+  if (!window->opaque) {
     return NULL;
+  }
 
   glfwSetWindowUserPointer(window->opaque, window);
   glfwSetFramebufferSizeCallback(window->opaque, ivyFramebufferSizeCallback);
@@ -138,14 +148,14 @@ IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
 
 static IvyBool ivyIsWindowInApplication(IvyApplication *application,
     IvyWindow *window) {
-  int i;
+  int32_t index;
 
   IVY_ASSERT(application);
   IVY_ASSERT(window);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
-    if (&application->windows[i] == window) {
+  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
+    if (&application->windows[index] == window) {
       return 1;
     }
   }
@@ -154,13 +164,13 @@ static IvyBool ivyIsWindowInApplication(IvyApplication *application,
 }
 
 static IvyWindow *ivyFirstValidWindow(IvyApplication *application) {
-  int i;
+  int32_t index;
 
   IVY_ASSERT(application);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
-    IvyWindow *window = &application->windows[i];
+  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
+    IvyWindow *window = &application->windows[index];
 
     if (IVY_IS_VALID_WINDOW(window)) {
       return window;
@@ -191,12 +201,12 @@ IvyCode ivyDestroyWindow(IvyApplication *application, IvyWindow *window) {
 }
 
 IvyBool ivyShouldApplicationClose(IvyApplication *application) {
-  int i;
+  int32_t index;
 
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
-    if (IVY_IS_VALID_WINDOW(&application->windows[i])) {
+  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
+    if (IVY_IS_VALID_WINDOW(&application->windows[index])) {
       return 0;
     }
   }
@@ -205,12 +215,12 @@ IvyBool ivyShouldApplicationClose(IvyApplication *application) {
 }
 
 void ivyPollApplicationEvents(IvyApplication *application) {
-  int i;
+  int32_t index;
 
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(application->windows); ++i) {
-    IvyWindow *window = &application->windows[i];
+  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
+    IvyWindow *window = &application->windows[index];
 
     if (!IVY_IS_VALID_WINDOW(window)) {
       continue;

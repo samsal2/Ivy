@@ -8,7 +8,7 @@
 #ifndef IVY_FLOOR
 #include <math.h>
 #define IVY_FLOOR floor
-#define IVY_LOG2 log2
+#define IVY_DEBUG_LOG2 log2
 #endif
 
 static VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
@@ -22,7 +22,7 @@ static VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
 }
 
 static uint32_t ivyCalculateMipLevels(int32_t width, int32_t height) {
-  return (uint32_t)(IVY_FLOOR(IVY_LOG2(IVY_MAX(width, height))) + 1);
+  return (uint32_t)(IVY_FLOOR(IVY_DEBUG_LOG2(IVY_MAX(width, height))) + 1);
 }
 
 VkImage ivyCreateVulkanImage(VkDevice device, int32_t width, int32_t height,
@@ -188,8 +188,9 @@ IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
   VkImageMemoryBarrier imageMemoryBarrier;
   VkCommandBuffer commandBuffer;
 
-  if (1 == mipLevels || 0 == mipLevels)
+  if (1 == mipLevels || 0 == mipLevels) {
     return IVY_OK;
+  }
 
   commandBuffer = ivyAllocateOneTimeCommandBuffer(context);
   if (!commandBuffer) {
@@ -471,8 +472,9 @@ error:
 void ivyDestroyGraphicsTexture(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTexture *texture) {
-  if (!context || !graphicsAllocator || !texture)
+  if (!context || !graphicsAllocator || !texture) {
     return;
+  }
 
   if (context->device) {
     // FIXME: stopping the device just to destroy a texture...

@@ -15,9 +15,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_sources(${PROJECT_NAME} PRIVATE
   stb/stb_image.c
-  stb/stb_image.h
-  stb/stb_truetype.c
-  stb/stb_truetype.h)
+  stb/stb_image.h)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
 	"$<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:"

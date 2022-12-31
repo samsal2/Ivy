@@ -8,10 +8,10 @@ static IvyBool ivyIsGraphicsMemoryChunkEmpty(IvyGraphicsMemoryChunk *chunk) {
 
 static IvyGraphicsMemoryChunk *ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(
     IvyDummyGraphicsMemoryAllocator *allocator) {
-  int i;
+  int index;
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(allocator->chunks); ++i) {
-    IvyGraphicsMemoryChunk *chunk = &allocator->chunks[i];
+  for (index = 0; index < IVY_ARRAY_LENGTH(allocator->chunks); ++index) {
+    IvyGraphicsMemoryChunk *chunk = &allocator->chunks[index];
 
     if (ivyIsGraphicsMemoryChunkEmpty(chunk)) {
       return chunk;
@@ -75,20 +75,20 @@ static void ivyDummyGraphicsMemoryAllocatorFree(IvyGraphicsContext *context,
 
 static void ivyDestroyDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator) {
-  int i;
+  int index;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 
   IVY_ASSERT(allocator);
   dummyAllocator = allocator;
 
-  for (i = 0; i < IVY_ARRAY_LENGTH(dummyAllocator->chunks); ++i) {
-    if (!ivyIsGraphicsMemoryChunkEmpty(&dummyAllocator->chunks[i])) {
-      ivyFreeGraphicsMemoryChunk(context, &dummyAllocator->chunks[i]);
+  for (index = 0; index < IVY_ARRAY_LENGTH(dummyAllocator->chunks); ++index) {
+    if (!ivyIsGraphicsMemoryChunkEmpty(&dummyAllocator->chunks[index])) {
+      ivyFreeGraphicsMemoryChunk(context, &dummyAllocator->chunks[index]);
     }
   }
 }
 
-static IvyGraphicsMemoryAllocatorDispatch
+static IvyGraphicsMemoryAllocatorDispatch const
     dummyGraphicsMemoryAllocatorDispatch = {
         ivyDummyGraphicsMemoryAllocatorAllocate,
         ivyDummyGraphicsMemoryAllocatorFree, NULL,
@@ -96,10 +96,11 @@ static IvyGraphicsMemoryAllocatorDispatch
 
 IvyCode ivyCreateDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
     IvyDummyGraphicsMemoryAllocator *allocator) {
-  int i;
+  int index;
 
-  if (!context || !allocator)
+  if (!context || !allocator) {
     return IVY_INVALID_VALUE;
+  }
 
   IVY_MEMSET(allocator, 0, sizeof(*allocator));
 
@@ -107,8 +108,8 @@ IvyCode ivyCreateDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
       &allocator->base);
 
   allocator->occupiedChunkCount = 0;
-  for (i = 0; i < IVY_ARRAY_LENGTH(allocator->chunks); ++i) {
-    ivySetupEmptyGraphicsMemoryChunk(&allocator->chunks[i]);
+  for (index = 0; index < IVY_ARRAY_LENGTH(allocator->chunks); ++index) {
+    ivySetupEmptyGraphicsMemoryChunk(&allocator->chunks[index]);
   }
 
   return IVY_OK;

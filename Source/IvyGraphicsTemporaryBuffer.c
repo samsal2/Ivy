@@ -137,13 +137,14 @@ static IvyCode ivyMoveCurrentBufferToGarbageInGraphicsTemporaryBufferProvider(
   uint64_t const garbageBufferCount = provider->garbageBufferCount;
   uint64_t const nextGarbageBufferCount = garbageBufferCount + 1;
 
-  if (nextGarbageBufferCount >= IVY_ARRAY_LENGTH(provider->garbageBuffers))
-    return IVY_NO_GRAPHICS_MEMORY;
+  if (nextGarbageBufferCount < IVY_ARRAY_LENGTH(provider->garbageBuffers)) {
+    provider->garbageBuffers[garbageBufferCount] = provider->currentBuffer;
+    provider->garbageDescriptorSets[garbageBufferCount] = currentDescriptorSet;
+    provider->garbageMemories[garbageBufferCount] = provider->currentMemory;
+    return IVY_OK;
+  }
 
-  provider->garbageBuffers[garbageBufferCount] = provider->currentBuffer;
-  provider->garbageDescriptorSets[garbageBufferCount] = currentDescriptorSet;
-  provider->garbageMemories[garbageBufferCount] = provider->currentMemory;
-  return IVY_OK;
+  return IVY_NO_GRAPHICS_MEMORY;
 }
 
 VkDescriptorSet ivyAllocateVulkanDescriptorSet(VkDevice device,
@@ -162,8 +163,9 @@ VkDescriptorSet ivyAllocateVulkanDescriptorSet(VkDevice device,
 
   vulkanResult = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo,
       &descriptorSet);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return descriptorSet;
 }
@@ -210,11 +212,14 @@ IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
 
     newBuffer = ivyCreateVulkanBuffer(context->device,
         IVY_VERTEX_BUFFER | IVY_INDEX_BUFFER | IVY_UNIFORM_BUFFER, newSize);
-    if (!newBuffer)
+    IVY_ASSERT(newBuffer);
+    if (!newBuffer) {
       return IVY_NO_GRAPHICS_MEMORY;
+    }
 
     ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(context,
         graphicsAllocator, IVY_HOST_VISIBLE, newBuffer, &newMemory);
+    IVY_ASSERT(!ivyCode);
     if (ivyCode) {
       vkDestroyBuffer(context->device, newBuffer, NULL);
       return IVY_NO_GRAPHICS_MEMORY;
@@ -222,6 +227,7 @@ IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
 
     newDescriptorSet = ivyAllocateVulkanDescriptorSet(context->device,
         context->globalDescriptorPool, uniformDescriptorSetLayout);
+    IVY_ASSERT(newDescriptorSet);
     if (!newDescriptorSet) {
       ivyFreeGraphicsMemory(context, graphicsAllocator, &newMemory);
       vkDestroyBuffer(context->device, newBuffer, NULL);
@@ -233,6 +239,7 @@ IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
 
     ivyCode = ivyMoveCurrentBufferToGarbageInGraphicsTemporaryBufferProvider(
         provider);
+    IVY_ASSERT(!ivyCode);
     if (ivyCode) {
       vkFreeDescriptorSets(context->device, context->globalDescriptorPool, 1,
           &newDescriptorSet);

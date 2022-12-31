@@ -1,5 +1,7 @@
 #include "IvyGraphicsContext.h"
 
+#include "IvyLog.h"
+
 #if defined(IVY_ENABLE_VULKAN_VALIDATION_LAYERS)
 static char const *const validationLayers[] = {"VK_LAYER_KHRONOS_validation"};
 #endif
@@ -81,27 +83,16 @@ static VKAPI_ATTR VKAPI_CALL VkBool32 ivyLogVulkanMessages(
     VkDebugUtilsMessengerCallbackDataEXT const *data, void *user) {
   IVY_UNUSED(type);
   IVY_UNUSED(user);
+  IVY_UNUSED(data);
 
   if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-#if 1
-    fprintf(stderr,
-        "\033[32m[VALIDATION_LAYER]\033[0m \033[34m(VERBOSE)\033[0m %s\n",
-        data->pMessage);
-#endif
+    IVY_DEBUG_LOG("[VERBOSE]\n  %s\n", data->pMessage);
   } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-#if 1
-    fprintf(stderr,
-        "\033[32m[VALIDATION_LAYER]\033[0m \033[33m(INFO)\033[0m %s\n",
-        data->pMessage);
-#endif
+    IVY_DEBUG_LOG("[INFO]\n  %s\n", data->pMessage);
   } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    fprintf(stderr,
-        "\033[32m[VALIDATION_LAYER]\033[0m \033[33m(WARNING)\033[0m %s\n",
-        data->pMessage);
+    IVY_DEBUG_LOG("[WARNING]\n  %s\n", data->pMessage);
   } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-    fprintf(stderr,
-        "\033[32m[VALIDATION_LAYER]\033[0m \033[31m(ERROR)\033[0m %s\n",
-        data->pMessage);
+    IVY_DEBUG_LOG("[ERROR]\n  %s\n", data->pMessage);
   }
 
   return VK_FALSE;
@@ -124,6 +115,8 @@ static VkDebugUtilsMessengerEXT ivyCreateVulkanDebugMessenger(
   debugMessengerCreateInfo.pNext = NULL;
   debugMessengerCreateInfo.flags = 0;
   debugMessengerCreateInfo.messageSeverity = 0;
+  debugMessengerCreateInfo.messageSeverity |=
+      VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
   debugMessengerCreateInfo.messageSeverity |=
       VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
   debugMessengerCreateInfo.messageSeverity |=
@@ -268,8 +261,9 @@ static IvyBool ivyDoAllVulkanRequiredExtensionsExist(
       }
     }
 
-    if (!existsInAvailableExtensions)
+    if (!existsInAvailableExtensions) {
       return 0;
+    }
   }
 
   return 1;
@@ -654,8 +648,9 @@ VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
 
   vulkanResult = vkCreateDescriptorPool(device, &descriptorPoolCreateInfo,
       NULL, &descriptorPool);
-  if (vulkanResult)
+  if (vulkanResult) {
     return VK_NULL_HANDLE;
+  }
 
   return descriptorPool;
 }

@@ -3,15 +3,17 @@
 
 #include <math.h>
 
-static float ivySqrt(float value) { return sqrtf(value); }
+static float ivySqrt(float value) {
+  return sqrtf(value);
+}
 
-void ivyCopyV3(IvyV3 vector, IvyV3 out) {
+void ivyCopyV3(IvyV3 const vector, IvyV3 out) {
   out[0] = vector[0];
   out[1] = vector[1];
   out[2] = vector[2];
 }
 
-void ivyCopyV4(IvyV4 vector, IvyV4 out) {
+void ivyCopyV4(IvyV4 const vector, IvyV4 out) {
   out[0] = vector[0];
   out[1] = vector[1];
   out[2] = vector[2];
@@ -109,25 +111,32 @@ void ivyNormalizeV4(IvyV4 vector) {
   ivyScaleV4(1 / ivyGetMagnitudeOfV4(vector), vector);
 }
 
-void ivyZeroV2(IvyV2 out) { ivyBroadcastV2(0.0F, out); }
+void ivyZeroV2(IvyV2 out) {
+  ivyBroadcastV2(0.0F, out);
+}
 
-void ivyZeroV3(IvyV3 out) { ivyBroadcastV3(0.0F, out); }
+void ivyZeroV3(IvyV3 out) {
+  ivyBroadcastV3(0.0F, out);
+}
 
-void ivyZeroV4(IvyV4 out) { ivyBroadcastV4(0.0F, out); }
+void ivyZeroV4(IvyV4 out) {
+  ivyBroadcastV4(0.0F, out);
+}
 
 void ivyInvM2(IvyM2 out);
 void ivyInvM3(IvyM3 out);
 void ivyInvM4(IvyM4 out);
 
-void ivyCrossV2ToV2(IvyV2 lhs, IvyV2 rhs, IvyV2 out) {
+void ivyCrossV2ToV2(IvyV2 const lhs, IvyV2 const rhs, IvyV2 const out) {
   IVY_UNUSED(lhs);
   IVY_UNUSED(rhs);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyCrossV3ToV3(IvyV3 lhs, IvyV3 rhs, IvyV3 out) {
-  IvyV3 lhsCopy, rhsCopy;
+void ivyCrossV3ToV3(IvyV3 const lhs, IvyV3 const rhs, IvyV3 out) {
+  IvyV3 lhsCopy;
+  IvyV3 rhsCopy;
 
   ivyCopyV3(lhs, lhsCopy);
   ivyCopyV3(rhs, rhsCopy);
@@ -137,94 +146,94 @@ void ivyCrossV3ToV3(IvyV3 lhs, IvyV3 rhs, IvyV3 out) {
   out[2] = lhsCopy[0] * rhsCopy[1] - lhsCopy[1] * rhsCopy[0];
 }
 
-void ivyCrossV4ToV4(IvyV4 lhs, IvyV4 rhs, IvyV4 out) {
+void ivyCrossV4ToV4(IvyV4 const lhs, IvyV4 const rhs, IvyV4 const out) {
   IVY_UNUSED(lhs);
   IVY_UNUSED(rhs);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-float ivyDotV2ToV2(IvyV2 lhs, IvyV2 rhs) {
+float ivyDotV2ToV2(IvyV2 const lhs, IvyV2 const rhs) {
   return lhs[0] * rhs[0] + lhs[1] * rhs[1];
 }
 
-float ivyDotV3ToV3(IvyV3 lhs, IvyV3 rhs) {
+float ivyDotV3ToV3(IvyV3 const lhs, IvyV3 const rhs) {
   return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2];
 }
 
-float ivyDotV4ToV4(IvyV4 lhs, IvyV4 rhs) {
+float ivyDotV4ToV4(IvyV4 const lhs, IvyV4 const rhs) {
   return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2] + lhs[3] * rhs[3];
 }
 
-void ivyAddV2ToV2(IvyV2 lhs, IvyV2 rhs, IvyV2 out) {
+void ivyAddV2ToV2(IvyV2 const lhs, IvyV2 const rhs, IvyV2 out) {
   out[0] = lhs[0] + rhs[0];
   out[1] = lhs[1] + rhs[1];
 }
 
-void ivyAddV3ToV3(IvyV3 lhs, IvyV3 rhs, IvyV3 out) {
+void ivyAddV3ToV3(IvyV3 const lhs, IvyV3 const rhs, IvyV3 out) {
   out[0] = lhs[0] + rhs[0];
   out[1] = lhs[1] + rhs[1];
   out[2] = lhs[2] + rhs[2];
 }
 
-void ivyAddV4ToV4(IvyV4 lhs, IvyV4 rhs, IvyV4 out) {
+void ivyAddV4ToV4(IvyV4 const lhs, IvyV4 const rhs, IvyV4 out) {
   out[0] = lhs[0] + rhs[0];
   out[1] = lhs[1] + rhs[1];
   out[2] = lhs[2] + rhs[2];
   out[3] = lhs[3] + rhs[3];
 }
 
-void ivySubV2ToV2(IvyV2 lhs, IvyV2 rhs, IvyV2 out) {
+void ivySubV2ToV2(IvyV2 const lhs, IvyV2 const rhs, IvyV2 out) {
   out[0] = lhs[0] - rhs[0];
   out[1] = lhs[1] - rhs[1];
 }
 
-void ivySubV3ToV3(IvyV3 lhs, IvyV3 rhs, IvyV3 out) {
+void ivySubV3ToV3(IvyV3 const lhs, IvyV3 const rhs, IvyV3 out) {
   out[0] = lhs[0] - rhs[0];
   out[1] = lhs[1] - rhs[1];
   out[2] = lhs[2] - rhs[2];
 }
 
-void ivySubV4ToV4(IvyV4 lhs, IvyV4 rhs, IvyV4 out) {
+void ivySubV4ToV4(IvyV4 const lhs, IvyV4 const rhs, IvyV4 out) {
   out[0] = lhs[0] - rhs[0];
   out[1] = lhs[1] - rhs[1];
   out[2] = lhs[2] - rhs[2];
   out[3] = lhs[3] - rhs[3];
 }
 
-void ivyAddM2ToM2(IvyM2 lhs, IvyM2 rhs, IvyM2 out) {
+void ivyAddM2ToM2(IvyM2 const lhs, IvyM2 const rhs, IvyM2 out) {
   ivyAddV2ToV2(lhs[0], rhs[0], out[0]);
   ivyAddV2ToV2(lhs[1], rhs[1], out[1]);
 }
 
-void ivyAddM3ToM3(IvyM3 lhs, IvyM3 rhs, IvyM3 out) {
+void ivyAddM3ToM3(IvyM3 const lhs, IvyM3 const rhs, IvyM3 out) {
   ivyAddV3ToV3(lhs[0], rhs[0], out[0]);
   ivyAddV3ToV3(lhs[1], rhs[1], out[1]);
   ivyAddV3ToV3(lhs[2], rhs[2], out[2]);
 }
 
-void ivyAddM4ToM4(IvyM4 lhs, IvyM4 rhs, IvyM4 out) {
+void ivyAddM4ToM4(IvyM4 const lhs, IvyM4 const rhs, IvyM4 out) {
   ivyAddV4ToV4(lhs[0], rhs[0], out[0]);
   ivyAddV4ToV4(lhs[1], rhs[1], out[1]);
   ivyAddV4ToV4(lhs[2], rhs[2], out[2]);
   ivyAddV4ToV4(lhs[3], rhs[3], out[3]);
 }
 
-void ivyMulM2ToM2(IvyM2 lhs, IvyM2 rhs, IvyM2 out) {
+void ivyMulM2ToM2(IvyM2 const lhs, IvyM2 const rhs, IvyM2 out) {
   IVY_UNUSED(lhs);
   IVY_UNUSED(rhs);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyMulM3ToM3(IvyM3 lhs, IvyM3 rhs, IvyM3 out) {
+void ivyMulM3ToM3(IvyM3 const lhs, IvyM3 const rhs, IvyM3 out) {
   IVY_UNUSED(lhs);
   IVY_UNUSED(rhs);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyMulM4ToM4(IvyM4 lhs, IvyM4 rhs, IvyM4 out) {
+void ivyMulM4ToM4(IvyM4 const lhs, const IvyM4 rhs, IvyM4 out) {
   /* clang-format off */
   float a00 = lhs[0][0], a01 = lhs[0][1], a02 = lhs[0][2], a03 = lhs[0][3], // NOLINT
         a10 = lhs[1][0], a11 = lhs[1][1], a12 = lhs[1][2], a13 = lhs[1][3],
@@ -255,14 +264,14 @@ void ivyMulM4ToM4(IvyM4 lhs, IvyM4 rhs, IvyM4 out) {
   out[3][3] = a03 * b30 + a13 * b31 + a23 * b32 + a33 * b33;
 }
 
-void ivyMakeRotateM4(float angle, IvyV3 axis, IvyM4 out) {
+void ivyMakeRotateM4(float angle, IvyV3 const axis, IvyM4 out) {
   IVY_UNUSED(angle);
   IVY_UNUSED(axis);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyTranslateM4(IvyV3 offset, IvyM4 inOut) {
+void ivyTranslateM4(IvyV3 const offset, IvyM4 inOut) {
   IVY_UNUSED(offset);
   IVY_UNUSED(inOut);
 }
@@ -279,7 +288,9 @@ void ivyCreateOrthographicM4(float left, float right, float bottom, float top,
   IVY_TODO();
 }
 
-static float ivyTan(float value) { return tanf(value); }
+static float ivyTan(float value) {
+  return tanf(value);
+}
 
 void ivyCreatePerspectiveM4(float fov, float ratio, float near, float far,
     IvyM4 out) {
@@ -307,20 +318,24 @@ void ivyCreatePerspectiveM4(float fov, float ratio, float near, float far,
   out[3][3] = 0.0F;
 }
 
-void ivyCreateLookM4(IvyV3 eye, IvyV3 direction, IvyV3 up, IvyM4 out) {
-  IvyV3 at;
+void ivyCreateLookM4(IvyV3 const eye, IvyV3 const direction,
+    IvyV3 const upDirection, IvyM4 out) {
+  IvyV3 atPoint;
 
-  ivyAddV3ToV3(eye, direction, at);
-  ivyCreateLookAtM4(eye, at, up, out);
+  ivyAddV3ToV3(eye, direction, atPoint);
+  ivyCreateLookAtM4(eye, atPoint, upDirection, out);
 }
 
-void ivyCreateLookAtM4(IvyV3 eye, IvyV3 at, IvyV3 up, IvyM4 out) {
-  IvyV3 xAxis, yAxis, zAxis;
+void ivyCreateLookAtM4(IvyV3 const eye, IvyV3 const atPoint,
+    IvyV3 const upDirection, IvyM4 out) {
+  IvyV3 xAxis;
+  IvyV3 yAxis;
+  IvyV3 zAxis;
 
-  ivySubV3ToV3(at, eye, zAxis);
+  ivySubV3ToV3(atPoint, eye, zAxis);
   ivyNormalizeV3(zAxis);
 
-  ivyCrossV3ToV3(zAxis, up, xAxis);
+  ivyCrossV3ToV3(zAxis, upDirection, xAxis);
   ivyNormalizeV3(xAxis);
 
   ivyCrossV3ToV3(xAxis, zAxis, yAxis);
@@ -347,15 +362,16 @@ void ivyCreateLookAtM4(IvyV3 eye, IvyV3 at, IvyV3 up, IvyM4 out) {
   out[3][3] = 0.0F;
 }
 
-void ivyCreateDirectionV3(float pitch, float yaw, IvyV3 up, IvyV3 out) {
+void ivyCreateDirectionV3(float pitch, float yaw, IvyV3 const upDirection,
+    IvyV3 const out) {
   IVY_UNUSED(pitch);
   IVY_UNUSED(yaw);
-  IVY_UNUSED(up);
+  IVY_UNUSED(upDirection);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyRotateM4(IvyM4 matrix, float angle, IvyV3 axis, IvyM4 out) {
+void ivyRotateM4(IvyM4 matrix, float angle, IvyV3 const axis, IvyM4 out) {
   IVY_UNUSED(matrix);
   IVY_UNUSED(angle);
   IVY_UNUSED(axis);
@@ -363,46 +379,51 @@ void ivyRotateM4(IvyM4 matrix, float angle, IvyV3 axis, IvyM4 out) {
   IVY_TODO();
 }
 
-void ivyGetDistanceBetweenV2AndV2(IvyV2 from, IvyV2 to) {
-  IVY_UNUSED(from);
-  IVY_UNUSED(to);
+void ivyGetDistanceBetweenV2AndV2(IvyV2 const source,
+    IvyV2 const destination) {
+  IVY_UNUSED(source);
+  IVY_UNUSED(destination);
   IVY_TODO();
 }
-void ivyGetDistanceBetweenV3AndV3(IvyV3 from, IvyV3 to) {
-  IVY_UNUSED(from);
-  IVY_UNUSED(to);
-  IVY_TODO();
-}
-
-void ivyGetDistanceBetweenV4AndV4(IvyV4 from, IvyV4 to) {
-  IVY_UNUSED(from);
-  IVY_UNUSED(to);
+void ivyGetDistanceBetweenV3AndV3(IvyV3 const source,
+    IvyV3 const destination) {
+  IVY_UNUSED(source);
+  IVY_UNUSED(destination);
   IVY_TODO();
 }
 
-void ivyMixV3(IvyV3 from, IvyV3 to, float weight, IvyV3 out) {
-  IVY_UNUSED(from);
-  IVY_UNUSED(to);
+void ivyGetDistanceBetweenV4AndV4(IvyV4 const source,
+    IvyV4 const destination) {
+  IVY_UNUSED(source);
+  IVY_UNUSED(destination);
+  IVY_TODO();
+}
+
+void ivyMixV3(IvyV3 const source, IvyV3 const destination, float weight,
+    IvyV3 const out) {
+  IVY_UNUSED(source);
+  IVY_UNUSED(destination);
   IVY_UNUSED(weight);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyMixV4(IvyV4 from, IvyV4 to, float weight, IvyV4 out) {
-  IVY_UNUSED(from);
-  IVY_UNUSED(to);
+void ivyMixV4(IvyV4 const source, IvyV4 const destination, float weight,
+    IvyV4 const out) {
+  IVY_UNUSED(source);
+  IVY_UNUSED(destination);
   IVY_UNUSED(weight);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyQ4AsM4(IvyQ4 quaternion, IvyM3 out) {
+void ivyQ4AsM4(const IvyQ4 quaternion, IvyM3 out) {
   IVY_UNUSED(quaternion);
   IVY_UNUSED(out);
   IVY_TODO();
 }
 
-void ivyScaleM4ByV3(IvyM4 matrix, IvyV3 scale, IvyM4 out) {
+void ivyScaleM4ByV3(IvyM4 matrix, IvyV3 const scale, IvyM4 out) {
   IVY_UNUSED(matrix);
   IVY_UNUSED(scale);
   IVY_UNUSED(out);
