@@ -718,7 +718,7 @@ IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer) {
   renderer->requiresSwapchainRebuild = 0;
 
   renderer->swapchain = ivyCreateVulkanSwapchain(
-      &renderer->graphicsContext.globalMemoryAllocator,
+      renderer->graphicsContext.globalMemoryAllocator,
       &renderer->graphicsContext, &renderer->defaultGraphicsMemoryAllocator,
       renderer->mainRenderPass, 2, renderer->swapchainWidth,
       renderer->swapchainHeight, renderer->colorAttachment.imageView,
@@ -764,7 +764,7 @@ void ivyDestroyRenderer(IvyRenderer *renderer) {
       ivyDestroyGraphicsRenderSemaphores(renderer->graphicsContext.device,
           &renderer->renderSemaphores[index]);
     }
-    ivyFreeMemory(&renderer->graphicsContext.globalMemoryAllocator,
+    ivyFreeMemory(renderer->graphicsContext.globalMemoryAllocator,
         renderer->renderSemaphores);
     renderer->renderSemaphores = NULL;
   }
@@ -775,7 +775,7 @@ void ivyDestroyRenderer(IvyRenderer *renderer) {
       ivyDestroyGraphicsFrame(&renderer->graphicsContext,
           &renderer->defaultGraphicsMemoryAllocator, &renderer->frames[index]);
     }
-    ivyFreeMemory(&renderer->graphicsContext.globalMemoryAllocator,
+    ivyFreeMemory(renderer->graphicsContext.globalMemoryAllocator,
         renderer->frames);
     renderer->frames = NULL;
   }
@@ -846,7 +846,7 @@ static void ivyDestroyGraphicsResourcesForSwapchainRebuild(
       ivyDestroyGraphicsRenderSemaphores(renderer->graphicsContext.device,
           &renderer->renderSemaphores[index]);
     }
-    ivyFreeMemory(&renderer->graphicsContext.globalMemoryAllocator,
+    ivyFreeMemory(renderer->graphicsContext.globalMemoryAllocator,
         renderer->renderSemaphores);
     renderer->renderSemaphores = NULL;
   }
@@ -857,7 +857,7 @@ static void ivyDestroyGraphicsResourcesForSwapchainRebuild(
       ivyDestroyGraphicsFrame(&renderer->graphicsContext,
           &renderer->defaultGraphicsMemoryAllocator, &renderer->frames[index]);
     }
-    ivyFreeMemory(&renderer->graphicsContext.globalMemoryAllocator,
+    ivyFreeMemory(renderer->graphicsContext.globalMemoryAllocator,
         renderer->frames);
     renderer->frames = NULL;
   }
@@ -908,7 +908,7 @@ IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
   renderer->requiresSwapchainRebuild = 0;
 
   renderer->swapchain = ivyCreateVulkanSwapchain(
-      &renderer->graphicsContext.globalMemoryAllocator,
+      renderer->graphicsContext.globalMemoryAllocator,
       &renderer->graphicsContext, &renderer->defaultGraphicsMemoryAllocator,
       renderer->mainRenderPass, 2, renderer->swapchainWidth,
       renderer->swapchainHeight, renderer->colorAttachment.imageView,

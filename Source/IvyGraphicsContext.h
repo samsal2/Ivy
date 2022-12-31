@@ -10,7 +10,7 @@
 #define IVY_MAX_AVAILABLE_DEVICES 8
 
 typedef struct IvyGraphicsContext {
-  IvyDummyMemoryAllocator globalMemoryAllocator;
+  IvyAnyMemoryAllocator globalMemoryAllocator;
   IvyApplication *application;
   VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;

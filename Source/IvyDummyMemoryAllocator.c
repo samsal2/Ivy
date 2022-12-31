@@ -49,7 +49,6 @@ static void ivyDummyMemoryAllocatorFree(IvyAnyMemoryAllocator allocator,
       allocator, data, dummyAllocator->aliveAllocationCount);
 }
 
-#include <stdio.h>
 static void ivyDestroyDummyMemoryAllocator(IvyAnyMemoryAllocator allocator) {
   IvyDummyMemoryAllocator *dummyAllocator = allocator;
   IVY_UNUSED(allocator);

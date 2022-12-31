@@ -346,14 +346,14 @@ IvyCode ivyCreateGraphicsProgram(IvyGraphicsContext *context,
 
   IVY_MEMSET(program, 0, sizeof(*program));
 
-  program->vertexShader = ivyCreateVulkanShader(
-      &context->globalMemoryAllocator, context->device, vertexShaderPath);
+  program->vertexShader = ivyCreateVulkanShader(context->globalMemoryAllocator,
+      context->device, vertexShaderPath);
   if (!program->vertexShader) {
     goto error;
   }
 
   program->fragmentShader = ivyCreateVulkanShader(
-      &context->globalMemoryAllocator, context->device, fragmentShaderPath);
+      context->globalMemoryAllocator, context->device, fragmentShaderPath);
   if (!program->vertexShader) {
     goto error;
   }

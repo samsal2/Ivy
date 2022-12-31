@@ -1,7 +1,7 @@
 #ifndef IVY_MEMORY_ALLOCATOR_H
 #define IVY_MEMORY_ALLOCATOR_H
 
-#include <stdint.h>
+#include "IvyDeclarations.h"
 
 typedef void *IvyAnyMemoryAllocator;
 
@@ -47,4 +47,7 @@ void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data);
 
 void ivyDestroyMemoryAllocator(IvyAnyMemoryAllocator allocator);
 
+IvyCode ivyGlobalDefaultMemoryAllocator(IvyAnyMemoryAllocator allocator);
+IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void);
+void ivyDestroyGlobalMemoryAllocator(void);
 #endif

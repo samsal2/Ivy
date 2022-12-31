@@ -1,1 +1,1 @@
-add_subdirectory(FreeType)
+add_subdirectory(freetype)

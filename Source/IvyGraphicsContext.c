@@ -1,6 +1,7 @@
 #include "IvyGraphicsContext.h"
 
 #include "IvyLog.h"
+#include "IvyMemoryAllocator.h"
 
 #if defined(IVY_ENABLE_VULKAN_VALIDATION_LAYERS)
 static char const *const validationLayers[] = {"VK_LAYER_KHRONOS_validation"};
@@ -601,8 +602,6 @@ void ivyDestroyGraphicsContext(IvyGraphicsContext *context) {
     vkDestroyInstance(context->instance, NULL);
     context->instance = VK_NULL_HANDLE;
   }
-
-  ivyDestroyMemoryAllocator(&context->globalMemoryAllocator);
 }
 
 #define IVY_MAX_DESCRIPTOR_POOL_TYPES 7
@@ -657,13 +656,12 @@ VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
 
 IvyCode ivyCreateGraphicsContext(IvyApplication *application,
     IvyGraphicsContext *context) {
-  IvyCode ivyCode;
   IVY_MEMSET(context, 0, sizeof(*context));
 
   context->application = application;
 
-  ivyCode = ivyCreateDummyMemoryAllocator(&context->globalMemoryAllocator);
-  if (ivyCode) {
+  context->globalMemoryAllocator = ivyGetGlobalMemoryAllocator();
+  if (!context->globalMemoryAllocator) {
     goto error;
   }
 
@@ -698,7 +696,7 @@ IvyCode ivyCreateGraphicsContext(IvyApplication *application,
   context->presentMode = VK_PRESENT_MODE_FIFO_KHR;
   context->attachmentSampleCounts = VK_SAMPLE_COUNT_2_BIT;
 
-  context->device = ivyCreateVulkanDevice(&context->globalMemoryAllocator,
+  context->device = ivyCreateVulkanDevice(context->globalMemoryAllocator,
       context->surface, context->availableDeviceCount,
       context->availableDevices, context->surfaceFormat.format,
       context->surfaceFormat.colorSpace, context->presentMode,
