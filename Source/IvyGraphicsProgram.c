@@ -335,25 +335,26 @@ VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
   return pipeline;
 }
 
-IvyCode ivyCreateGraphicsProgram(IvyGraphicsContext *context,
-    VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
-    int32_t viewportWidth, int32_t viewportHeight,
-    char const *vertexShaderPath, char const *fragmentShaderPath,
-    uint64_t flags, IvyGraphicsProgram *program) {
+IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context, VkRenderPass renderPass,
+    VkPipelineLayout pipelineLayout, int32_t viewportWidth,
+    int32_t viewportHeight, char const *vertexShaderPath,
+    char const *fragmentShaderPath, uint64_t flags,
+    IvyGraphicsProgram *program) {
   IVY_ASSERT(program);
   IVY_ASSERT(vertexShaderPath);
   IVY_ASSERT(fragmentShaderPath);
 
   IVY_MEMSET(program, 0, sizeof(*program));
 
-  program->vertexShader = ivyCreateVulkanShader(context->globalMemoryAllocator,
-      context->device, vertexShaderPath);
+  program->vertexShader =
+      ivyCreateVulkanShader(allocator, context->device, vertexShaderPath);
   if (!program->vertexShader) {
     goto error;
   }
 
-  program->fragmentShader = ivyCreateVulkanShader(
-      context->globalMemoryAllocator, context->device, fragmentShaderPath);
+  program->fragmentShader =
+      ivyCreateVulkanShader(allocator, context->device, fragmentShaderPath);
   if (!program->vertexShader) {
     goto error;
   }

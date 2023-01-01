@@ -27,18 +27,19 @@ VkImage ivyCreateVulkanImage(VkDevice device, int32_t width, int32_t height,
 VkImageView ivyCreateVulkanImageView(VkDevice device, VkImage image,
     VkImageAspectFlags aspect, VkFormat format);
 
-IvyCode ivyCreateGraphicsTextureFromFile(IvyGraphicsContext *context,
+IvyGraphicsTexture *ivyCreateGraphicsTextureFromFile(
+    IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
-    VkDescriptorSetLayout textureDescriptorSetLayout, char const *path,
-    IvyGraphicsTexture *texture);
+    VkDescriptorSetLayout textureDescriptorSetLayout, char const *path);
 
-IvyCode ivyCreateGraphicsTexture(IvyGraphicsContext *context,
+IvyGraphicsTexture *ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkDescriptorSetLayout textureDescriptorSetLayout, int32_t width,
-    int32_t height, IvyPixelFormat format, void *data,
-    IvyGraphicsTexture *texture);
+    int32_t height, IvyPixelFormat format, void *data);
 
-void ivyDestroyGraphicsTexture(IvyGraphicsContext *context,
+void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTexture *texture);
 

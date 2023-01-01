@@ -14,16 +14,8 @@ IvyGraphicsTexture *texture;
 int main(void) {
   allocator = ivyGetGlobalMemoryAllocator();
 
-  application = ivyAllocateMemory(allocator, sizeof(*application));
-  renderer = ivyAllocateMemory(allocator, sizeof(*renderer));
-  texture = ivyAllocateMemory(allocator, sizeof(*texture));
-
-  if (!application || !renderer || !texture) {
-    printf("failed to allocate resources\n");
-    goto error;
-  }
-
-  if (0 > ivyCreateApplication(application)) {
+  application = ivyCreateApplication(allocator);
+  if (!application) {
     printf("failed to create application\n");
     goto error;
   }
@@ -33,15 +25,16 @@ int main(void) {
     goto error;
   }
 
-  if (0 > ivyCreateRenderer(application, renderer)) {
+  renderer = ivyCreateRenderer(allocator, application);
+  if (!renderer) {
     printf("failed to create renderer\n");
     goto error;
   }
 
-  if (0 > ivyCreateGraphicsTextureFromFile(&renderer->graphicsContext,
-              &renderer->defaultGraphicsMemoryAllocator,
-              renderer->textureDescriptorSetLayout, "../Resources/Ivy.jpg",
-              texture)) {
+  texture = ivyCreateGraphicsTextureFromFile(allocator,
+      renderer->graphicsContext, &renderer->defaultGraphicsMemoryAllocator,
+      renderer->textureDescriptorSetLayout, "../Resources/Ivy.jpg");
+  if (!texture) {
     printf("failed to create texture\n");
     goto error;
   }
@@ -54,15 +47,10 @@ int main(void) {
   }
 
 error:
-  ivyDestroyGraphicsTexture(&renderer->graphicsContext,
+  ivyDestroyGraphicsTexture(allocator, renderer->graphicsContext,
       &renderer->defaultGraphicsMemoryAllocator, texture);
-  ivyDestroyRenderer(renderer);
-  ivyDestroyApplication(application);
-
-  ivyFreeMemory(allocator, texture);
-  ivyFreeMemory(allocator, renderer);
-  ivyFreeMemory(allocator, application);
-
+  ivyDestroyRenderer(allocator, renderer);
+  ivyDestroyApplication(allocator, application);
   ivyDestroyGlobalMemoryAllocator();
 
   return 0;

@@ -352,42 +352,47 @@ static void ivyWriteVulkanTextureDynamicDescriptorSet(VkDevice device,
       writeDescriptorSets, 0, NULL);
 }
 
-IvyCode ivyCreateGraphicsTextureFromFile(IvyGraphicsContext *context,
+IvyGraphicsTexture *ivyCreateGraphicsTextureFromFile(
+    IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
-    VkDescriptorSetLayout textureDescriptorSetLayout, char const *path,
-    IvyGraphicsTexture *texture) {
-  IvyCode ivyCode;
+    VkDescriptorSetLayout textureDescriptorSetLayout, char const *path) {
   int width;
   int height;
   int channels;
   void *data = NULL;
+  IvyGraphicsTexture *texture;
 
   IVY_ASSERT(context);
   IVY_ASSERT(graphicsAllocator);
   IVY_ASSERT(textureDescriptorSetLayout);
   IVY_ASSERT(path);
-  IVY_ASSERT(texture);
 
   data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
   if (!data) {
-    return IVY_UNKNOWN_ERROR;
+    return NULL;
   }
 
-  ivyCode = ivyCreateGraphicsTexture(context, graphicsAllocator,
-      textureDescriptorSetLayout, width, height, IVY_RGBA8_SRGB, data,
-      texture);
+  texture = ivyCreateGraphicsTexture(allocator, context, graphicsAllocator,
+      textureDescriptorSetLayout, width, height, IVY_RGBA8_SRGB, data);
 
   stbi_image_free(data);
 
-  return ivyCode;
+  return texture;
 }
 
-IvyCode ivyCreateGraphicsTexture(IvyGraphicsContext *context,
+IvyGraphicsTexture *ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkDescriptorSetLayout textureDescriptorSetLayout, int32_t width,
-    int32_t height, IvyPixelFormat format, void *data,
-    IvyGraphicsTexture *texture) {
+    int32_t height, IvyPixelFormat format, void *data) {
   IvyCode ivyCode;
+  IvyGraphicsTexture *texture;
+
+  texture = ivyAllocateMemory(allocator, sizeof(*texture));
+  if (!texture) {
+    goto error;
+  }
+
   IVY_MEMSET(texture, 0, sizeof(*texture));
 
   texture->width = width;
@@ -462,14 +467,15 @@ IvyCode ivyCreateGraphicsTexture(IvyGraphicsContext *context,
       texture->imageView, texture->sampler,
       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, texture->descriptorSet);
 
-  return IVY_OK;
+  return texture;
 
 error:
-  ivyDestroyGraphicsTexture(context, graphicsAllocator, texture);
-  return IVY_NO_GRAPHICS_MEMORY;
+  ivyDestroyGraphicsTexture(allocator, context, graphicsAllocator, texture);
+  return NULL;
 }
 
-void ivyDestroyGraphicsTexture(IvyGraphicsContext *context,
+void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTexture *texture) {
   if (!context || !graphicsAllocator || !texture) {
@@ -506,4 +512,6 @@ void ivyDestroyGraphicsTexture(IvyGraphicsContext *context,
     vkDestroyImage(context->device, texture->image, NULL);
     texture->image = VK_NULL_HANDLE;
   }
+
+  ivyFreeMemory(allocator, texture);
 }

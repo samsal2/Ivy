@@ -2,6 +2,7 @@
 #define IVY_APPLICATION_H
 
 #include "IvyDeclarations.h"
+#include "IvyMemoryAllocator.h"
 
 #include <vulkan/vulkan.h>
 
@@ -23,8 +24,10 @@ typedef struct IvyApplication {
   IvyWindow windows[IVY_MAX_WINDOWS];
 } IvyApplication;
 
-IvyCode ivyCreateApplication(IvyApplication *application);
-void ivyDestroyApplication(IvyApplication *application);
+IvyApplication *ivyCreateApplication(IvyAnyMemoryAllocator allocator);
+
+void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
+    IvyApplication *application);
 
 IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
     int32_t height, char const *title);

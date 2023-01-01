@@ -568,7 +568,8 @@ VkCommandPool ivyCreateVulkanTransientCommandPool(VkDevice device,
   return commandPool;
 }
 
-void ivyDestroyGraphicsContext(IvyGraphicsContext *context) {
+void ivyDestroyGraphicsContext(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context) {
   if (context->globalDescriptorPool) {
     vkDestroyDescriptorPool(context->device, context->globalDescriptorPool,
         NULL);
@@ -602,6 +603,8 @@ void ivyDestroyGraphicsContext(IvyGraphicsContext *context) {
     vkDestroyInstance(context->instance, NULL);
     context->instance = VK_NULL_HANDLE;
   }
+
+  ivyFreeMemory(allocator, context);
 }
 
 #define IVY_MAX_DESCRIPTOR_POOL_TYPES 7
@@ -654,16 +657,18 @@ VkDescriptorPool ivyCreateVulkanGlobalDescriptorPool(VkDevice device) {
   return descriptorPool;
 }
 
-IvyCode ivyCreateGraphicsContext(IvyApplication *application,
-    IvyGraphicsContext *context) {
+IvyGraphicsContext *ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
+    IvyApplication *application) {
+  IvyGraphicsContext *context;
+
+  context = ivyAllocateMemory(allocator, sizeof(*context));
+  if (!context) {
+    return NULL;
+  }
+
   IVY_MEMSET(context, 0, sizeof(*context));
 
   context->application = application;
-
-  context->globalMemoryAllocator = ivyGetGlobalMemoryAllocator();
-  if (!context->globalMemoryAllocator) {
-    goto error;
-  }
 
   context->instance = ivyCreateVulkanInstance(application);
   IVY_ASSERT(context->instance);
@@ -696,14 +701,13 @@ IvyCode ivyCreateGraphicsContext(IvyApplication *application,
   context->presentMode = VK_PRESENT_MODE_FIFO_KHR;
   context->attachmentSampleCounts = VK_SAMPLE_COUNT_2_BIT;
 
-  context->device = ivyCreateVulkanDevice(context->globalMemoryAllocator,
-      context->surface, context->availableDeviceCount,
-      context->availableDevices, context->surfaceFormat.format,
-      context->surfaceFormat.colorSpace, context->presentMode,
-      context->attachmentSampleCounts, &context->physicalDevice,
-      &context->depthFormat, &context->graphicsQueueFamilyIndex,
-      &context->presentQueueFamilyIndex, &context->graphicsQueue,
-      &context->presentQueue);
+  context->device = ivyCreateVulkanDevice(allocator, context->surface,
+      context->availableDeviceCount, context->availableDevices,
+      context->surfaceFormat.format, context->surfaceFormat.colorSpace,
+      context->presentMode, context->attachmentSampleCounts,
+      &context->physicalDevice, &context->depthFormat,
+      &context->graphicsQueueFamilyIndex, &context->presentQueueFamilyIndex,
+      &context->graphicsQueue, &context->presentQueue);
   IVY_ASSERT(context->device);
   if (!context->device) {
     goto error;
@@ -723,11 +727,11 @@ IvyCode ivyCreateGraphicsContext(IvyApplication *application,
     goto error;
   }
 
-  return IVY_OK;
+  return context;
 
 error:
-  ivyDestroyGraphicsContext(context);
-  return IVY_PLATAFORM_ERROR;
+  ivyDestroyGraphicsContext(allocator, context);
+  return NULL;
 }
 
 VkCommandBuffer ivyAllocateVulkanCommandBuffer(VkDevice device,

@@ -36,22 +36,27 @@ static void ivyInvalidateWindow(IvyWindow *window) {
   window->framebufferHeight = 0;
 }
 
-IvyCode ivyCreateApplication(IvyApplication *application) {
+IvyApplication *ivyCreateApplication(IvyAnyMemoryAllocator allocator) {
   int32_t index;
+  IvyApplication *application;
 
+  IVY_ASSERT(allocator);
+
+  if (doesAnApplicationAlreadyExist) {
+    return NULL;
+  }
+
+  application = ivyAllocateMemory(allocator, sizeof(*application));
   if (!application) {
-    return IVY_INVALID_VALUE;
+    return NULL;
   }
 
   application->opaque = NULL;
   application->lastAddedWindow = NULL;
 
-  if (doesAnApplicationAlreadyExist) {
-    return IVY_ALREADY_INITIALIZED;
-  }
-
   if (!glfwInit()) {
-    return IVY_PLATAFORM_ERROR;
+    ivyFreeMemory(allocator, application);
+    return NULL;
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -62,12 +67,14 @@ IvyCode ivyCreateApplication(IvyApplication *application) {
 
   doesAnApplicationAlreadyExist = 1;
 
-  return IVY_OK;
+  return application;
 }
 
-void ivyDestroyApplication(IvyApplication *application) {
+void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
+    IvyApplication *application) {
   ivyPollApplicationEvents(application);
   glfwTerminate();
+  ivyFreeMemory(allocator, application);
 }
 
 void ivyDoesAnApplicationAlreadyExists(IvyApplication *application) {

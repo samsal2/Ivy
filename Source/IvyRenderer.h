@@ -6,6 +6,7 @@
 #include "IvyGraphicsContext.h"
 #include "IvyGraphicsProgram.h"
 #include "IvyGraphicsTemporaryBuffer.h"
+#include "IvyMemoryAllocator.h"
 
 #define IVY_MAX_SWAPCHAIN_IMAGES 8
 
@@ -25,7 +26,8 @@ typedef struct IvyGraphicsRenderSemaphores {
 } IvyGraphicsRenderSemaphores;
 
 typedef struct IvyRenderer {
-  IvyGraphicsContext graphicsContext;
+  IvyAnyMemoryAllocator ownerMemoryAllocator;
+  IvyGraphicsContext *graphicsContext;
   IvyDummyGraphicsMemoryAllocator defaultGraphicsMemoryAllocator;
   VkClearValue clearValues[2];
   VkRenderPass mainRenderPass;
@@ -48,9 +50,11 @@ typedef struct IvyRenderer {
   IvyGraphicsProgram *boundGraphicsProgram;
 } IvyRenderer;
 
-IvyCode ivyCreateRenderer(IvyApplication *application, IvyRenderer *renderer);
+IvyRenderer *ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
+    IvyApplication *application);
 
-void ivyDestroyRenderer(IvyRenderer *renderer);
+void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
+    IvyRenderer *renderer);
 
 IvyGraphicsFrame *ivyGetCurrentGraphicsFrame(IvyRenderer *renderer);
 
