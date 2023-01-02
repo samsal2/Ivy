@@ -74,19 +74,19 @@ IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(IvyGraphicsContext *context,
 }
 
 IvyCode ivyAllocateAndBindGraphicsMemoryToImage(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, VkImage image,
-    IvyGraphicsMemory *allocation) {
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator, uint32_t flags,
+    VkImage image, IvyGraphicsMemory *allocation) {
   IvyCode ivyCode;
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
 
-  if (!allocator || !allocation) {
+  if (!graphicsAllocator || !allocation) {
     return IVY_INVALID_VALUE;
   }
 
   vkGetImageMemoryRequirements(context->device, image, &memoryRequirements);
 
-  ivyCode = ivyAllocateGraphicsMemory(context, allocator, flags,
+  ivyCode = ivyAllocateGraphicsMemory(context, graphicsAllocator, flags,
       memoryRequirements.memoryTypeBits, memoryRequirements.size, allocation);
   if (ivyCode) {
     return ivyCode;
@@ -95,7 +95,7 @@ IvyCode ivyAllocateAndBindGraphicsMemoryToImage(IvyGraphicsContext *context,
   vulkanResult = vkBindImageMemory(context->device, image, allocation->memory,
       allocation->offset);
   if (vulkanResult) {
-    ivyFreeGraphicsMemory(context, allocator, allocation);
+    ivyFreeGraphicsMemory(context, graphicsAllocator, allocation);
     return IVY_NO_GRAPHICS_MEMORY;
   }
 

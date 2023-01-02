@@ -17,6 +17,9 @@ typedef void *(*IvyReallocateMemoryCallback)(IvyAnyMemoryAllocator allocator,
 typedef void (
     *IvyFreeMemoryCallback)(IvyAnyMemoryAllocator allocator, void *data);
 
+typedef void (*IvyClearMemoryAllocatorCallback)(
+    IvyAnyMemoryAllocator allocator);
+
 typedef void (*IvyDestroyMemoryAllocator)(IvyAnyMemoryAllocator allocator);
 
 typedef struct IvyMemoryAllocatorDispatch {
@@ -24,6 +27,7 @@ typedef struct IvyMemoryAllocatorDispatch {
   IvyAllocateAndZeroMemoryCallback allocateAndZero;
   IvyReallocateMemoryCallback reallocate;
   IvyFreeMemoryCallback free;
+  IvyClearMemoryAllocatorCallback clear;
   IvyDestroyMemoryAllocator destroy;
 } IvyMemoryAllocatorDispatch;
 

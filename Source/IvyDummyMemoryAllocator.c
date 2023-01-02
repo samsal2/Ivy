@@ -35,6 +35,11 @@ static void *ivyDummyMemoryAllocatorReallocate(IvyAnyMemoryAllocator allocator,
   return realloc(data, newSize);
 }
 
+static void ivyDummyMemoryAllocatorClear(IvyAnyMemoryAllocator allocator) {
+  IVY_ASSERT(allocator);
+  IVY_TODO();
+}
+
 static void ivyDummyMemoryAllocatorFree(IvyAnyMemoryAllocator allocator,
     void *data) {
   IvyDummyMemoryAllocator *dummyAllocator = allocator;
@@ -62,7 +67,7 @@ static IvyMemoryAllocatorDispatch const dummyMemoryAllocatorDispatch = {
     ivyDummyMemoryAllocatorAllocate,
     ivyDummyMemoryAllocatorAllocateAndZeroMemory,
     ivyDummyMemoryAllocatorReallocate, ivyDummyMemoryAllocatorFree,
-    ivyDestroyDummyMemoryAllocator};
+    ivyDummyMemoryAllocatorClear, ivyDestroyDummyMemoryAllocator};
 
 IvyCode ivyCreateDummyMemoryAllocator(IvyDummyMemoryAllocator *allocator) {
   ivySetupMemoryAllocatorBase(&dummyMemoryAllocatorDispatch, &allocator->base);
