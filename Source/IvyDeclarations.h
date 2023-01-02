@@ -6,6 +6,8 @@
 typedef int IvyCode;
 typedef int IvyBool;
 
+#define IVY_API
+
 #define IVY_OK 0
 #define IVY_UNKNOWN_ERROR -1
 #define IVY_INVALID_VALUE -2

@@ -7,3 +7,6 @@
 [submodule "Dependencies/freetype/freetype"]
 	path = Dependencies/freetype/freetype
 	url = https://github.com/freetype/freetype.git
+[submodule "Dependencies/cimgui/cimgui"]
+	path = Dependencies/cimgui/cimgui
+	url = https://github.com/cimgui/cimgui.git
