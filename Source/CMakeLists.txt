@@ -24,8 +24,6 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyGraphicsTemporaryBuffer.h
   IvyGraphicsTexture.c
   IvyGraphicsTexture.h
-  IvyImGui.c
-  IvyImGui.h
   IvyLog.c
   IvyLog.h
   IvyMemoryAllocator.c
