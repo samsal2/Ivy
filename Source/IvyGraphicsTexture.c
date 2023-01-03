@@ -11,7 +11,7 @@
 #define IVY_DEBUG_LOG2 log2
 #endif
 
-static VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
+IVY_INTERNAL VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
   switch (format) {
   case IVY_R8_UNORM:
     return VK_FORMAT_R8_UNORM;
@@ -21,13 +21,13 @@ static VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
   }
 }
 
-static uint32_t ivyCalculateMipLevels(int32_t width, int32_t height) {
+IVY_INTERNAL uint32_t ivyCalculateMipLevels(int32_t width, int32_t height) {
   return (uint32_t)(IVY_FLOOR(IVY_DEBUG_LOG2(IVY_MAX(width, height))) + 1);
 }
 
-VkImage ivyCreateVulkanImage(VkDevice device, int32_t width, int32_t height,
-    uint32_t mipLevels, VkSampleCountFlagBits samples, VkImageUsageFlags usage,
-    VkFormat format) {
+IVY_API VkImage ivyCreateVulkanImage(VkDevice device, int32_t width,
+    int32_t height, uint32_t mipLevels, VkSampleCountFlagBits samples,
+    VkImageUsageFlags usage, VkFormat format) {
   VkResult vulkanResult;
   VkImage image;
   VkImageCreateInfo imageCreateInfo;
@@ -62,7 +62,7 @@ VkImage ivyCreateVulkanImage(VkDevice device, int32_t width, int32_t height,
   return image;
 }
 
-VkImageView ivyCreateVulkanImageView(VkDevice device, VkImage image,
+IVY_API VkImageView ivyCreateVulkanImageView(VkDevice device, VkImage image,
     VkImageAspectFlags aspect, VkFormat format) {
   VkResult vulkanResult;
   VkImageView imageView;
@@ -93,7 +93,7 @@ VkImageView ivyCreateVulkanImageView(VkDevice device, VkImage image,
   return imageView;
 }
 
-IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
+IVY_API IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
     uint32_t mipLevels, VkImage image, VkImageLayout sourceLayout,
     VkImageLayout destinationLayout) {
   IvyCode ivyCode;
@@ -181,8 +181,8 @@ IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
   return ivyCode;
 }
 
-IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
-    int32_t height, uint32_t mipLevels, VkImage image) {
+IVY_API IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context,
+    int32_t width, int32_t height, uint32_t mipLevels, VkImage image) {
   uint32_t index;
   IvyCode ivyCode;
   VkImageMemoryBarrier imageMemoryBarrier;
@@ -274,7 +274,7 @@ IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context, int32_t width,
   return ivyCode;
 }
 
-static VkSampler ivyCreateVulkanSampler(VkDevice device) {
+IVY_INTERNAL VkSampler ivyCreateVulkanSampler(VkDevice device) {
   VkResult vulkanResult;
   VkSampler sampler;
   VkSamplerCreateInfo samplerCreateInfo;
@@ -312,7 +312,7 @@ static VkSampler ivyCreateVulkanSampler(VkDevice device) {
   return sampler;
 }
 
-static void ivyWriteVulkanTextureDynamicDescriptorSet(VkDevice device,
+IVY_INTERNAL void ivyWriteVulkanTextureDynamicDescriptorSet(VkDevice device,
     VkImageView imageView, VkSampler sampler, VkImageLayout imageLayout,
     VkDescriptorSet descriptorSet) {
   VkDescriptorImageInfo descriptorImageInfos[2];
@@ -352,7 +352,7 @@ static void ivyWriteVulkanTextureDynamicDescriptorSet(VkDevice device,
       writeDescriptorSets, 0, NULL);
 }
 
-IvyGraphicsTexture *ivyCreateGraphicsTextureFromFile(
+IVY_API IvyGraphicsTexture *ivyCreateGraphicsTextureFromFile(
     IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkDescriptorSetLayout textureDescriptorSetLayout, char const *path) {
@@ -380,8 +380,8 @@ IvyGraphicsTexture *ivyCreateGraphicsTextureFromFile(
   return texture;
 }
 
-IvyGraphicsTexture *ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
-    IvyGraphicsContext *context,
+IVY_API IvyGraphicsTexture *ivyCreateGraphicsTexture(
+    IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkDescriptorSetLayout textureDescriptorSetLayout, int32_t width,
     int32_t height, IvyPixelFormat format, void *data) {
@@ -474,7 +474,7 @@ error:
   return NULL;
 }
 
-void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
+IVY_API void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
     IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTexture *texture) {

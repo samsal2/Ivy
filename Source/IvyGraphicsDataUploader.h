@@ -5,7 +5,7 @@
 #include "IvyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsTexture.h"
 
-IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
+IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator, int32_t width, int32_t height,
     IvyPixelFormat format, void *data, VkImage image);
 

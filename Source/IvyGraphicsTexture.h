@@ -20,25 +20,25 @@ typedef struct IvyGraphicsTexture {
   VkSampler sampler;
 } IvyGraphicsTexture;
 
-VkImage ivyCreateVulkanImage(VkDevice device, int32_t width, int32_t height,
-    uint32_t mipLevels, VkSampleCountFlagBits samples, VkImageUsageFlags usage,
-    VkFormat format);
+IVY_API VkImage ivyCreateVulkanImage(VkDevice device, int32_t width,
+    int32_t height, uint32_t mipLevels, VkSampleCountFlagBits samples,
+    VkImageUsageFlags usage, VkFormat format);
 
-VkImageView ivyCreateVulkanImageView(VkDevice device, VkImage image,
+IVY_API VkImageView ivyCreateVulkanImageView(VkDevice device, VkImage image,
     VkImageAspectFlags aspect, VkFormat format);
 
-IvyGraphicsTexture *ivyCreateGraphicsTextureFromFile(
+IVY_API IvyGraphicsTexture *ivyCreateGraphicsTextureFromFile(
     IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkDescriptorSetLayout textureDescriptorSetLayout, char const *path);
 
-IvyGraphicsTexture *ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
-    IvyGraphicsContext *context,
+IVY_API IvyGraphicsTexture *ivyCreateGraphicsTexture(
+    IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkDescriptorSetLayout textureDescriptorSetLayout, int32_t width,
     int32_t height, IvyPixelFormat format, void *data);
 
-void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
+IVY_API void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
     IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTexture *texture);

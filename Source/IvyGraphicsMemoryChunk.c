@@ -1,6 +1,7 @@
 #include "IvyGraphicsMemoryChunk.h"
 
-static VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(uint32_t flags) {
+IVY_INTERNAL VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(
+    uint32_t flags) {
   VkMemoryPropertyFlagBits properties = 0;
 
   if (IVY_GPU_LOCAL & flags) {
@@ -14,7 +15,7 @@ static VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(uint32_t flags) {
   return properties;
 }
 
-static uint32_t ivyFindVulkanMemoryTypeIndex(IvyGraphicsContext *context,
+IVY_INTERNAL uint32_t ivyFindVulkanMemoryTypeIndex(IvyGraphicsContext *context,
     uint32_t flags, uint32_t type) {
   uint32_t index;
   VkMemoryPropertyFlagBits memoryProperties;
@@ -45,8 +46,9 @@ static uint32_t ivyFindVulkanMemoryTypeIndex(IvyGraphicsContext *context,
   return (uint32_t)-1;
 }
 
-static VkDeviceMemory ivyAllocateVulkanMemory(IvyGraphicsContext *context,
-    uint32_t flags, uint32_t type, uint64_t size) {
+IVY_INTERNAL VkDeviceMemory ivyAllocateVulkanMemory(
+    IvyGraphicsContext *context, uint32_t flags, uint32_t type,
+    uint64_t size) {
   VkResult vulkanResult;
   VkDeviceMemory memory;
   VkMemoryAllocateInfo memoryAllocateInfo;
@@ -73,7 +75,7 @@ static VkDeviceMemory ivyAllocateVulkanMemory(IvyGraphicsContext *context,
   return memory;
 }
 
-void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk) {
+IVY_API void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk) {
   chunk->data = NULL;
   chunk->flags = 0;
   chunk->type = 0;
@@ -82,8 +84,9 @@ void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk) {
   chunk->memory = VK_NULL_HANDLE;
 }
 
-int ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context, uint32_t flags,
-    uint32_t type, uint64_t size, IvyGraphicsMemoryChunk *chunk) {
+IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
+    uint32_t flags, uint32_t type, uint64_t size,
+    IvyGraphicsMemoryChunk *chunk) {
   chunk->flags = flags;
   chunk->type = type;
   chunk->size = size;
@@ -108,7 +111,7 @@ int ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context, uint32_t flags,
   return IVY_OK;
 }
 
-void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
+IVY_API void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
     IvyGraphicsMemoryChunk *chunk) {
   if (chunk->memory) {
     vkFreeMemory(context->device, chunk->memory, NULL);

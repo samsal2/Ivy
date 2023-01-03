@@ -36,22 +36,28 @@ typedef struct IvyMemoryAllocatorBase {
   IvyMemoryAllocatorDispatch const *dispatch;
 } IvyMemoryAllocatorBase;
 
-void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch const *dispatch,
-    IvyMemoryAllocatorBase *base);
+IVY_API void ivySetupMemoryAllocatorBase(
+    IvyMemoryAllocatorDispatch const *dispatch, IvyMemoryAllocatorBase *base);
 
-void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator, uint64_t size);
+IVY_API void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator,
+    uint64_t size);
 
-void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
+IVY_API void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
     uint64_t newSize);
 
-void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator, uint64_t count,
-    uint64_t elementSize);
+IVY_API void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator,
+    uint64_t count, uint64_t elementSize);
 
-void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data);
+IVY_API void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data);
+
+void ivyClearMemoryAllocator(IvyAnyMemoryAllocator allocator);
 
 void ivyDestroyMemoryAllocator(IvyAnyMemoryAllocator allocator);
 
-IvyCode ivyGlobalDefaultMemoryAllocator(IvyAnyMemoryAllocator allocator);
-IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void);
-void ivyDestroyGlobalMemoryAllocator(void);
+IVY_API IvyCode ivyGlobalDefaultMemoryAllocator(
+    IvyAnyMemoryAllocator allocator);
+
+IVY_API IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void);
+
+IVY_API void ivyDestroyGlobalMemoryAllocator(void);
 #endif

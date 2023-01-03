@@ -2,11 +2,11 @@
 
 #include <stdio.h>
 
-static char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
+IVY_INTERNAL char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
     char const *path, uint64_t *size) {
   FILE *file = NULL;
   char *buffer = NULL;
-  int bufferSize = 0;
+  int bufferSize;
 
   file = fopen(path, "r");
   if (!file) {
@@ -49,7 +49,7 @@ error:
   return NULL;
 }
 
-VkShaderModule ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
+IVY_API VkShaderModule ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
     VkDevice device, char const *path) {
   uint64_t shaderCodeSizeInBytes;
   char *shaderCode;
@@ -81,7 +81,7 @@ cleanup:
   return shader;
 }
 
-VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
+IVY_API VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
     int32_t height, uint64_t flags, VkSampleCountFlagBits sampleCounts,
     VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
     VkShaderModule vertexShader, VkShaderModule fragmentShader) {
@@ -335,7 +335,7 @@ VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
   return pipeline;
 }
 
-IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
+IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
     IvyGraphicsContext *context, VkRenderPass renderPass,
     VkPipelineLayout pipelineLayout, int32_t viewportWidth,
     int32_t viewportHeight, char const *vertexShaderPath,
@@ -374,7 +374,7 @@ error:
   return IVY_NO_GRAPHICS_MEMORY;
 }
 
-void ivyDestroyGraphicsProgram(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsProgram(IvyGraphicsContext *context,
     IvyGraphicsProgram *program) {
   if (program->pipeline) {
     vkDestroyPipeline(context->device, program->pipeline, NULL);

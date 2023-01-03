@@ -35,14 +35,14 @@ typedef struct IvyGraphicsProgram {
   VkPipeline pipeline;
 } IvyGraphicsProgram;
 
-IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
+IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
     IvyGraphicsContext *context, VkRenderPass renderPass,
     VkPipelineLayout pipelineLayout, int32_t viewportWidth,
     int32_t viewportHeight, char const *vertexShaderPath,
     char const *fragmentShaderPath, uint64_t flags,
     IvyGraphicsProgram *program);
 
-void ivyDestroyGraphicsProgram(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsProgram(IvyGraphicsContext *context,
     IvyGraphicsProgram *program);
 
 #endif

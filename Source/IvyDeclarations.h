@@ -6,7 +6,8 @@
 typedef int IvyCode;
 typedef int IvyBool;
 
-#define IVY_API
+#define IVY_INTERNAL static
+#define IVY_LOCAL_PERSIST static
 
 #define IVY_OK 0
 #define IVY_UNKNOWN_ERROR -1

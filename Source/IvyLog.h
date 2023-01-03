@@ -1,7 +1,10 @@
 #ifndef IVY_DEBUG_LOG_H
 #define IVY_DEBUG_LOG_H
 
-void ivyLogImplementation(char const *functionName, char const *format, ...);
+#include "IvyDeclarations.h"
+
+IVY_API void ivyLogImplementation(char const *functionName, char const *format,
+    ...);
 
 #if defined(__GNUC__) || defined(__clang__)
 #define IVY_CURRENT_FUNCTION_NAME __PRETTY_FUNCTION__

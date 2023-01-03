@@ -50,23 +50,24 @@ typedef struct IvyRenderer {
   IvyGraphicsProgram *boundGraphicsProgram;
 } IvyRenderer;
 
-IvyRenderer *ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
+IVY_API IvyRenderer *ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
     IvyApplication *application);
 
-void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
+IVY_API void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
     IvyRenderer *renderer);
 
-IvyGraphicsFrame *ivyGetCurrentGraphicsFrame(IvyRenderer *renderer);
+IVY_API IvyGraphicsFrame *ivyGetCurrentGraphicsFrame(IvyRenderer *renderer);
 
-IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer);
+IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer);
 
-IvyCode ivyRequestGraphicsTemporaryBufferFromRenderer(IvyRenderer *renderer,
-    uint64_t size, IvyGraphicsTemporaryBuffer *temporaryBuffer);
+IVY_API IvyCode ivyRequestGraphicsTemporaryBufferFromRenderer(
+    IvyRenderer *renderer, uint64_t size,
+    IvyGraphicsTemporaryBuffer *temporaryBuffer);
 
-void ivyBindGraphicsProgramInRenderer(IvyRenderer *renderer,
+IVY_API void ivyBindGraphicsProgramInRenderer(IvyRenderer *renderer,
     IvyGraphicsProgram *program);
 
-IvyCode ivyBeginGraphicsFrame(IvyRenderer *renderer);
-IvyCode ivyEndGraphicsFrame(IvyRenderer *renderer);
+IVY_API IvyCode ivyBeginGraphicsFrame(IvyRenderer *renderer);
+IVY_API IvyCode ivyEndGraphicsFrame(IvyRenderer *renderer);
 
 #endif

@@ -17,11 +17,11 @@ typedef struct IvyGraphicsAttachment {
   IvyGraphicsMemory memory;
 } IvyGraphicsAttachment;
 
-IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
+IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator, int32_t width, int32_t height,
     IvyGraphicsAttachmentType type, IvyGraphicsAttachment *attachment);
 
-void ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator,
     IvyGraphicsAttachment *attachment);
 

@@ -1,12 +1,14 @@
 #include "IvyDummyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsMemoryChunk.h"
 
-static IvyBool ivyIsGraphicsMemoryChunkEmpty(IvyGraphicsMemoryChunk *chunk) {
+IVY_INTERNAL IvyBool ivyIsGraphicsMemoryChunkEmpty(
+    IvyGraphicsMemoryChunk *chunk) {
   IVY_ASSERT(chunk);
   return !chunk->memory;
 }
 
-static IvyGraphicsMemoryChunk *ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(
+IVY_INTERNAL IvyGraphicsMemoryChunk *
+ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(
     IvyDummyGraphicsMemoryAllocator *allocator) {
   int index;
 
@@ -21,7 +23,7 @@ static IvyGraphicsMemoryChunk *ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(
   return NULL;
 }
 
-static IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
+IVY_INTERNAL IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
     IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
     uint32_t flags, uint32_t type, uint64_t size, IvyGraphicsMemory *memory) {
   IvyCode ivyCode;
@@ -57,8 +59,9 @@ static IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
   return IVY_OK;
 }
 
-static void ivyDummyGraphicsMemoryAllocatorFree(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, IvyGraphicsMemory *allocation) {
+IVY_INTERNAL void ivyDummyGraphicsMemoryAllocatorFree(
+    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    IvyGraphicsMemory *allocation) {
   IvyGraphicsMemoryChunk *chunk;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 
@@ -73,8 +76,8 @@ static void ivyDummyGraphicsMemoryAllocatorFree(IvyGraphicsContext *context,
   ivyFreeGraphicsMemoryChunk(context, chunk);
 }
 
-static void ivyDestroyDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator) {
+IVY_INTERNAL void ivyDestroyDummyGraphicsMemoryAllocator(
+    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator) {
   int index;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 
@@ -88,14 +91,14 @@ static void ivyDestroyDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
   }
 }
 
-static IvyGraphicsMemoryAllocatorDispatch const
+IVY_INTERNAL IvyGraphicsMemoryAllocatorDispatch const
     dummyGraphicsMemoryAllocatorDispatch = {
         ivyDummyGraphicsMemoryAllocatorAllocate,
         ivyDummyGraphicsMemoryAllocatorFree, NULL,
         ivyDestroyDummyGraphicsMemoryAllocator};
 
-IvyCode ivyCreateDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
-    IvyDummyGraphicsMemoryAllocator *allocator) {
+IVY_API IvyCode ivyCreateDummyGraphicsMemoryAllocator(
+    IvyGraphicsContext *context, IvyDummyGraphicsMemoryAllocator *allocator) {
   int index;
 
   if (!context || !allocator) {

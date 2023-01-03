@@ -24,24 +24,27 @@ typedef struct IvyGraphicsTemporaryBuffer {
   VkDescriptorSet descriptorSet;
 } IvyGraphicsTemporaryBuffer;
 
-VkDescriptorSet ivyAllocateVulkanDescriptorSet(VkDevice device,
+IVY_API VkDescriptorSet ivyAllocateVulkanDescriptorSet(VkDevice device,
     VkDescriptorPool descriptorPool,
     VkDescriptorSetLayout descriptorSetLayout);
 
-IvyCode ivyCreateGraphicsTemporaryBufferProvider(IvyGraphicsContext *context,
+IVY_API IvyCode ivyCreateGraphicsTemporaryBufferProvider(
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTemporaryBufferProvider *provider);
 
-void ivyClearGraphicsTemporaryBufferProvider(IvyGraphicsContext *context,
+IVY_API void ivyClearGraphicsTemporaryBufferProvider(
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTemporaryBufferProvider *provider);
 
-void ivyDestroyGraphicsTemporaryBufferProvider(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsTemporaryBufferProvider(
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTemporaryBufferProvider *provider);
 
 // FIXME(samuel): remove descriptorSetLayout from here
-IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
+IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     IvyGraphicsTemporaryBufferProvider *provider,
     VkDescriptorSetLayout uniformDescriptorSetLayout, uint64_t size,
@@ -53,6 +56,7 @@ IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
 #define IVY_SOURCE_BUFFER 0x0008
 #define IVY_DESTINATION_BUFFER 0x0010
 
-VkBuffer ivyCreateVulkanBuffer(VkDevice device, uint32_t flags, uint64_t size);
+IVY_API VkBuffer ivyCreateVulkanBuffer(VkDevice device, uint32_t flags,
+    uint64_t size);
 
 #endif

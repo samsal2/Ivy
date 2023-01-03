@@ -20,13 +20,13 @@ typedef struct IvyGraphicsMemoryChunk {
   VkDeviceMemory memory;
 } IvyGraphicsMemoryChunk;
 
-void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk);
+IVY_API void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk);
 
-IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
+IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
     uint32_t flags, uint32_t type, uint64_t size,
     IvyGraphicsMemoryChunk *chunk);
 
-void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
+IVY_API void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
     IvyGraphicsMemoryChunk *chunk);
 
 #endif

@@ -1,6 +1,6 @@
 #include "IvyDraw.h"
 
-static IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
+IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
     uint64_t vertexCount, IvyGraphicsProgramVertex *vertices) {
   IvyCode ivyCode;
   IvyGraphicsTemporaryBuffer vertexBuffer;
@@ -21,7 +21,7 @@ static IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
   return IVY_OK;
 }
 
-static IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
+IVY_INTERNAL IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
     uint64_t indexCount, IvyGraphicsProgramIndex *indices) {
   IvyCode ivyCode;
   IvyGraphicsTemporaryBuffer indexBuffer;
@@ -41,7 +41,7 @@ static IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
   return IVY_OK;
 }
 
-static IvyCode IvyBindGraphicsUniformData(IvyRenderer *renderer,
+IVY_INTERNAL IvyCode IvyBindGraphicsUniformData(IvyRenderer *renderer,
     IvyGraphicsProgramUniform *uniform) {
   IvyCode ivyCode;
   uint32_t offset;
@@ -64,7 +64,7 @@ static IvyCode IvyBindGraphicsUniformData(IvyRenderer *renderer,
   return IVY_OK;
 }
 
-static void ivyBindGraphicsTexture(IvyRenderer *renderer,
+IVY_INTERNAL void ivyBindGraphicsTexture(IvyRenderer *renderer,
     IvyGraphicsTexture *texture) {
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
   vkCmdBindDescriptorSets(frame->commandBuffer,
@@ -72,9 +72,9 @@ static void ivyBindGraphicsTexture(IvyRenderer *renderer,
       &texture->descriptorSet, 0, NULL);
 }
 
-IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX, float topLeftY,
-    float bottomRightX, float bottomRightY, float red, float green, float blue,
-    IvyGraphicsTexture *texture) {
+IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
+    float topLeftY, float bottomRightX, float bottomRightY, float red,
+    float green, float blue, IvyGraphicsTexture *texture) {
   IvyCode ivyCode;
 
   IvyGraphicsProgramUniform uniform;

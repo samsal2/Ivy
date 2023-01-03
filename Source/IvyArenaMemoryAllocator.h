@@ -7,7 +7,7 @@ typedef struct IvyArenaMemoryAllocator {
   IvyMemoryAllocatorBase base;
   uint64_t size;
   uint64_t alignment;
-  void *previousAllocationPointer;
+  void *previousAllocatedPointer;
   void *data;
 } IvyArenaMemoryAllocator;
 

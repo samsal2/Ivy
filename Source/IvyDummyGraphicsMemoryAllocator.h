@@ -11,7 +11,7 @@ typedef struct IvyDummyGraphicsMemoryAllocator {
   IvyGraphicsMemoryChunk chunks[64];
 } IvyDummyGraphicsMemoryAllocator;
 
-IvyCode ivyCreateDummyGraphicsMemoryAllocator(IvyGraphicsContext *context,
-    IvyDummyGraphicsMemoryAllocator *allocator);
+IVY_API IvyCode ivyCreateDummyGraphicsMemoryAllocator(
+    IvyGraphicsContext *context, IvyDummyGraphicsMemoryAllocator *allocator);
 
 #endif

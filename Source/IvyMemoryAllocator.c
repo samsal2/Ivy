@@ -5,13 +5,14 @@
 
 #define IVY_MEMORY_ALLOCATOR_MAGIC 0xA50A6AAA
 
-void ivySetupMemoryAllocatorBase(IvyMemoryAllocatorDispatch const *dispatch,
-    IvyMemoryAllocatorBase *base) {
+IVY_API void ivySetupMemoryAllocatorBase(
+    IvyMemoryAllocatorDispatch const *dispatch, IvyMemoryAllocatorBase *base) {
   base->magic = IVY_MEMORY_ALLOCATOR_MAGIC;
   base->dispatch = dispatch;
 }
 
-void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator, uint64_t size) {
+IVY_API void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator,
+    uint64_t size) {
   IvyMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
@@ -20,8 +21,8 @@ void *ivyAllocateMemory(IvyAnyMemoryAllocator allocator, uint64_t size) {
   return base->dispatch->allocate(allocator, size);
 }
 
-void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator, uint64_t count,
-    uint64_t elementSize) {
+IVY_API void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator,
+    uint64_t count, uint64_t elementSize) {
   IvyMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
@@ -30,7 +31,7 @@ void *ivyAllocateAndZeroMemory(IvyAnyMemoryAllocator allocator, uint64_t count,
   return base->dispatch->allocateAndZero(allocator, count, elementSize);
 }
 
-void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
+IVY_API void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
     uint64_t newSize) {
   IvyMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
@@ -40,7 +41,7 @@ void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
   return base->dispatch->reallocate(allocator, data, newSize);
 }
 
-void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data) {
+IVY_API void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data) {
   IvyMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
@@ -49,7 +50,16 @@ void ivyFreeMemory(IvyAnyMemoryAllocator allocator, void *data) {
   base->dispatch->free(allocator, data);
 }
 
-void ivyDestroyMemoryAllocator(IvyAnyMemoryAllocator allocator) {
+IVY_API void ivyClearMemoryAllocator(IvyAnyMemoryAllocator allocator) {
+  IvyMemoryAllocatorBase *base = allocator;
+  IVY_ASSERT(base);
+  IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
+  IVY_ASSERT(base->dispatch);
+  IVY_ASSERT(base->dispatch->clear);
+  base->dispatch->clear(allocator);
+}
+
+IVY_API void ivyDestroyMemoryAllocator(IvyAnyMemoryAllocator allocator) {
   IvyMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
@@ -58,11 +68,12 @@ void ivyDestroyMemoryAllocator(IvyAnyMemoryAllocator allocator) {
   base->dispatch->destroy(allocator);
 }
 
-static IvyBool createdDefaultAllocator = 0;
-static IvyAnyMemoryAllocator globalMemoryAllocator = NULL;
+IVY_INTERNAL IvyBool createdDefaultAllocator = 0;
+IVY_INTERNAL IvyAnyMemoryAllocator globalMemoryAllocator = NULL;
 
-IvyCode ivySetGlobalMemoryAllocator(IvyAnyMemoryAllocator allocator) {
+IVY_API IvyCode ivySetGlobalMemoryAllocator(IvyAnyMemoryAllocator allocator) {
   IvyMemoryAllocatorBase *base = allocator;
+
   if (IVY_MEMORY_ALLOCATOR_MAGIC != base->magic) {
     return IVY_INVALID_VALUE;
   }
@@ -71,8 +82,8 @@ IvyCode ivySetGlobalMemoryAllocator(IvyAnyMemoryAllocator allocator) {
   return IVY_OK;
 }
 
-IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void) {
-  static IvyDummyMemoryAllocator defaultMemoryAllocator;
+IVY_API IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void) {
+  IVY_LOCAL_PERSIST IvyDummyMemoryAllocator defaultMemoryAllocator;
 
   if (!globalMemoryAllocator && !createdDefaultAllocator) {
     ivyCreateDummyMemoryAllocator(&defaultMemoryAllocator);
@@ -83,6 +94,6 @@ IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void) {
   return globalMemoryAllocator;
 }
 
-void ivyDestroyGlobalMemoryAllocator(void) {
+IVY_API void ivyDestroyGlobalMemoryAllocator(void) {
   ivyDestroyMemoryAllocator(ivyGetGlobalMemoryAllocator());
 }

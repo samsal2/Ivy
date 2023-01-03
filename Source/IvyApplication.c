@@ -8,25 +8,26 @@
 #include <GLFW/glfw3.h>
 /* clang-format on */
 
-static int doesAnApplicationAlreadyExist = 0;
+IVY_INTERNAL int doesAnApplicationAlreadyExist = 0;
 
 #define IVY_IS_VALID_WINDOW(w) (!!(w)->opaque)
 
-static void ivyWindowSizeCallback(GLFWwindow *opaque, int width, int height) {
+IVY_INTERNAL void ivyWindowSizeCallback(GLFWwindow *opaque, int width,
+    int height) {
   IvyWindow *window = glfwGetWindowUserPointer(opaque);
   window->windowWidth = width;
   window->windowHeight = height;
   window->resized = 1;
 }
 
-static void ivyFramebufferSizeCallback(GLFWwindow *opaque, int width,
+IVY_INTERNAL void ivyFramebufferSizeCallback(GLFWwindow *opaque, int width,
     int height) {
   IvyWindow *window = glfwGetWindowUserPointer(opaque);
   window->framebufferWidth = width;
   window->framebufferHeight = height;
 }
 
-static void ivyInvalidateWindow(IvyWindow *window) {
+IVY_INTERNAL void ivyInvalidateWindow(IvyWindow *window) {
   IVY_ASSERT(window);
 
   window->opaque = NULL;
@@ -70,37 +71,15 @@ IvyApplication *ivyCreateApplication(IvyAnyMemoryAllocator allocator) {
   return application;
 }
 
-void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
+IVY_API void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
     IvyApplication *application) {
   ivyPollApplicationEvents(application);
   glfwTerminate();
   ivyFreeMemory(allocator, application);
-}
-
-void ivyDoesAnApplicationAlreadyExists(IvyApplication *application) {
-  int index;
-
-  IVY_ASSERT(application);
-  IVY_ASSERT(doesAnApplicationAlreadyExist);
-
-  if (!application) {
-    return;
-  }
-
   doesAnApplicationAlreadyExist = 0;
-
-  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
-    IvyWindow *window = &application->windows[index];
-
-    if (IVY_IS_VALID_WINDOW(window)) {
-      glfwDestroyWindow(window->opaque);
-    }
-  }
-
-  glfwTerminate();
 }
 
-static IvyWindow *ivyNextInvalidWindow(IvyApplication *application) {
+IVY_INTERNAL IvyWindow *ivyNextInvalidWindow(IvyApplication *application) {
   int32_t index;
 
   IVY_ASSERT(application);
@@ -117,7 +96,7 @@ static IvyWindow *ivyNextInvalidWindow(IvyApplication *application) {
   return NULL;
 }
 
-IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
+IVY_API IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
     int32_t height, char const *title) {
   IvyWindow *window;
 
@@ -153,7 +132,7 @@ IvyWindow *ivyAddWindow(IvyApplication *application, int32_t width,
   return application->lastAddedWindow = window;
 }
 
-static IvyBool ivyIsWindowInApplication(IvyApplication *application,
+IVY_INTERNAL IvyBool ivyIsWindowInApplication(IvyApplication *application,
     IvyWindow *window) {
   int32_t index;
 
@@ -170,7 +149,7 @@ static IvyBool ivyIsWindowInApplication(IvyApplication *application,
   return 0;
 }
 
-static IvyWindow *ivyFirstValidWindow(IvyApplication *application) {
+IVY_API IvyWindow *ivyFirstValidWindow(IvyApplication *application) {
   int32_t index;
 
   IVY_ASSERT(application);
@@ -187,7 +166,8 @@ static IvyWindow *ivyFirstValidWindow(IvyApplication *application) {
   return NULL;
 }
 
-IvyCode ivyDestroyWindow(IvyApplication *application, IvyWindow *window) {
+IVY_API IvyCode ivyDestroyWindow(IvyApplication *application,
+    IvyWindow *window) {
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
   if (!application || !window || !IVY_IS_VALID_WINDOW(window)) {
@@ -207,7 +187,7 @@ IvyCode ivyDestroyWindow(IvyApplication *application, IvyWindow *window) {
   return IVY_OK;
 }
 
-IvyBool ivyShouldApplicationClose(IvyApplication *application) {
+IVY_API IvyBool ivyShouldApplicationClose(IvyApplication *application) {
   int32_t index;
 
   IVY_ASSERT(doesAnApplicationAlreadyExist);
@@ -221,7 +201,7 @@ IvyBool ivyShouldApplicationClose(IvyApplication *application) {
   return 1;
 }
 
-void ivyPollApplicationEvents(IvyApplication *application) {
+IVY_API void ivyPollApplicationEvents(IvyApplication *application) {
   int32_t index;
 
   IVY_ASSERT(doesAnApplicationAlreadyExist);
@@ -247,8 +227,8 @@ void ivyPollApplicationEvents(IvyApplication *application) {
 
 #define IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS 64
 
-char const *const *ivyGetRequiredVulkanExtensions(IvyApplication *application,
-    uint32_t *count) {
+IVY_API char const *const *ivyGetRequiredVulkanExtensions(
+    IvyApplication *application, uint32_t *count) {
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   char const **defaultExtensions;
   static char const *extensions[IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS];
@@ -285,7 +265,7 @@ char const *const *ivyGetRequiredVulkanExtensions(IvyApplication *application,
 #endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
 }
 
-VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,
+IVY_API VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,
     IvyApplication *application) {
   VkResult result;
   VkSurfaceKHR surface;

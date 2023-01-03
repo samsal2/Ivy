@@ -3,7 +3,8 @@
 
 #include "IvyGraphicsTemporaryBuffer.h"
 
-static VkBuffer ivyCreateAndAllocateUploadBuffer(IvyGraphicsContext *context,
+IVY_INTERNAL VkBuffer ivyCreateAndAllocateUploadBuffer(
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, uint64_t size, void *data,
     IvyGraphicsMemory *graphicsMemory) {
   IvyCode ivyCode;
@@ -42,7 +43,7 @@ error:
   return VK_NULL_HANDLE;
 }
 
-static uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
+IVY_INTERNAL uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
   switch (format) {
   case IVY_R8_UNORM:
     return 1 * sizeof(uint8_t);
@@ -52,7 +53,7 @@ static uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
   }
 }
 
-IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
+IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, int32_t width,
     int32_t height, IvyPixelFormat format, void *data, VkImage image) {
   IvyCode ivyCode;

@@ -30,21 +30,22 @@ typedef struct IvyGraphicsContext {
   VkDescriptorPool globalDescriptorPool;
 } IvyGraphicsContext;
 
-IvyGraphicsContext *ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
-    IvyApplication *application);
+IVY_API IvyGraphicsContext *ivyCreateGraphicsContext(
+    IvyAnyMemoryAllocator allocator, IvyApplication *application);
 
-void ivyDestroyGraphicsContext(IvyAnyMemoryAllocator allocator,
+IVY_API void ivyDestroyGraphicsContext(IvyAnyMemoryAllocator allocator,
     IvyGraphicsContext *context);
 
-VkCommandBuffer ivyAllocateOneTimeCommandBuffer(IvyGraphicsContext *context);
+IVY_API VkCommandBuffer ivyAllocateOneTimeCommandBuffer(
+    IvyGraphicsContext *context);
 
-IvyCode ivySubmitOneTimeCommandBuffer(IvyGraphicsContext *context,
+IVY_API IvyCode ivySubmitOneTimeCommandBuffer(IvyGraphicsContext *context,
     VkCommandBuffer commandBuffer);
 
-void ivyFreeOneTimeCommandBuffer(IvyGraphicsContext *context,
+IVY_API void ivyFreeOneTimeCommandBuffer(IvyGraphicsContext *context,
     VkCommandBuffer commandBuffer);
 
-VkCommandBuffer ivyAllocateVulkanCommandBuffer(VkDevice device,
+IVY_API VkCommandBuffer ivyAllocateVulkanCommandBuffer(VkDevice device,
     VkCommandPool commandPool);
 
 #endif

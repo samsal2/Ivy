@@ -46,26 +46,26 @@ typedef struct IvyGraphicsMemoryAllocatorBase {
   IvyGraphicsMemoryAllocatorDispatch const *dispatch;
 } IvyGraphicsMemoryAllocatorBase;
 
-void ivySetupGraphicsMemoryAllocatorBase(
+IVY_API void ivySetupGraphicsMemoryAllocatorBase(
     IvyGraphicsMemoryAllocatorDispatch const *dispatch,
     IvyGraphicsMemoryAllocatorBase *base);
 
-void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator);
 
-IvyCode ivyAllocateGraphicsMemory(IvyGraphicsContext *context,
+IVY_API IvyCode ivyAllocateGraphicsMemory(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, uint32_t type,
     uint64_t size, IvyGraphicsMemory *memory);
 
-void ivyFreeGraphicsMemory(IvyGraphicsContext *context,
+IVY_API void ivyFreeGraphicsMemory(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator, IvyGraphicsMemory *memory);
 
-IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, VkBuffer buffer,
-    IvyGraphicsMemory *memory);
+IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
+    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    uint32_t flags, VkBuffer buffer, IvyGraphicsMemory *memory);
 
-IvyCode ivyAllocateAndBindGraphicsMemoryToImage(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, VkImage image,
-    IvyGraphicsMemory *allocation);
+IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
+    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    uint32_t flags, VkImage image, IvyGraphicsMemory *allocation);
 
 #endif

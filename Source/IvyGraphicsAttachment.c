@@ -1,7 +1,7 @@
 #include "IvyGraphicsAttachment.h"
 #include "IvyGraphicsTexture.h"
 
-static VkImageUsageFlagBits ivyAsVulkanImageUsage(
+IVY_INTERNAL VkImageUsageFlagBits ivyAsVulkanImageUsage(
     IvyGraphicsAttachmentType type) {
   switch (type) {
   case IVY_COLOR_ATTACHMENT:
@@ -12,7 +12,7 @@ static VkImageUsageFlagBits ivyAsVulkanImageUsage(
   }
 }
 
-static VkImageAspectFlagBits ivyAsVulkanImageAspect(
+IVY_INTERNAL VkImageAspectFlagBits ivyAsVulkanImageAspect(
     IvyGraphicsAttachmentType type) {
   switch (type) {
   case IVY_COLOR_ATTACHMENT:
@@ -23,8 +23,8 @@ static VkImageAspectFlagBits ivyAsVulkanImageAspect(
   }
 }
 
-static VkFormat ivyGetGraphicsAttachmentFormat(IvyGraphicsContext *context,
-    IvyGraphicsAttachmentType type) {
+IVY_INTERNAL VkFormat ivyGetGraphicsAttachmentFormat(
+    IvyGraphicsContext *context, IvyGraphicsAttachmentType type) {
   switch (type) {
   case IVY_COLOR_ATTACHMENT:
     return context->surfaceFormat.format;
@@ -34,7 +34,7 @@ static VkFormat ivyGetGraphicsAttachmentFormat(IvyGraphicsContext *context,
   }
 }
 
-IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
+IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, int32_t width,
     int32_t height, IvyGraphicsAttachmentType type,
     IvyGraphicsAttachment *attachment) {
@@ -77,7 +77,7 @@ error:
   return IVY_NO_GRAPHICS_MEMORY;
 }
 
-void ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator,
     IvyGraphicsAttachment *attachment) {
   if (attachment->memory.memory) {

@@ -6,14 +6,14 @@
 
 // TODO(samuel): static assert base is the first element of each allocator
 
-void ivySetupGraphicsMemoryAllocatorBase(
+IVY_API void ivySetupGraphicsMemoryAllocatorBase(
     IvyGraphicsMemoryAllocatorDispatch const *dispatch,
     IvyGraphicsMemoryAllocatorBase *base) {
   base->magic = IVY_GRAPHICS_MEMORY_ALLOCATOR_MAGIC;
   base->dispatch = dispatch;
 }
 
-void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator) {
   IvyGraphicsMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
@@ -23,7 +23,7 @@ void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
   base->dispatch->destroy(context, allocator);
 }
 
-IvyCode ivyAllocateGraphicsMemory(IvyGraphicsContext *context,
+IVY_API IvyCode ivyAllocateGraphicsMemory(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, uint32_t type,
     uint64_t size, IvyGraphicsMemory *memory) {
   IvyGraphicsMemoryAllocatorBase *base = allocator;
@@ -34,7 +34,8 @@ IvyCode ivyAllocateGraphicsMemory(IvyGraphicsContext *context,
   return base->dispatch->allocate(context, allocator, flags, type, size,
       memory);
 }
-void ivyFreeGraphicsMemory(IvyGraphicsContext *context,
+
+IVY_API void ivyFreeGraphicsMemory(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator allocator, IvyGraphicsMemory *memory) {
   IvyGraphicsMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
@@ -44,9 +45,9 @@ void ivyFreeGraphicsMemory(IvyGraphicsContext *context,
   base->dispatch->free(context, allocator, memory);
 }
 
-IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, VkBuffer buffer,
-    IvyGraphicsMemory *memory) {
+IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
+    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    uint32_t flags, VkBuffer buffer, IvyGraphicsMemory *memory) {
   int ivyCode;
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
@@ -73,7 +74,8 @@ IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(IvyGraphicsContext *context,
   return IVY_OK;
 }
 
-IvyCode ivyAllocateAndBindGraphicsMemoryToImage(IvyGraphicsContext *context,
+IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, uint32_t flags,
     VkImage image, IvyGraphicsMemory *allocation) {
   IvyCode ivyCode;

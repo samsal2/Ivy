@@ -4,8 +4,8 @@
 #include "IvyGraphicsTexture.h"
 #include "IvyRenderer.h"
 
-IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX, float topLeftY,
-    float bottomRightX, float bottomRightY, float red, float green, float blue,
-    IvyGraphicsTexture *texture);
+IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
+    float topLeftY, float bottomRightX, float bottomRightY, float red,
+    float green, float blue, IvyGraphicsTexture *texture);
 
 #endif
