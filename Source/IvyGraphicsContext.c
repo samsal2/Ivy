@@ -39,18 +39,19 @@ IVY_INTERNAL VkInstance ivyCreateVulkanInstance(IvyApplication *application) {
   instanceCreateInfo.enabledLayerCount = IVY_ARRAY_LENGTH(validationLayers);
   instanceCreateInfo.ppEnabledLayerNames = validationLayers;
 #else  /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
-  instance_info.enabledLayerCount = 0;
-  instance_info.ppEnabledLayerNames = NULL;
+  instanceCreateInfo.enabledLayerCount = 0;
+  instanceCreateInfo.ppEnabledLayerNames = NULL;
 #endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERSOWL_ENABLE_VALIDATION */
   instanceCreateInfo.ppEnabledExtensionNames = ivyGetRequiredVulkanExtensions(
       application, &instanceCreateInfo.enabledExtensionCount);
 
-  if (!instanceCreateInfo.ppEnabledLayerNames) {
+  if (!instanceCreateInfo.ppEnabledExtensionNames) {
     return VK_NULL_HANDLE;
   }
 
   vulkanResult = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
   if (vulkanResult) {
+    IVY_DEBUG_LOG("%i\n", vulkanResult);
     return VK_NULL_HANDLE;
   }
 
@@ -63,9 +64,12 @@ PFN_vkCreateDebugUtilsMessengerEXT ivyCreateDebugUtilsMessengerEXT = NULL;
 PFN_vkDestroyDebugUtilsMessengerEXT ivyDestroyDebugUtilsMessengerEXT = NULL;
 #endif
 
+#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
 #define IVY_VK_INSTANCE_PROC_ADDR(instance, name)                             \
   (PFN_##name) vkGetInstanceProcAddr(instance, #name)
+#endif
 
+#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
 IVY_INTERNAL void ivyEnsureValidationFunctions(VkInstance instance) {
   if (!ivyCreateDebugUtilsMessengerEXT) {
     ivyCreateDebugUtilsMessengerEXT =
@@ -77,6 +81,7 @@ IVY_INTERNAL void ivyEnsureValidationFunctions(VkInstance instance) {
         IVY_VK_INSTANCE_PROC_ADDR(instance, vkDestroyDebugUtilsMessengerEXT);
   }
 }
+#endif
 
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
 #include <stdio.h>
@@ -100,7 +105,9 @@ static VKAPI_ATTR VKAPI_CALL VkBool32 ivyLogVulkanMessages(
 
   return VK_FALSE;
 }
+#endif
 
+#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
 IVY_INTERNAL VkDebugUtilsMessengerEXT ivyCreateVulkanDebugMessenger(
     VkInstance instance) {
   VkResult vulkanResult;
@@ -678,11 +685,15 @@ IVY_API IvyGraphicsContext *ivyCreateGraphicsContext(
     goto error;
   }
 
+#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   context->debugMessenger = ivyCreateVulkanDebugMessenger(context->instance);
   IVY_ASSERT(context->debugMessenger);
   if (!context->debugMessenger) {
     goto error;
   }
+#else
+  context->debugMessenger = VK_NULL_HANDLE;
+#endif
 
   context->surface =
       ivyCreateVulkanSurface(context->instance, context->application);

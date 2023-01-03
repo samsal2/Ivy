@@ -29,7 +29,6 @@ typedef int IvyBool;
 
 #define IVY_UNUSED(e) (void)e
 #define IVY_MAX(a, b) ((a) > (b) ? (a) : (b))
-#define IVY_ENABLE_VULKAN_VALIDATION_LAYERS
 
 #if 1
 #include <string.h>

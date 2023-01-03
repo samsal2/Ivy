@@ -225,13 +225,12 @@ IVY_API void ivyPollApplicationEvents(IvyApplication *application) {
   glfwPollEvents();
 }
 
-#define IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS 64
+#define IVY_MAX_VULKAN_INSTANCE_EXTENSIONS 64
 
 IVY_API char const *const *ivyGetRequiredVulkanExtensions(
     IvyApplication *application, uint32_t *count) {
-#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   char const **defaultExtensions;
-  static char const *extensions[IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS];
+  IVY_LOCAL_PERSIST char const *extensions[IVY_MAX_VULKAN_INSTANCE_EXTENSIONS];
 
   IVY_UNUSED(application);
   IVY_ASSERT(doesAnApplicationAlreadyExist);
@@ -242,7 +241,7 @@ IVY_API char const *const *ivyGetRequiredVulkanExtensions(
     return NULL;
   }
 
-  if (IVY_MAX_DEBUG_VULKAN_INSTANCE_EXTENSIONS <= (*count + 3)) {
+  if (IVY_MAX_VULKAN_INSTANCE_EXTENSIONS <= (*count + 3)) {
     *count = 0;
     return NULL;
   }
@@ -250,7 +249,9 @@ IVY_API char const *const *ivyGetRequiredVulkanExtensions(
   IVY_MEMCPY(extensions, defaultExtensions,
       *count * sizeof(*defaultExtensions));
 
+#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   extensions[(*count)++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+#endif
 
 #if __APPLE__
   extensions[(*count)++] = "VK_KHR_portability_enumeration";
@@ -258,11 +259,6 @@ IVY_API char const *const *ivyGetRequiredVulkanExtensions(
 #endif
 
   return extensions;
-#else  /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
-  IVY_ASSERT(does_an_application_already_exist);
-
-  return glfwGetRequiredInstanceExtensions(num);
-#endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
 }
 
 IVY_API VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,

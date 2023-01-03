@@ -64,7 +64,12 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC ${Vulkan_INCLUDE_DIR} Source)
 
 target_compile_definitions(${PROJECT_NAME} 
-  PUBLIC IVY_API=)
+  PUBLIC 
+    IVY_API=
+  "$<$<CONFIG:DEBUG>:" 
+    IVY_ENABLE_VULKAN_VALIDATION_LAYERS
+  ">"
+)
 
 # add sources
 add_subdirectory(Dependencies)
