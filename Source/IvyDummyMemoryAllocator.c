@@ -37,7 +37,7 @@ IVY_INTERNAL void *ivyDummyMemoryAllocatorReallocate(
 
 IVY_INTERNAL void ivyDummyMemoryAllocatorClear(
     IvyAnyMemoryAllocator allocator) {
-  IVY_ASSERT(allocator);
+  IVY_UNUSED(allocator);
   IVY_TODO();
 }
 
