@@ -10,48 +10,50 @@ add_library(${PROJECT_NAME})
 
 # features
 set_target_properties(${PROJECT_NAME}
-    PROPERTIES 
-        C_STANDARD          90
-        C_STANDARD_REQUIRED ON
-        C_EXTENSIONS        OFF)
+  PROPERTIES 
+    C_STANDARD          90
+    C_STANDARD_REQUIRED ON
+    C_EXTENSIONS        OFF)
 
 # compile options
 target_compile_options(${PROJECT_NAME} PUBLIC
-	"$<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:"
-		-Wall
-		-Wshadow
-		-Wextra
-		-Werror
-		-Wpedantic
-		-pedantic-errors
-		-Walloca 
-		-Wvla 
-		-fdiagnostics-color=always
+  "$<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:"
+    -Wall
+    -Wshadow
+    -Wextra
+    -Werror
+    -Wpedantic
+    -pedantic-errors
+    -Walloca 
+    -Wvla 
+    -fdiagnostics-color=always
 
-    -Wno-long-long # C99 extension
-    -Wno-comment # C99 extension
-    -Wno-comment # C99 extension
-    -Wno-variadic-macros # C99 extennsions
-    -Wno-typedef-redefinition # C11 extensions 
-	">"
-	"$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
-		-O0
-		-g
-		-fsanitize=address
-		-fsanitize=undefined
-		-fsanitize=bounds
-	">"
-	"$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Release>>:"
-		-Ofast
-	">")
+    -Wno-long-long # C99 extension vulkan
+    -Wno-comment # C99 extension ivy 
+    -Wno-comment # C99 extension ivy
+    -Wno-variadic-macros # C99 extennsions ivy
+    -Wno-typedef-redefinition # C11 extensions  vulkan
+    -Wno-c99-extensions # C99 extension for cimgui
+    -Wno-c11-extensions # C99 extension for cimgui
+  ">"
+  "$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
+    -O0
+    -g
+    -fsanitize=address
+    -fsanitize=undefined
+    -fsanitize=bounds
+  ">"
+  "$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Release>>:"
+    -Ofast
+  ">")
 
 # link options
 target_link_options(${PROJECT_NAME} PUBLIC
-	"$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
-		-fsanitize=address
-		-fsanitize=undefined
-		-fsanitize=bounds
-	">")
+  "$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
+    -fsanitize=address
+    -fsanitize=undefined
+    -fsanitize=bounds
+  ">")
 
 # link libraries
 target_link_libraries(${PROJECT_NAME} 
@@ -60,6 +62,9 @@ target_link_libraries(${PROJECT_NAME}
 # includes
 target_include_directories(${PROJECT_NAME} 
   PUBLIC ${Vulkan_INCLUDE_DIR} Source)
+
+target_compile_definitions(${PROJECT_NAME} 
+  PUBLIC IVY_API=)
 
 # add sources
 add_subdirectory(Dependencies)

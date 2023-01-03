@@ -13,5 +13,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   stb
   cgltf
   freetype
-  cimgui 
-)
+  cimgui)
