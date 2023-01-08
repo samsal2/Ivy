@@ -2,21 +2,17 @@
 
 #include "IvyGraphicsTexture.h"
 
-#if 0
-static IvyCode ivyVulkanResultToIvyCode(VkResult vulkanResult) {
+IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
   switch (vulkanResult) {
   default:
-    return IVY_UNKNOWN_ERROR;
+    return -1;
   }
 }
-#endif
 
-IVY_INTERNAL VkFramebuffer ivyCreateVulkanSwapchainFramebuffer(VkDevice device,
+IVY_INTERNAL VkResult ivyCreateVulkanSwapchainFramebuffer(VkDevice device,
     int32_t width, int32_t height, VkRenderPass mainRenderPass,
     VkImageView swapchainImageView, VkImageView colorAttachmentImageView,
-    VkImageView depthAttachmentImageView) {
-  VkResult vulkanResult;
-  VkFramebuffer framebuffer;
+    VkImageView depthAttachmentImageView, VkFramebuffer *framebuffer) {
   VkFramebufferCreateInfo framebufferCreateInfo;
   VkImageView attachments[3];
 
@@ -34,19 +30,13 @@ IVY_INTERNAL VkFramebuffer ivyCreateVulkanSwapchainFramebuffer(VkDevice device,
   framebufferCreateInfo.height = height;
   framebufferCreateInfo.layers = 1;
 
-  vulkanResult =
-      vkCreateFramebuffer(device, &framebufferCreateInfo, NULL, &framebuffer);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return framebuffer;
+  return vkCreateFramebuffer(device, &framebufferCreateInfo, NULL,
+      framebuffer);
 }
 
-IVY_INTERNAL VkCommandPool ivyCreateVulkanCommandPool(VkDevice device,
-    uint32_t graphicsQueueFamilyIndex, VkCommandPoolCreateFlagBits flags) {
-  VkResult vulkanResult;
-  VkCommandPool commandPool;
+IVY_INTERNAL VkResult ivyCreateVulkanCommandPool(VkDevice device,
+    uint32_t graphicsQueueFamilyIndex, VkCommandPoolCreateFlagBits flags,
+    VkCommandPool *commandPool) {
   VkCommandPoolCreateInfo commandPoolCreateInfo;
 
   commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -54,48 +44,30 @@ IVY_INTERNAL VkCommandPool ivyCreateVulkanCommandPool(VkDevice device,
   commandPoolCreateInfo.flags = flags;
   commandPoolCreateInfo.queueFamilyIndex = graphicsQueueFamilyIndex;
 
-  vulkanResult =
-      vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return commandPool;
+  return vkCreateCommandPool(device, &commandPoolCreateInfo, NULL,
+      commandPool);
 }
 
-IVY_INTERNAL VkFence ivyCreateVulkanSignaledFence(VkDevice device) {
-  VkResult vulkanResult;
-  VkFence fence;
+IVY_INTERNAL VkResult ivyCreateVulkanSignaledFence(VkDevice device,
+    VkFence *fence) {
   VkFenceCreateInfo fenceCreateInfo;
 
   fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   fenceCreateInfo.pNext = NULL;
   fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-  vulkanResult = vkCreateFence(device, &fenceCreateInfo, NULL, &fence);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return fence;
+  return vkCreateFence(device, &fenceCreateInfo, NULL, fence);
 }
 
-IVY_INTERNAL VkSemaphore ivyCreateVulkanSemaphore(VkDevice device) {
-  VkResult vulkanResult;
-  VkSemaphore semaphore;
+IVY_INTERNAL VkResult ivyCreateVulkanSemaphore(VkDevice device,
+    VkSemaphore *semaphore) {
   VkSemaphoreCreateInfo semaphoreCreateInfo;
 
   semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
   semaphoreCreateInfo.pNext = NULL;
   semaphoreCreateInfo.flags = 0;
 
-  vulkanResult =
-      vkCreateSemaphore(device, &semaphoreCreateInfo, NULL, &semaphore);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return semaphore;
+  return vkCreateSemaphore(device, &semaphoreCreateInfo, NULL, semaphore);
 }
 
 IVY_INTERNAL void ivyDestroyGraphicsFrame(IvyGraphicsContext *context,
@@ -132,57 +104,59 @@ IVY_INTERNAL void ivyDestroyGraphicsFrame(IvyGraphicsContext *context,
 }
 
 IVY_INTERNAL IvyCode ivyCreateGraphicsFrame(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, int32_t width, int32_t height,
-    VkRenderPass mainRenderPass, VkImage swapchainImage,
+    IvyAnyGraphicsMemoryAllocator graphicsMemoryAllocator, int32_t width,
+    int32_t height, VkRenderPass mainRenderPass, VkImage swapchainImage,
     VkImageView colorAttachmentImageView, VkImageView depthAttachmentImageView,
     IvyGraphicsFrame *frame) {
+  VkResult vulkanResult;
   IvyCode ivyCode;
 
   IVY_MEMSET(frame, 0, sizeof(*frame));
+  IVY_ASSERT(swapchainImage);
 
-  if (!swapchainImage) {
-    return IVY_INVALID_VALUE;
-  }
-
-  frame->commandPool = ivyCreateVulkanCommandPool(context->device,
-      context->graphicsQueueFamilyIndex, 0);
-  IVY_ASSERT(frame->commandPool);
-  if (!frame->commandPool) {
+  vulkanResult = ivyCreateVulkanCommandPool(context->device,
+      context->graphicsQueueFamilyIndex, 0, &frame->commandPool);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  frame->commandBuffer =
-      ivyAllocateVulkanCommandBuffer(context->device, frame->commandPool);
-  IVY_ASSERT(frame->commandBuffer);
-  if (!frame->commandBuffer) {
+  vulkanResult = ivyAllocateVulkanCommandBuffer(context->device,
+      frame->commandPool, &frame->commandBuffer);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
   frame->image = swapchainImage;
 
-  frame->imageView = ivyCreateVulkanImageView(context->device, frame->image,
-      VK_IMAGE_ASPECT_COLOR_BIT, context->surfaceFormat.format);
-  IVY_ASSERT(frame->imageView);
-  if (!frame->imageView) {
+  vulkanResult = ivyCreateVulkanImageView(context->device, frame->image,
+      VK_IMAGE_ASPECT_COLOR_BIT, context->surfaceFormat.format,
+      &frame->imageView);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  frame->framebuffer = ivyCreateVulkanSwapchainFramebuffer(context->device,
-      width, height, mainRenderPass, frame->imageView,
-      colorAttachmentImageView, depthAttachmentImageView);
-  IVY_ASSERT(frame->framebuffer);
-  if (!frame->framebuffer) {
+  vulkanResult = ivyCreateVulkanSwapchainFramebuffer(context->device, width,
+      height, mainRenderPass, frame->imageView, colorAttachmentImageView,
+      depthAttachmentImageView, &frame->framebuffer);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  frame->inFlightFence = ivyCreateVulkanSignaledFence(context->device);
-  IVY_ASSERT(frame->inFlightFence);
-  if (!frame->inFlightFence) {
+  vulkanResult =
+      ivyCreateVulkanSignaledFence(context->device, &frame->inFlightFence);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  ivyCode = ivyCreateGraphicsTemporaryBufferProvider(context, allocator,
-      &frame->temporaryBufferProvider);
+  ivyCode = ivyCreateGraphicsTemporaryBufferProvider(context,
+      graphicsMemoryAllocator, &frame->temporaryBufferProvider);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -191,8 +165,8 @@ IVY_INTERNAL IvyCode ivyCreateGraphicsFrame(IvyGraphicsContext *context,
   return IVY_OK;
 
 error:
-  ivyDestroyGraphicsFrame(context, allocator, frame);
-  return IVY_NO_GRAPHICS_MEMORY;
+  ivyDestroyGraphicsFrame(context, graphicsMemoryAllocator, frame);
+  return ivyCode;
 }
 
 IVY_INTERNAL void ivyDestroyGraphicsRenderSemaphores(VkDevice device,
@@ -211,14 +185,20 @@ IVY_INTERNAL void ivyDestroyGraphicsRenderSemaphores(VkDevice device,
 
 IVY_INTERNAL IvyCode ivyCreateGraphicsRenderSemaphores(VkDevice device,
     IvyGraphicsRenderSemaphores *renderSemaphores) {
-  renderSemaphores->renderDoneSemaphore = ivyCreateVulkanSemaphore(device);
-  if (!renderSemaphores->renderDoneSemaphore) {
+  VkResult vulkanResult;
+  IvyCode ivyCode;
+
+  vulkanResult =
+      ivyCreateVulkanSemaphore(device, &renderSemaphores->renderDoneSemaphore);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  renderSemaphores->swapchainImageAvailableSemaphore =
-      ivyCreateVulkanSemaphore(device);
-  if (!renderSemaphores->swapchainImageAvailableSemaphore) {
+  vulkanResult = ivyCreateVulkanSemaphore(device,
+      &renderSemaphores->swapchainImageAvailableSemaphore);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
@@ -226,7 +206,7 @@ IVY_INTERNAL IvyCode ivyCreateGraphicsRenderSemaphores(VkDevice device,
 
 error:
   ivyDestroyGraphicsRenderSemaphores(device, renderSemaphores);
-  return IVY_NO_GRAPHICS_MEMORY;
+  return ivyCode;
 }
 
 IVY_INTERNAL IvyGraphicsRenderSemaphores *
@@ -323,17 +303,16 @@ error:
   return NULL;
 }
 
-IVY_INTERNAL VkSwapchainKHR ivyCreateVulkanSwapchain(
-    IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
+IVY_INTERNAL VkResult ivyCreateVulkanSwapchain(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkRenderPass mainRenderPass, uint32_t minSwapchainImageCount,
     int32_t width, int32_t height, VkImageView colorAttachmentImageView,
     VkImageView depthAttachmentImageView, uint32_t *swapchainImageCount,
-    IvyGraphicsFrame **frames,
-    IvyGraphicsRenderSemaphores **renderSemaphores) {
+    IvyGraphicsFrame **frames, IvyGraphicsRenderSemaphores **renderSemaphores,
+    VkSwapchainKHR *swapchain) {
   VkResult vulkanResult;
   VkImage *swapchainImages = NULL;
-  VkSwapchainKHR swapchain = VK_NULL_HANDLE;
   VkSurfaceCapabilitiesKHR surfaceCapabilities;
   VkSwapchainCreateInfoKHR swapchainCreateInfo;
   uint32_t queueFamilyIndices[2];
@@ -375,13 +354,13 @@ IVY_INTERNAL VkSwapchainKHR ivyCreateVulkanSwapchain(
   }
 
   vulkanResult = vkCreateSwapchainKHR(context->device, &swapchainCreateInfo,
-      NULL, &swapchain);
+      NULL, swapchain);
   if (vulkanResult) {
     goto error;
   }
 
   swapchainImages = ivyAllocateVulkanSwapchainImages(allocator,
-      context->device, swapchain, swapchainImageCount);
+      context->device, *swapchain, swapchainImageCount);
   if (!*swapchainImages) {
     goto error;
   }
@@ -401,7 +380,7 @@ IVY_INTERNAL VkSwapchainKHR ivyCreateVulkanSwapchain(
 
   ivyFreeMemory(allocator, swapchainImages);
 
-  return swapchain;
+  return VK_SUCCESS;
 
 error:
   if (*frames) {
@@ -417,19 +396,18 @@ error:
     ivyFreeMemory(allocator, swapchainImages);
   }
 
-  if (swapchain) {
-    vkDestroySwapchainKHR(context->device, swapchain, NULL);
+  if (*swapchain) {
+    vkDestroySwapchainKHR(context->device, *swapchain, NULL);
   }
 
   *swapchainImageCount = 0;
-  return VK_NULL_HANDLE;
+
+  return vulkanResult;
 }
 
-IVY_INTERNAL VkRenderPass ivyCreateVulkanMainRenderPass(VkDevice device,
+IVY_INTERNAL VkResult ivyCreateVulkanMainRenderPass(VkDevice device,
     VkFormat colorFormat, VkFormat depthFormat,
-    VkSampleCountFlagBits sampleCount) {
-  VkResult vulkanResult;
-  VkRenderPass mainRenderPass;
+    VkSampleCountFlagBits sampleCount, VkRenderPass *mainRenderPass) {
   VkAttachmentReference colorAttachmentReference;
   VkAttachmentReference depthAttachmentReference;
   VkAttachmentReference resolveAttachmentReference;
@@ -522,19 +500,12 @@ IVY_INTERNAL VkRenderPass ivyCreateVulkanMainRenderPass(VkDevice device,
   renderPassCreateInfo.dependencyCount = 1;
   renderPassCreateInfo.pDependencies = &subpassDependency;
 
-  vulkanResult =
-      vkCreateRenderPass(device, &renderPassCreateInfo, NULL, &mainRenderPass);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return mainRenderPass;
+  return vkCreateRenderPass(device, &renderPassCreateInfo, NULL,
+      mainRenderPass);
 }
 
-IVY_INTERNAL VkDescriptorSetLayout ivyCreateVulkanUniformDescriptorSetLayout(
-    VkDevice device) {
-  VkResult vulkanResult;
-  VkDescriptorSetLayout descriptorSetLayout;
+IVY_INTERNAL VkResult ivyCreateVulkanUniformDescriptorSetLayout(
+    VkDevice device, VkDescriptorSetLayout *descriptorSetLayout) {
   VkDescriptorSetLayoutBinding descriptorSetLayoutBinding;
   VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
 
@@ -554,20 +525,13 @@ IVY_INTERNAL VkDescriptorSetLayout ivyCreateVulkanUniformDescriptorSetLayout(
   descriptorSetLayoutCreateInfo.bindingCount = 1;
   descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
 
-  vulkanResult = vkCreateDescriptorSetLayout(device,
-      &descriptorSetLayoutCreateInfo, NULL, &descriptorSetLayout);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return descriptorSetLayout;
+  return vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo,
+      NULL, descriptorSetLayout);
 }
 
-IVY_INTERNAL VkDescriptorSetLayout ivyCreateVulkanTextureDescriptorSetLayout(
-    VkDevice device) {
+IVY_INTERNAL VkResult ivyCreateVulkanTextureDescriptorSetLayout(
+    VkDevice device, VkDescriptorSetLayout *descriptorSetLayout) {
   uint32_t index;
-  VkResult vulkanResult;
-  VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[2];
   VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
 
@@ -596,20 +560,14 @@ IVY_INTERNAL VkDescriptorSetLayout ivyCreateVulkanTextureDescriptorSetLayout(
       IVY_ARRAY_LENGTH(descriptorSetLayoutBindings);
   descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBindings;
 
-  vulkanResult = vkCreateDescriptorSetLayout(device,
-      &descriptorSetLayoutCreateInfo, NULL, &descriptorSetLayout);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return descriptorSetLayout;
+  return vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo,
+      NULL, descriptorSetLayout);
 }
 
-IVY_INTERNAL VkPipelineLayout ivyCreateVulkanMainPipelineLayout(
-    VkDevice device, VkDescriptorSetLayout uniformDescriptorSetLayout,
-    VkDescriptorSetLayout textureDescriptorSetLayout) {
-  VkResult vulkanResult;
-  VkPipelineLayout pipelineLayout;
+IVY_INTERNAL VkResult ivyCreateVulkanMainPipelineLayout(VkDevice device,
+    VkDescriptorSetLayout uniformDescriptorSetLayout,
+    VkDescriptorSetLayout textureDescriptorSetLayout,
+    VkPipelineLayout *pipelineLayout) {
   VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo;
   VkDescriptorSetLayout descriptorSetLayouts[2];
 
@@ -626,211 +584,232 @@ IVY_INTERNAL VkPipelineLayout ivyCreateVulkanMainPipelineLayout(
   pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
   pipelineLayoutCreateInfo.pPushConstantRanges = NULL;
 
-  vulkanResult = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo,
-      NULL, &pipelineLayout);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return pipelineLayout;
+  return vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL,
+      pipelineLayout);
 }
 
-IVY_API IvyRenderer *ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
-    IvyApplication *application) {
+IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
+    IvyApplication *application, IvyRenderer **renderer) {
   IvyCode ivyCode = IVY_OK;
-  IvyRenderer *renderer;
+  VkResult vulkanResult;
+  IvyRenderer *currentRenderer;
 
-  renderer = ivyAllocateMemory(allocator, sizeof(*renderer));
-  if (!renderer) {
-    return NULL;
-  }
-
-  IVY_MEMSET(renderer, 0, sizeof(*renderer));
-
-  renderer->ownerMemoryAllocator = allocator;
-
-  renderer->graphicsContext = ivyCreateGraphicsContext(allocator, application);
-  IVY_ASSERT(renderer->graphicsContext);
-  if (!renderer->graphicsContext) {
+  currentRenderer = ivyAllocateMemory(allocator, sizeof(*currentRenderer));
+  IVY_ASSERT(currentRenderer);
+  if (!currentRenderer) {
+    ivyCode = IVY_ERROR_NO_MEMORY;
     goto error;
   }
 
-  ivyCode = ivyCreateDummyGraphicsMemoryAllocator(renderer->graphicsContext,
-      &renderer->defaultGraphicsMemoryAllocator);
+  IVY_MEMSET(currentRenderer, 0, sizeof(*currentRenderer));
+
+  currentRenderer->ownerMemoryAllocator = allocator;
+
+  ivyCode = ivyCreateGraphicsContext(allocator, application,
+      &currentRenderer->graphicsContext);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
   }
 
-  renderer->clearValues[0].color.float32[0] = 0.0F;
-  renderer->clearValues[0].color.float32[1] = 0.0F;
-  renderer->clearValues[0].color.float32[2] = 0.0F;
-  renderer->clearValues[0].color.float32[3] = 1.0F;
-  renderer->clearValues[1].depthStencil.depth = 1.0F;
-  renderer->clearValues[1].depthStencil.stencil = 0.0F;
-
-  renderer->mainRenderPass =
-      ivyCreateVulkanMainRenderPass(renderer->graphicsContext->device,
-          renderer->graphicsContext->surfaceFormat.format,
-          renderer->graphicsContext->depthFormat,
-          renderer->graphicsContext->attachmentSampleCounts);
-  IVY_ASSERT(renderer->mainRenderPass);
-  if (!renderer->mainRenderPass) {
-    goto error;
-  }
-
-  renderer->uniformDescriptorSetLayout =
-      ivyCreateVulkanUniformDescriptorSetLayout(
-          renderer->graphicsContext->device);
-  IVY_ASSERT(renderer->mainRenderPass);
-  if (!renderer->uniformDescriptorSetLayout) {
-    goto error;
-  }
-
-  renderer->textureDescriptorSetLayout =
-      ivyCreateVulkanTextureDescriptorSetLayout(
-          renderer->graphicsContext->device);
-  IVY_ASSERT(renderer->textureDescriptorSetLayout);
-  if (!renderer->textureDescriptorSetLayout) {
-    goto error;
-  }
-
-  renderer->mainPipelineLayout = ivyCreateVulkanMainPipelineLayout(
-      renderer->graphicsContext->device, renderer->uniformDescriptorSetLayout,
-      renderer->textureDescriptorSetLayout);
-  IVY_ASSERT(renderer->mainPipelineLayout);
-  if (!renderer->mainPipelineLayout) {
-    goto error;
-  }
-
-  renderer->swapchainWidth = application->lastAddedWindow->framebufferWidth;
-  renderer->swapchainHeight = application->lastAddedWindow->framebufferHeight;
-
-  ivyCode = ivyCreateGraphicsAttachment(renderer->graphicsContext,
-      &renderer->defaultGraphicsMemoryAllocator, renderer->swapchainWidth,
-      renderer->swapchainHeight, IVY_COLOR_ATTACHMENT,
-      &renderer->colorAttachment);
+  ivyCode =
+      ivyCreateDummyGraphicsMemoryAllocator(currentRenderer->graphicsContext,
+          &currentRenderer->defaultGraphicsMemoryAllocator);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
   }
 
-  ivyCode = ivyCreateGraphicsAttachment(renderer->graphicsContext,
-      &renderer->defaultGraphicsMemoryAllocator, renderer->swapchainWidth,
-      renderer->swapchainHeight, IVY_DEPTH_ATTACHMENT,
-      &renderer->depthAttachment);
+  currentRenderer->clearValues[0].color.float32[0] = 0.0F;
+  currentRenderer->clearValues[0].color.float32[1] = 0.0F;
+  currentRenderer->clearValues[0].color.float32[2] = 0.0F;
+  currentRenderer->clearValues[0].color.float32[3] = 1.0F;
+  currentRenderer->clearValues[1].depthStencil.depth = 1.0F;
+  currentRenderer->clearValues[1].depthStencil.stencil = 0.0F;
+
+  vulkanResult =
+      ivyCreateVulkanMainRenderPass(currentRenderer->graphicsContext->device,
+          currentRenderer->graphicsContext->surfaceFormat.format,
+          currentRenderer->graphicsContext->depthFormat,
+          currentRenderer->graphicsContext->attachmentSampleCounts,
+          &currentRenderer->mainRenderPass);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
+    goto error;
+  }
+
+  vulkanResult = ivyCreateVulkanUniformDescriptorSetLayout(
+      currentRenderer->graphicsContext->device,
+      &currentRenderer->uniformDescriptorSetLayout);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
+    goto error;
+  }
+
+  vulkanResult = ivyCreateVulkanTextureDescriptorSetLayout(
+      currentRenderer->graphicsContext->device,
+      &currentRenderer->textureDescriptorSetLayout);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
+    goto error;
+  }
+
+  vulkanResult = ivyCreateVulkanMainPipelineLayout(
+      currentRenderer->graphicsContext->device,
+      currentRenderer->uniformDescriptorSetLayout,
+      currentRenderer->textureDescriptorSetLayout,
+      &currentRenderer->mainPipelineLayout);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
+    goto error;
+  }
+
+  currentRenderer->swapchainWidth =
+      application->lastAddedWindow->framebufferWidth;
+  currentRenderer->swapchainHeight =
+      application->lastAddedWindow->framebufferHeight;
+
+  ivyCode = ivyCreateGraphicsAttachment(currentRenderer->graphicsContext,
+      &currentRenderer->defaultGraphicsMemoryAllocator,
+      currentRenderer->swapchainWidth, currentRenderer->swapchainHeight,
+      IVY_COLOR_ATTACHMENT, &currentRenderer->colorAttachment);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
   }
 
-  renderer->requiresSwapchainRebuild = 0;
-
-  renderer->swapchain = ivyCreateVulkanSwapchain(allocator,
-      renderer->graphicsContext, &renderer->defaultGraphicsMemoryAllocator,
-      renderer->mainRenderPass, 2, renderer->swapchainWidth,
-      renderer->swapchainHeight, renderer->colorAttachment.imageView,
-      renderer->depthAttachment.imageView, &renderer->swapchainImageCount,
-      &renderer->frames, &renderer->renderSemaphores);
-  IVY_ASSERT(renderer->swapchain);
-  if (!renderer->swapchain) {
-    goto error;
-  }
-
-  renderer->frameCount = renderer->swapchainImageCount;
-
-  ivyCode = ivyCreateGraphicsProgram(allocator, renderer->graphicsContext,
-      renderer->mainRenderPass, renderer->mainPipelineLayout,
-      renderer->swapchainWidth, renderer->swapchainHeight,
-      "../GLSL/Basic.vert.spv", "../GLSL/Basic.frag.spv",
-      IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
-          IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
-      &renderer->basicGraphicsProgram);
+  ivyCode = ivyCreateGraphicsAttachment(currentRenderer->graphicsContext,
+      &currentRenderer->defaultGraphicsMemoryAllocator,
+      currentRenderer->swapchainWidth, currentRenderer->swapchainHeight,
+      IVY_DEPTH_ATTACHMENT, &currentRenderer->depthAttachment);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
   }
 
-  return renderer;
+  currentRenderer->requiresSwapchainRebuild = 0;
+
+  vulkanResult =
+      ivyCreateVulkanSwapchain(allocator, currentRenderer->graphicsContext,
+          &currentRenderer->defaultGraphicsMemoryAllocator,
+          currentRenderer->mainRenderPass, 2, currentRenderer->swapchainWidth,
+          currentRenderer->swapchainHeight,
+          currentRenderer->colorAttachment.imageView,
+          currentRenderer->depthAttachment.imageView,
+          &currentRenderer->swapchainImageCount, &currentRenderer->frames,
+          &currentRenderer->renderSemaphores, &currentRenderer->swapchain);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
+    goto error;
+  }
+
+  currentRenderer->frameCount = currentRenderer->swapchainImageCount;
+
+  ivyCode =
+      ivyCreateGraphicsProgram(allocator, currentRenderer->graphicsContext,
+          currentRenderer->mainRenderPass, currentRenderer->mainPipelineLayout,
+          currentRenderer->swapchainWidth, currentRenderer->swapchainHeight,
+          "../GLSL/Basic.vert.spv", "../GLSL/Basic.frag.spv",
+          IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
+              IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+          &currentRenderer->basicGraphicsProgram);
+  IVY_ASSERT(!ivyCode);
+  if (ivyCode) {
+    goto error;
+  }
+
+  *renderer = currentRenderer;
+
+  return IVY_OK;
 
 error:
-  ivyDestroyRenderer(allocator, renderer);
-  return NULL;
+  ivyDestroyRenderer(allocator, currentRenderer);
+  *renderer = NULL;
+  return ivyCode;
 }
 
 IVY_API void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
-    IvyRenderer *renderer) {
-  IVY_ASSERT(allocator == renderer->ownerMemoryAllocator);
+    IvyRenderer *currentRenderer) {
+  IVY_ASSERT(allocator == currentRenderer->ownerMemoryAllocator);
 
-  if (renderer->graphicsContext->device) {
-    vkDeviceWaitIdle(renderer->graphicsContext->device);
+  if (currentRenderer->graphicsContext->device) {
+    vkDeviceWaitIdle(currentRenderer->graphicsContext->device);
   }
 
-  ivyDestroyGraphicsProgram(renderer->graphicsContext,
-      &renderer->basicGraphicsProgram);
+  ivyDestroyGraphicsProgram(currentRenderer->graphicsContext,
+      &currentRenderer->basicGraphicsProgram);
 
-  if (renderer->renderSemaphores) {
+  if (currentRenderer->renderSemaphores) {
     uint32_t index;
-    for (index = 0; index < renderer->frameCount; ++index) {
-      ivyDestroyGraphicsRenderSemaphores(renderer->graphicsContext->device,
-          &renderer->renderSemaphores[index]);
+    for (index = 0; index < currentRenderer->frameCount; ++index) {
+      ivyDestroyGraphicsRenderSemaphores(
+          currentRenderer->graphicsContext->device,
+          &currentRenderer->renderSemaphores[index]);
     }
-    ivyFreeMemory(allocator, renderer->renderSemaphores);
-    renderer->renderSemaphores = NULL;
+    ivyFreeMemory(allocator, currentRenderer->renderSemaphores);
+    currentRenderer->renderSemaphores = NULL;
   }
 
-  if (renderer->frames) {
+  if (currentRenderer->frames) {
     uint32_t index;
-    for (index = 0; index < renderer->frameCount; ++index) {
-      ivyDestroyGraphicsFrame(renderer->graphicsContext,
-          &renderer->defaultGraphicsMemoryAllocator, &renderer->frames[index]);
+    for (index = 0; index < currentRenderer->frameCount; ++index) {
+      ivyDestroyGraphicsFrame(currentRenderer->graphicsContext,
+          &currentRenderer->defaultGraphicsMemoryAllocator,
+          &currentRenderer->frames[index]);
     }
-    ivyFreeMemory(allocator, renderer->frames);
-    renderer->frames = NULL;
+    ivyFreeMemory(allocator, currentRenderer->frames);
+    currentRenderer->frames = NULL;
   }
 
-  if (renderer->swapchain) {
-    vkDestroySwapchainKHR(renderer->graphicsContext->device,
-        renderer->swapchain, NULL);
-    renderer->swapchain = VK_NULL_HANDLE;
+  if (currentRenderer->swapchain) {
+    vkDestroySwapchainKHR(currentRenderer->graphicsContext->device,
+        currentRenderer->swapchain, NULL);
+    currentRenderer->swapchain = VK_NULL_HANDLE;
   }
 
-  ivyDestroyGraphicsAttachment(renderer->graphicsContext,
-      &renderer->defaultGraphicsMemoryAllocator, &renderer->depthAttachment);
+  ivyDestroyGraphicsAttachment(currentRenderer->graphicsContext,
+      &currentRenderer->defaultGraphicsMemoryAllocator,
+      &currentRenderer->depthAttachment);
 
-  ivyDestroyGraphicsAttachment(renderer->graphicsContext,
-      &renderer->defaultGraphicsMemoryAllocator, &renderer->colorAttachment);
+  ivyDestroyGraphicsAttachment(currentRenderer->graphicsContext,
+      &currentRenderer->defaultGraphicsMemoryAllocator,
+      &currentRenderer->colorAttachment);
 
-  if (renderer->mainPipelineLayout) {
-    vkDestroyPipelineLayout(renderer->graphicsContext->device,
-        renderer->mainPipelineLayout, NULL);
-    renderer->mainPipelineLayout = VK_NULL_HANDLE;
+  if (currentRenderer->mainPipelineLayout) {
+    vkDestroyPipelineLayout(currentRenderer->graphicsContext->device,
+        currentRenderer->mainPipelineLayout, NULL);
+    currentRenderer->mainPipelineLayout = VK_NULL_HANDLE;
   }
 
-  if (renderer->textureDescriptorSetLayout) {
-    vkDestroyDescriptorSetLayout(renderer->graphicsContext->device,
-        renderer->textureDescriptorSetLayout, NULL);
-    renderer->textureDescriptorSetLayout = VK_NULL_HANDLE;
+  if (currentRenderer->textureDescriptorSetLayout) {
+    vkDestroyDescriptorSetLayout(currentRenderer->graphicsContext->device,
+        currentRenderer->textureDescriptorSetLayout, NULL);
+    currentRenderer->textureDescriptorSetLayout = VK_NULL_HANDLE;
   }
 
-  if (renderer->uniformDescriptorSetLayout) {
-    vkDestroyDescriptorSetLayout(renderer->graphicsContext->device,
-        renderer->uniformDescriptorSetLayout, NULL);
-    renderer->uniformDescriptorSetLayout = VK_NULL_HANDLE;
+  if (currentRenderer->uniformDescriptorSetLayout) {
+    vkDestroyDescriptorSetLayout(currentRenderer->graphicsContext->device,
+        currentRenderer->uniformDescriptorSetLayout, NULL);
+    currentRenderer->uniformDescriptorSetLayout = VK_NULL_HANDLE;
   }
 
-  if (renderer->mainRenderPass) {
-    vkDestroyRenderPass(renderer->graphicsContext->device,
-        renderer->mainRenderPass, NULL);
-    renderer->mainRenderPass = VK_NULL_HANDLE;
+  if (currentRenderer->mainRenderPass) {
+    vkDestroyRenderPass(currentRenderer->graphicsContext->device,
+        currentRenderer->mainRenderPass, NULL);
+    currentRenderer->mainRenderPass = VK_NULL_HANDLE;
   }
 
-  ivyDestroyGraphicsMemoryAllocator(renderer->graphicsContext,
-      &renderer->defaultGraphicsMemoryAllocator);
+  ivyDestroyGraphicsMemoryAllocator(currentRenderer->graphicsContext,
+      &currentRenderer->defaultGraphicsMemoryAllocator);
 
-  ivyDestroyGraphicsContext(allocator, renderer->graphicsContext);
+  ivyDestroyGraphicsContext(allocator, currentRenderer->graphicsContext);
 
-  ivyFreeMemory(allocator, renderer);
+  ivyFreeMemory(allocator, currentRenderer);
 }
 
 IVY_API IvyGraphicsFrame *ivyGetCurrentGraphicsFrame(IvyRenderer *renderer) {
@@ -888,6 +867,7 @@ IVY_INTERNAL void ivyDestroyGraphicsResourcesForSwapchainRebuild(
 
 IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
   // FIXME(samuel): create first destroy second
+  VkResult vulkanResult;
   IvyCode ivyCode;
   IvyAnyMemoryAllocator allocator = renderer->ownerMemoryAllocator;
   IvyApplication *application = renderer->graphicsContext->application;
@@ -918,14 +898,14 @@ IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
     goto error;
   }
 
-  renderer->swapchain = ivyCreateVulkanSwapchain(allocator,
-      renderer->graphicsContext, &renderer->defaultGraphicsMemoryAllocator,
-      renderer->mainRenderPass, 2, renderer->swapchainWidth,
-      renderer->swapchainHeight, renderer->colorAttachment.imageView,
-      renderer->depthAttachment.imageView, &renderer->swapchainImageCount,
-      &renderer->frames, &renderer->renderSemaphores);
-  IVY_ASSERT(renderer->swapchain);
-  if (!renderer->swapchain) {
+  vulkanResult = ivyCreateVulkanSwapchain(allocator, renderer->graphicsContext,
+      &renderer->defaultGraphicsMemoryAllocator, renderer->mainRenderPass, 2,
+      renderer->swapchainWidth, renderer->swapchainHeight,
+      renderer->colorAttachment.imageView, renderer->depthAttachment.imageView,
+      &renderer->swapchainImageCount, &renderer->frames,
+      &renderer->renderSemaphores, &renderer->swapchain);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 

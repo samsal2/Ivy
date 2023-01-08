@@ -24,9 +24,9 @@ typedef struct IvyGraphicsTemporaryBuffer {
   VkDescriptorSet descriptorSet;
 } IvyGraphicsTemporaryBuffer;
 
-IVY_API VkDescriptorSet ivyAllocateVulkanDescriptorSet(VkDevice device,
-    VkDescriptorPool descriptorPool,
-    VkDescriptorSetLayout descriptorSetLayout);
+IVY_API VkResult ivyAllocateVulkanDescriptorSet(VkDevice device,
+    VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout,
+    VkDescriptorSet *descriptorSet);
 
 IVY_API IvyCode ivyCreateGraphicsTemporaryBufferProvider(
     IvyGraphicsContext *context,
@@ -56,7 +56,7 @@ IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
 #define IVY_SOURCE_BUFFER 0x0008
 #define IVY_DESTINATION_BUFFER 0x0010
 
-IVY_API VkBuffer ivyCreateVulkanBuffer(VkDevice device, uint32_t flags,
-    uint64_t size);
+IVY_API VkResult ivyCreateVulkanBuffer(VkDevice device, uint32_t flags,
+    uint64_t size, VkBuffer *buffer);
 
 #endif

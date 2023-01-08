@@ -1,6 +1,13 @@
 #include "IvyGraphicsTemporaryBuffer.h"
 #include "IvyGraphicsProgram.h"
 
+IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
+  switch (vulkanResult) {
+  default:
+    return -1;
+  }
+}
+
 IVY_INTERNAL VkBufferUsageFlagBits ivyAsVulkanBufferUsage(uint32_t flags) {
   VkBufferUsageFlagBits bufferUsage = 0;
 
@@ -27,10 +34,8 @@ IVY_INTERNAL VkBufferUsageFlagBits ivyAsVulkanBufferUsage(uint32_t flags) {
   return bufferUsage;
 }
 
-IVY_API VkBuffer ivyCreateVulkanBuffer(VkDevice device, uint32_t flags,
-    uint64_t size) {
-  VkResult vulkanResult;
-  VkBuffer buffer;
+IVY_API VkResult ivyCreateVulkanBuffer(VkDevice device, uint32_t flags,
+    uint64_t size, VkBuffer *buffer) {
   VkBufferCreateInfo bufferCreateInfo;
 
   bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -42,13 +47,7 @@ IVY_API VkBuffer ivyCreateVulkanBuffer(VkDevice device, uint32_t flags,
   bufferCreateInfo.queueFamilyIndexCount = 0;
   bufferCreateInfo.pQueueFamilyIndices = NULL;
 
-  vulkanResult = vkCreateBuffer(device, &bufferCreateInfo, NULL, &buffer);
-  IVY_ASSERT(!vulkanResult);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return buffer;
+  return vkCreateBuffer(device, &bufferCreateInfo, NULL, buffer);
 }
 
 IVY_API IvyCode ivyCreateGraphicsTemporaryBufferProvider(
@@ -150,14 +149,12 @@ ivyMoveCurrentBufferToGarbageInGraphicsTemporaryBufferProvider(
     return IVY_OK;
   }
 
-  return IVY_NO_GRAPHICS_MEMORY;
+  return IVY_ERROR_NO_GRAPHICS_MEMORY;
 }
 
-IVY_API VkDescriptorSet ivyAllocateVulkanDescriptorSet(VkDevice device,
-    VkDescriptorPool descriptorPool,
-    VkDescriptorSetLayout descriptorSetLayout) {
-  VkResult vulkanResult;
-  VkDescriptorSet descriptorSet;
+IVY_API VkResult ivyAllocateVulkanDescriptorSet(VkDevice device,
+    VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout,
+    VkDescriptorSet *descriptorSet) {
   VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
 
   descriptorSetAllocateInfo.sType =
@@ -167,13 +164,8 @@ IVY_API VkDescriptorSet ivyAllocateVulkanDescriptorSet(VkDevice device,
   descriptorSetAllocateInfo.descriptorSetCount = 1;
   descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout;
 
-  vulkanResult = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo,
-      &descriptorSet);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return descriptorSet;
+  return vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo,
+      descriptorSet);
 }
 
 IVY_INTERNAL void ivyWriteVulkanUniformDynamicDescriptorSet(VkDevice device,
@@ -207,6 +199,7 @@ IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
     IvyGraphicsTemporaryBuffer *buffer) {
   if ((!provider->currentBuffer && !provider->currentMemory.memory) ||
       (provider->currentBufferOffset + size >= provider->currentBufferSize)) {
+    VkResult vulkanResult;
     IvyCode ivyCode = IVY_OK;
     VkBuffer newBuffer = VK_NULL_HANDLE;
     VkDescriptorSet newDescriptorSet = VK_NULL_HANDLE;
@@ -216,11 +209,12 @@ IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
     newSize = ivyNextGraphicsTemporaryBufferProviderSize(
         provider->currentBufferSize);
 
-    newBuffer = ivyCreateVulkanBuffer(context->device,
-        IVY_VERTEX_BUFFER | IVY_INDEX_BUFFER | IVY_UNIFORM_BUFFER, newSize);
-    IVY_ASSERT(newBuffer);
-    if (!newBuffer) {
-      return IVY_NO_GRAPHICS_MEMORY;
+    vulkanResult = ivyCreateVulkanBuffer(context->device,
+        IVY_VERTEX_BUFFER | IVY_INDEX_BUFFER | IVY_UNIFORM_BUFFER, newSize,
+        &newBuffer);
+    IVY_ASSERT(!vulkanResult);
+    if (vulkanResult) {
+      return ivyVulkanResultAsIvyCode(vulkanResult);
     }
 
     ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(context,
@@ -228,16 +222,17 @@ IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
     IVY_ASSERT(!ivyCode);
     if (ivyCode) {
       vkDestroyBuffer(context->device, newBuffer, NULL);
-      return IVY_NO_GRAPHICS_MEMORY;
+      return IVY_ERROR_NO_GRAPHICS_MEMORY;
     }
 
-    newDescriptorSet = ivyAllocateVulkanDescriptorSet(context->device,
-        context->globalDescriptorPool, uniformDescriptorSetLayout);
-    IVY_ASSERT(newDescriptorSet);
-    if (!newDescriptorSet) {
+    vulkanResult = ivyAllocateVulkanDescriptorSet(context->device,
+        context->globalDescriptorPool, uniformDescriptorSetLayout,
+        &newDescriptorSet);
+    IVY_ASSERT(!vulkanResult);
+    if (vulkanResult) {
       ivyFreeGraphicsMemory(context, graphicsAllocator, &newMemory);
       vkDestroyBuffer(context->device, newBuffer, NULL);
-      return IVY_NO_GRAPHICS_MEMORY;
+      return ivyVulkanResultAsIvyCode(vulkanResult);
     }
 
     ivyWriteVulkanUniformDynamicDescriptorSet(context->device, newBuffer,
@@ -251,7 +246,7 @@ IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyGraphicsContext *context,
           &newDescriptorSet);
       ivyFreeGraphicsMemory(context, graphicsAllocator, &newMemory);
       vkDestroyBuffer(context->device, newBuffer, NULL);
-      return IVY_NO_GRAPHICS_MEMORY;
+      return ivyCode;
     }
 
     provider->currentDescriptorSet = newDescriptorSet;

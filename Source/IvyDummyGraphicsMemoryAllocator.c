@@ -38,7 +38,7 @@ IVY_INTERNAL IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
   chunk = ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(dummyAllocator);
   IVY_ASSERT(chunk);
   if (!chunk) {
-    return IVY_NO_GRAPHICS_MEMORY;
+    return IVY_ERROR_NO_MEMORY;
   }
 
   ivyCode = ivyAllocateGraphicsMemoryChunk(context, flags, type, size, chunk);
@@ -101,9 +101,8 @@ IVY_API IvyCode ivyCreateDummyGraphicsMemoryAllocator(
     IvyGraphicsContext *context, IvyDummyGraphicsMemoryAllocator *allocator) {
   int index;
 
-  if (!context || !allocator) {
-    return IVY_INVALID_VALUE;
-  }
+  IVY_ASSERT(context);
+  IVY_ASSERT(allocator);
 
   IVY_MEMSET(allocator, 0, sizeof(*allocator));
 

@@ -371,7 +371,7 @@ IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
 error:
   ivyDestroyGraphicsProgram(context, program);
   // FIXME: check for when the path was not found
-  return IVY_NO_GRAPHICS_MEMORY;
+  return IVY_ERROR_NO_GRAPHICS_MEMORY;
 }
 
 IVY_API void ivyDestroyGraphicsProgram(IvyGraphicsContext *context,

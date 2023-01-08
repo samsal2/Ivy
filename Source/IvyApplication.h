@@ -24,7 +24,8 @@ typedef struct IvyApplication {
   IvyWindow windows[IVY_MAX_WINDOWS];
 } IvyApplication;
 
-IVY_API IvyApplication *ivyCreateApplication(IvyAnyMemoryAllocator allocator);
+IVY_API IvyCode ivyCreateApplication(IvyAnyMemoryAllocator allocator,
+    IvyApplication **application);
 
 IVY_API void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
     IvyApplication *application);
@@ -42,7 +43,7 @@ IVY_API void ivyPollApplicationEvents(IvyApplication *application);
 IVY_API char const *const *ivyGetRequiredVulkanExtensions(
     IvyApplication *application, uint32_t *count);
 
-IVY_API VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,
-    IvyApplication *application);
+IVY_API VkResult ivyCreateVulkanSurface(VkInstance instance,
+    IvyApplication *application, VkSurfaceKHR *surface);
 
 #endif

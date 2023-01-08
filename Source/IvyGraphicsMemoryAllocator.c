@@ -6,6 +6,12 @@
 
 // TODO(samuel): static assert base is the first element of each allocator
 
+IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
+  switch (vulkanResult) {
+  default:
+    return -1;
+  }
+}
 IVY_API void ivySetupGraphicsMemoryAllocatorBase(
     IvyGraphicsMemoryAllocatorDispatch const *dispatch,
     IvyGraphicsMemoryAllocatorBase *base) {
@@ -52,9 +58,10 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
 
-  if (!allocator || !memory) {
-    return IVY_INVALID_VALUE;
-  }
+  IVY_ASSERT(context);
+  IVY_ASSERT(allocator);
+  IVY_ASSERT(buffer);
+  IVY_ASSERT(memory);
 
   vkGetBufferMemoryRequirements(context->device, buffer, &memoryRequirements);
 
@@ -68,7 +75,7 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
       memory->offset);
   if (vulkanResult) {
     ivyFreeGraphicsMemory(context, allocator, memory);
-    return IVY_NO_GRAPHICS_MEMORY;
+    return ivyVulkanResultAsIvyCode(vulkanResult);
   }
 
   return IVY_OK;
@@ -82,9 +89,9 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
 
-  if (!graphicsAllocator || !allocation) {
-    return IVY_INVALID_VALUE;
-  }
+  IVY_ASSERT(context);
+  IVY_ASSERT(graphicsAllocator);
+  IVY_ASSERT(allocation);
 
   vkGetImageMemoryRequirements(context->device, image, &memoryRequirements);
 
@@ -98,7 +105,7 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
       allocation->offset);
   if (vulkanResult) {
     ivyFreeGraphicsMemory(context, graphicsAllocator, allocation);
-    return IVY_NO_GRAPHICS_MEMORY;
+    return ivyVulkanResultAsIvyCode(vulkanResult);
   }
 
   return IVY_OK;

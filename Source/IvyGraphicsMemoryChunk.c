@@ -93,7 +93,7 @@ IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
   chunk->owners = 1;
   chunk->memory = ivyAllocateVulkanMemory(context, flags, type, size);
   if (!chunk->memory) {
-    return IVY_NO_GRAPHICS_MEMORY;
+    return IVY_ERROR_NO_GRAPHICS_MEMORY;
   }
 
   if (IVY_CPU_VISIBLE & flags) {
@@ -102,7 +102,7 @@ IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
         vkMapMemory(context->device, chunk->memory, 0, size, 0, &chunk->data);
     if (vulkanResult) {
       ivyFreeGraphicsMemoryChunk(context, chunk);
-      return IVY_NO_GRAPHICS_MEMORY;
+      return IVY_ERROR_NO_GRAPHICS_MEMORY;
     }
   } else {
     chunk->data = NULL;

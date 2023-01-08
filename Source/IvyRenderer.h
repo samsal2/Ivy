@@ -50,8 +50,8 @@ typedef struct IvyRenderer {
   IvyGraphicsProgram *boundGraphicsProgram;
 } IvyRenderer;
 
-IVY_API IvyRenderer *ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
-    IvyApplication *application);
+IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
+    IvyApplication *application, IvyRenderer **renderer);
 
 IVY_API void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
     IvyRenderer *renderer);

@@ -3,24 +3,32 @@
 
 #include "IvyGraphicsTemporaryBuffer.h"
 
-IVY_INTERNAL VkBuffer ivyCreateAndAllocateUploadBuffer(
+IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
+  switch (vulkanResult) {
+  default:
+    return -1;
+  }
+}
+
+IVY_INTERNAL IvyCode ivyCreateAndAllocateUploadBuffer(
     IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, uint64_t size, void *data,
-    IvyGraphicsMemory *graphicsMemory) {
+    IvyGraphicsMemory *graphicsMemory, VkBuffer *uploadBuffer) {
+  VkResult vulkanResult;
   IvyCode ivyCode;
-  VkBuffer uploadBuffer = VK_NULL_HANDLE;
 
   graphicsMemory->memory = VK_NULL_HANDLE;
 
-  uploadBuffer =
-      ivyCreateVulkanBuffer(context->device, IVY_SOURCE_BUFFER, size);
-  IVY_ASSERT(uploadBuffer);
-  if (!uploadBuffer) {
+  vulkanResult = ivyCreateVulkanBuffer(context->device, IVY_SOURCE_BUFFER,
+      size, uploadBuffer);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(context,
-      graphicsAllocator, IVY_HOST_VISIBLE, uploadBuffer, graphicsMemory);
+      graphicsAllocator, IVY_HOST_VISIBLE, *uploadBuffer, graphicsMemory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -28,7 +36,7 @@ IVY_INTERNAL VkBuffer ivyCreateAndAllocateUploadBuffer(
 
   IVY_MEMCPY(graphicsMemory->data, data, size);
 
-  return uploadBuffer;
+  return IVY_OK;
 
 error:
   if (graphicsMemory->memory) {
@@ -36,11 +44,12 @@ error:
     graphicsMemory->memory = VK_NULL_HANDLE;
   }
 
-  if (uploadBuffer) {
-    vkDestroyBuffer(context->device, uploadBuffer, NULL);
+  if (*uploadBuffer) {
+    vkDestroyBuffer(context->device, *uploadBuffer, NULL);
+    *uploadBuffer = NULL;
   }
 
-  return VK_NULL_HANDLE;
+  return ivyCode;
 }
 
 IVY_INTERNAL uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
@@ -64,16 +73,17 @@ IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
 
   uploadMemory.memory = VK_NULL_HANDLE;
 
-  commandBuffer = ivyAllocateOneTimeCommandBuffer(context);
-  IVY_ASSERT(commandBuffer);
-  if (!commandBuffer) {
+  ivyCode = ivyAllocateOneTimeCommandBuffer(context, &commandBuffer);
+  IVY_ASSERT(!ivyCode);
+  if (ivyCode) {
     goto error;
   }
 
-  uploadBuffer = ivyCreateAndAllocateUploadBuffer(context, graphicsAllocator,
-      width * height * ivyGetPixelFormatSize(format), data, &uploadMemory);
-  IVY_ASSERT(uploadBuffer);
-  if (!uploadBuffer) {
+  ivyCode = ivyCreateAndAllocateUploadBuffer(context, graphicsAllocator,
+      width * height * ivyGetPixelFormatSize(format), data, &uploadMemory,
+      &uploadBuffer);
+  IVY_ASSERT(!ivyCode);
+  if (ivyCode) {
     goto error;
   }
 
@@ -119,5 +129,5 @@ error:
     ivyFreeOneTimeCommandBuffer(context, commandBuffer);
   }
 
-  return IVY_NO_GRAPHICS_MEMORY;
+  return ivyCode;
 }

@@ -37,38 +37,43 @@ IVY_INTERNAL void ivyInvalidateWindow(IvyWindow *window) {
   window->framebufferHeight = 0;
 }
 
-IvyApplication *ivyCreateApplication(IvyAnyMemoryAllocator allocator) {
+IVY_API IvyCode ivyCreateApplication(IvyAnyMemoryAllocator allocator,
+    IvyApplication **application) {
   int32_t index;
-  IvyApplication *application;
+  IvyApplication *currentApplication;
+
+  *application = NULL;
 
   IVY_ASSERT(allocator);
 
   if (doesAnApplicationAlreadyExist) {
-    return NULL;
+    return IVY_ERROR_MORE_THAN_ONE_INSTANCE;
   }
 
-  application = ivyAllocateMemory(allocator, sizeof(*application));
-  if (!application) {
-    return NULL;
+  currentApplication = ivyAllocateMemory(allocator, sizeof(**application));
+  if (!currentApplication) {
+    return IVY_ERROR_NO_MEMORY;
   }
 
-  application->opaque = NULL;
-  application->lastAddedWindow = NULL;
+  currentApplication->opaque = NULL;
+  currentApplication->lastAddedWindow = NULL;
 
   if (!glfwInit()) {
     ivyFreeMemory(allocator, application);
-    return NULL;
+    return IVY_ERROR_UNKNOWN;
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-  for (index = 0; index < IVY_ARRAY_LENGTH(application->windows); ++index) {
-    ivyInvalidateWindow(&application->windows[index]);
+  for (index = 0; index < IVY_ARRAY_LENGTH(currentApplication->windows);
+       ++index) {
+    ivyInvalidateWindow(&currentApplication->windows[index]);
   }
 
   doesAnApplicationAlreadyExist = 1;
+  *application = currentApplication;
 
-  return application;
+  return IVY_OK;
 }
 
 IVY_API void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
@@ -171,11 +176,11 @@ IVY_API IvyCode ivyDestroyWindow(IvyApplication *application,
   IVY_ASSERT(doesAnApplicationAlreadyExist);
 
   if (!application || !window || !IVY_IS_VALID_WINDOW(window)) {
-    return IVY_INVALID_VALUE;
+    return IVY_ERROR_INVALID_VALUE;
   }
 
   if (!ivyIsWindowInApplication(application, window)) {
-    return IVY_INVALID_VALUE;
+    return IVY_ERROR_INVALID_VALUE;
   }
 
   glfwDestroyWindow(window->opaque);
@@ -261,22 +266,11 @@ IVY_API char const *const *ivyGetRequiredVulkanExtensions(
   return extensions;
 }
 
-IVY_API VkSurfaceKHR ivyCreateVulkanSurface(VkInstance instance,
-    IvyApplication *application) {
-  VkResult result;
-  VkSurfaceKHR surface;
-  IvyWindow *window;
-
+IVY_API VkResult ivyCreateVulkanSurface(VkInstance instance,
+    IvyApplication *application, VkSurfaceKHR *surface) {
   IVY_ASSERT(instance);
   IVY_ASSERT(application);
 
-  window = application->lastAddedWindow;
-
-  result = glfwCreateWindowSurface(instance, window->opaque, NULL, &surface);
-
-  if (result) {
-    return VK_NULL_HANDLE;
-  }
-
-  return surface;
+  return glfwCreateWindowSurface(instance,
+      application->lastAddedWindow->opaque, NULL, surface);
 }

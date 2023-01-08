@@ -1,6 +1,13 @@
 #include "IvyGraphicsAttachment.h"
 #include "IvyGraphicsTexture.h"
 
+IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
+  switch (vulkanResult) {
+  default:
+    return -1;
+  }
+}
+
 IVY_INTERNAL VkImageUsageFlagBits ivyAsVulkanImageUsage(
     IvyGraphicsAttachmentType type) {
   switch (type) {
@@ -38,7 +45,8 @@ IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, int32_t width,
     int32_t height, IvyGraphicsAttachmentType type,
     IvyGraphicsAttachment *attachment) {
-  IvyCode ivyCode;
+  VkResult vulkanResult;
+  IvyCode ivyCode = IVY_OK;
 
   IVY_MEMSET(attachment, 0, sizeof(*attachment));
 
@@ -46,12 +54,13 @@ IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
   attachment->width = width;
   attachment->height = height;
 
-  attachment->image = ivyCreateVulkanImage(context->device, attachment->width,
+  vulkanResult = ivyCreateVulkanImage(context->device, attachment->width,
       attachment->height, 1, context->attachmentSampleCounts,
       ivyAsVulkanImageUsage(attachment->type),
-      ivyGetGraphicsAttachmentFormat(context, type));
-  IVY_ASSERT(attachment->image);
-  if (!attachment->image) {
+      ivyGetGraphicsAttachmentFormat(context, type), &attachment->image);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
@@ -62,9 +71,9 @@ IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
     goto error;
   }
 
-  attachment->imageView = ivyCreateVulkanImageView(context->device,
-      attachment->image, ivyAsVulkanImageAspect(attachment->type),
-      ivyGetGraphicsAttachmentFormat(context, type));
+  vulkanResult = ivyCreateVulkanImageView(context->device, attachment->image,
+      ivyAsVulkanImageAspect(attachment->type),
+      ivyGetGraphicsAttachmentFormat(context, type), &attachment->imageView);
   IVY_ASSERT(attachment->imageView);
   if (!attachment->imageView) {
     goto error;
@@ -74,7 +83,7 @@ IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
 
 error:
   ivyDestroyGraphicsAttachment(context, graphicsAllocator, attachment);
-  return IVY_NO_GRAPHICS_MEMORY;
+  return ivyCode;
 }
 
 IVY_API void ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,

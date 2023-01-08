@@ -75,7 +75,7 @@ IVY_API IvyCode ivySetGlobalMemoryAllocator(IvyAnyMemoryAllocator allocator) {
   IvyMemoryAllocatorBase *base = allocator;
 
   if (IVY_MEMORY_ALLOCATOR_MAGIC != base->magic) {
-    return IVY_INVALID_VALUE;
+    return IVY_ERROR_INVALID_DYNAMIC_DISPATCH;
   }
 
   globalMemoryAllocator = allocator;

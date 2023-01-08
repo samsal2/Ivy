@@ -12,10 +12,11 @@ IvyRenderer *renderer;
 IvyGraphicsTexture *texture;
 
 int main(void) {
+  IvyCode ivyCode;
   allocator = ivyGetGlobalMemoryAllocator();
 
-  application = ivyCreateApplication(allocator);
-  if (!application) {
+  ivyCode = ivyCreateApplication(allocator, &application);
+  if (ivyCode) {
     printf("failed to create application\n");
     goto error;
   }
@@ -25,16 +26,16 @@ int main(void) {
     goto error;
   }
 
-  renderer = ivyCreateRenderer(allocator, application);
-  if (!renderer) {
+  ivyCode = ivyCreateRenderer(allocator, application, &renderer);
+  if (ivyCode) {
     printf("failed to create renderer\n");
     goto error;
   }
 
-  texture = ivyCreateGraphicsTextureFromFile(allocator,
+  ivyCode = ivyCreateGraphicsTextureFromFile(allocator,
       renderer->graphicsContext, &renderer->defaultGraphicsMemoryAllocator,
-      renderer->textureDescriptorSetLayout, "../Resources/Ivy.jpg");
-  if (!texture) {
+      renderer->textureDescriptorSetLayout, "../Resources/Ivy.jpg", &texture);
+  if (ivyCode) {
     printf("failed to create texture\n");
     goto error;
   }

@@ -10,12 +10,13 @@ typedef int IvyBool;
 #define IVY_LOCAL_PERSIST static
 
 #define IVY_OK 0
-#define IVY_UNKNOWN_ERROR -1
-#define IVY_INVALID_VALUE -2
-#define IVY_ALREADY_INITIALIZED -3
-#define IVY_PLATAFORM_ERROR -4
-#define IVY_NO_GRAPHICS_MEMORY -5
-#define IVY_NO_MEMORY -6
+#define IVY_ERROR_NO_DEVICE_FOUND -1
+#define IVY_ERROR_NO_MEMORY -2
+#define IVY_ERROR_INVALID_VALUE -3
+#define IVY_ERROR_NO_GRAPHICS_MEMORY -4
+#define IVY_ERROR_UNKNOWN -5
+#define IVY_ERROR_INVALID_DYNAMIC_DISPATCH -6
+#define IVY_ERROR_MORE_THAN_ONE_INSTANCE -7
 
 #define IVY_UNUSED(e) (void)e
 #define IVY_ARRAY_LENGTH(a) (long)(sizeof(a) / sizeof((a)[0]))
