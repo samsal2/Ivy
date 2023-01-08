@@ -31,7 +31,9 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyRenderer.c
   IvyRenderer.h
   IvyVectorMath.c
-  IvyVectorMath.h)
+  IvyVectorMath.h
+  IvyVulkanUtilities.c
+  IvyVulkanUtilities.h)
 
 
 

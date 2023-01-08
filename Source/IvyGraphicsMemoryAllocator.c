@@ -1,17 +1,12 @@
 #include "IvyGraphicsMemoryAllocator.h"
 
 #include "IvyGraphicsContext.h"
+#include "IvyVulkanUtilities.h"
 
 #define IVY_GRAPHICS_MEMORY_ALLOCATOR_MAGIC 0x5CA66E77
 
 // TODO(samuel): static assert base is the first element of each allocator
 
-IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
-  switch (vulkanResult) {
-  default:
-    return -1;
-  }
-}
 IVY_API void ivySetupGraphicsMemoryAllocatorBase(
     IvyGraphicsMemoryAllocatorDispatch const *dispatch,
     IvyGraphicsMemoryAllocatorBase *base) {
@@ -19,8 +14,9 @@ IVY_API void ivySetupGraphicsMemoryAllocatorBase(
   base->dispatch = dispatch;
 }
 
-IVY_API void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator) {
+IVY_API void
+ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
+                                  IvyAnyGraphicsMemoryAllocator allocator) {
   IvyGraphicsMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(base->dispatch);
@@ -29,20 +25,21 @@ IVY_API void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
   base->dispatch->destroy(context, allocator);
 }
 
-IVY_API IvyCode ivyAllocateGraphicsMemory(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, uint32_t type,
-    uint64_t size, IvyGraphicsMemory *memory) {
+IVY_API IvyCode ivyAllocateGraphicsMemory(
+    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    uint32_t flags, uint32_t type, uint64_t size, IvyGraphicsMemory *memory) {
   IvyGraphicsMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(base->dispatch);
   IVY_ASSERT(base->dispatch->allocate);
   IVY_ASSERT(IVY_GRAPHICS_MEMORY_ALLOCATOR_MAGIC == base->magic);
   return base->dispatch->allocate(context, allocator, flags, type, size,
-      memory);
+                                  memory);
 }
 
 IVY_API void ivyFreeGraphicsMemory(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator, IvyGraphicsMemory *memory) {
+                                   IvyAnyGraphicsMemoryAllocator allocator,
+                                   IvyGraphicsMemory *memory) {
   IvyGraphicsMemoryAllocatorBase *base = allocator;
   IVY_ASSERT(base);
   IVY_ASSERT(base->dispatch);
@@ -66,13 +63,14 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
   vkGetBufferMemoryRequirements(context->device, buffer, &memoryRequirements);
 
   ivyCode = ivyAllocateGraphicsMemory(context, allocator, flags,
-      memoryRequirements.memoryTypeBits, memoryRequirements.size, memory);
+                                      memoryRequirements.memoryTypeBits,
+                                      memoryRequirements.size, memory);
   if (ivyCode) {
     return ivyCode;
   }
 
   vulkanResult = vkBindBufferMemory(context->device, buffer, memory->memory,
-      memory->offset);
+                                    memory->offset);
   if (vulkanResult) {
     ivyFreeGraphicsMemory(context, allocator, memory);
     return ivyVulkanResultAsIvyCode(vulkanResult);
@@ -96,13 +94,14 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
   vkGetImageMemoryRequirements(context->device, image, &memoryRequirements);
 
   ivyCode = ivyAllocateGraphicsMemory(context, graphicsAllocator, flags,
-      memoryRequirements.memoryTypeBits, memoryRequirements.size, allocation);
+                                      memoryRequirements.memoryTypeBits,
+                                      memoryRequirements.size, allocation);
   if (ivyCode) {
     return ivyCode;
   }
 
   vulkanResult = vkBindImageMemory(context->device, image, allocation->memory,
-      allocation->offset);
+                                   allocation->offset);
   if (vulkanResult) {
     ivyFreeGraphicsMemory(context, graphicsAllocator, allocation);
     return ivyVulkanResultAsIvyCode(vulkanResult);

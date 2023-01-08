@@ -1,15 +1,9 @@
 #include "IvyGraphicsAttachment.h"
 #include "IvyGraphicsTexture.h"
+#include "IvyVulkanUtilities.h"
 
-IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
-  switch (vulkanResult) {
-  default:
-    return -1;
-  }
-}
-
-IVY_INTERNAL VkImageUsageFlagBits ivyAsVulkanImageUsage(
-    IvyGraphicsAttachmentType type) {
+IVY_INTERNAL VkImageUsageFlagBits
+ivyAsVulkanImageUsage(IvyGraphicsAttachmentType type) {
   switch (type) {
   case IVY_COLOR_ATTACHMENT:
     return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -19,8 +13,8 @@ IVY_INTERNAL VkImageUsageFlagBits ivyAsVulkanImageUsage(
   }
 }
 
-IVY_INTERNAL VkImageAspectFlagBits ivyAsVulkanImageAspect(
-    IvyGraphicsAttachmentType type) {
+IVY_INTERNAL VkImageAspectFlagBits
+ivyAsVulkanImageAspect(IvyGraphicsAttachmentType type) {
   switch (type) {
   case IVY_COLOR_ATTACHMENT:
     return VK_IMAGE_ASPECT_COLOR_BIT;
@@ -41,7 +35,8 @@ IVY_INTERNAL VkFormat ivyGetGraphicsAttachmentFormat(
   }
 }
 
-IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
+IVY_API IvyCode ivyCreateGraphicsAttachment(
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, int32_t width,
     int32_t height, IvyGraphicsAttachmentType type,
     IvyGraphicsAttachment *attachment) {
@@ -54,9 +49,9 @@ IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
   attachment->width = width;
   attachment->height = height;
 
-  vulkanResult = ivyCreateVulkanImage(context->device, attachment->width,
-      attachment->height, 1, context->attachmentSampleCounts,
-      ivyAsVulkanImageUsage(attachment->type),
+  vulkanResult = ivyCreateVulkanImage(
+      context->device, attachment->width, attachment->height, 1,
+      context->attachmentSampleCounts, ivyAsVulkanImageUsage(attachment->type),
       ivyGetGraphicsAttachmentFormat(context, type), &attachment->image);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
@@ -64,14 +59,16 @@ IVY_API IvyCode ivyCreateGraphicsAttachment(IvyGraphicsContext *context,
     goto error;
   }
 
-  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(context, graphicsAllocator,
-      IVY_GPU_LOCAL, attachment->image, &attachment->memory);
+  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(
+      context, graphicsAllocator, IVY_GPU_LOCAL, attachment->image,
+      &attachment->memory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
   }
 
-  vulkanResult = ivyCreateVulkanImageView(context->device, attachment->image,
+  vulkanResult = ivyCreateVulkanImageView(
+      context->device, attachment->image,
       ivyAsVulkanImageAspect(attachment->type),
       ivyGetGraphicsAttachmentFormat(context, type), &attachment->imageView);
   IVY_ASSERT(attachment->imageView);
@@ -86,9 +83,10 @@ error:
   return ivyCode;
 }
 
-IVY_API void ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator allocator,
-    IvyGraphicsAttachment *attachment) {
+IVY_API void
+ivyDestroyGraphicsAttachment(IvyGraphicsContext *context,
+                             IvyAnyGraphicsMemoryAllocator allocator,
+                             IvyGraphicsAttachment *attachment) {
   if (attachment->memory.memory) {
     ivyFreeGraphicsMemory(context, allocator, &attachment->memory);
     attachment->memory.memory = VK_NULL_HANDLE;
