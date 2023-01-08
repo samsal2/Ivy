@@ -11,4 +11,7 @@ typedef struct IvyArenaMemoryAllocator {
   void *data;
 } IvyArenaMemoryAllocator;
 
+IVY_API IvyCode ivyCreateArenaMemoryAllocator(
+    uint64_t size, IvyArenaMemoryAllocator *allocator);
+
 #endif

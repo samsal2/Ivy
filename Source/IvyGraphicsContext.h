@@ -31,21 +31,23 @@ typedef struct IvyGraphicsContext {
 } IvyGraphicsContext;
 
 IVY_API IvyCode ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
-    IvyApplication *application, IvyGraphicsContext **graphicsContext);
+                                         IvyApplication *application,
+                                         IvyGraphicsContext **graphicsContext);
 
 IVY_API void ivyDestroyGraphicsContext(IvyAnyMemoryAllocator allocator,
-    IvyGraphicsContext *context);
+                                       IvyGraphicsContext *context);
 
 IVY_API IvyCode ivyAllocateOneTimeCommandBuffer(IvyGraphicsContext *context,
-    VkCommandBuffer *commandBuffer);
+                                                VkCommandBuffer *commandBuffer);
 
 IVY_API VkResult ivySubmitOneTimeCommandBuffer(IvyGraphicsContext *context,
-    VkCommandBuffer commandBuffer);
+                                               VkCommandBuffer commandBuffer);
 
 IVY_API void ivyFreeOneTimeCommandBuffer(IvyGraphicsContext *context,
-    VkCommandBuffer commandBuffer);
+                                         VkCommandBuffer commandBuffer);
 
 IVY_API VkResult ivyAllocateVulkanCommandBuffer(VkDevice device,
-    VkCommandPool commandPool, VkCommandBuffer *commandBuffer);
+                                                VkCommandPool commandPool,
+                                                VkCommandBuffer *commandBuffer);
 
 #endif

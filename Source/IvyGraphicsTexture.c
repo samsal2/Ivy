@@ -140,7 +140,7 @@ IVY_API IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
     destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
   } else {
-    IVY_UNREACHABLE();
+    IVY_TODO();
   }
 
   if (VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL == destinationLayout) {
@@ -152,7 +152,7 @@ IVY_API IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
   } else if (VK_IMAGE_LAYOUT_GENERAL == destinationLayout) {
     imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   } else {
-    IVY_UNREACHABLE();
+    IVY_TODO();
   }
 
   vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
