@@ -2,6 +2,13 @@
 
 #include <stdio.h>
 
+IVY_INTERNAL IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
+  switch (vulkanResult) {
+  default:
+    return -1;
+  }
+}
+
 IVY_INTERNAL char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
     char const *path, uint64_t *size) {
   FILE *file = NULL;
@@ -49,18 +56,17 @@ error:
   return NULL;
 }
 
-IVY_API VkShaderModule ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
-    VkDevice device, char const *path) {
+IVY_API VkResult ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
+    VkDevice device, char const *path, VkShaderModule *shader) {
   uint64_t shaderCodeSizeInBytes;
   char *shaderCode;
   VkResult vulkanResult;
-  VkShaderModule shader;
   VkShaderModuleCreateInfo shaderCreateInfo;
 
   shaderCode =
       ivyLoadFileIntoByteBuffer(allocator, path, &shaderCodeSizeInBytes);
   if (!shaderCode) {
-    return VK_NULL_HANDLE;
+    return VK_ERROR_UNKNOWN;
   }
 
   shaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -69,24 +75,22 @@ IVY_API VkShaderModule ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
   shaderCreateInfo.codeSize = shaderCodeSizeInBytes;
   shaderCreateInfo.pCode = (uint32_t *)shaderCode;
 
-  vulkanResult =
-      vkCreateShaderModule(device, &shaderCreateInfo, NULL, &shader);
+  vulkanResult = vkCreateShaderModule(device, &shaderCreateInfo, NULL, shader);
   if (vulkanResult) {
-    shader = VK_NULL_HANDLE;
-    goto cleanup;
+    ivyFreeMemory(allocator, shaderCode);
+    return vulkanResult;
   }
 
-cleanup:
   ivyFreeMemory(allocator, shaderCode);
-  return shader;
+
+  return VK_SUCCESS;
 }
 
-IVY_API VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
+IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
     int32_t height, uint64_t flags, VkSampleCountFlagBits sampleCounts,
     VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
-    VkShaderModule vertexShader, VkShaderModule fragmentShader) {
-  VkResult vulkanResult;
-  VkPipeline pipeline;
+    VkShaderModule vertexShader, VkShaderModule fragmentShader,
+    VkPipeline *pipeline) {
   VkVertexInputBindingDescription vertexInputBindingDescription;
   VkVertexInputAttributeDescription vertexInputAttributesDescriptions[3];
   VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
@@ -326,13 +330,8 @@ IVY_API VkPipeline ivyCreateVulkanPipeline(VkDevice device, int32_t width,
   pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
   pipelineCreateInfo.basePipelineIndex = -1;
 
-  vulkanResult = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
-      &pipelineCreateInfo, NULL, &pipeline);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return pipeline;
+  return vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
+      &pipelineCreateInfo, NULL, pipeline);
 }
 
 IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
@@ -341,28 +340,35 @@ IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
     int32_t viewportHeight, char const *vertexShaderPath,
     char const *fragmentShaderPath, uint64_t flags,
     IvyGraphicsProgram *program) {
+  VkResult vulkanResult;
+  IvyCode ivyCode;
+
   IVY_ASSERT(program);
   IVY_ASSERT(vertexShaderPath);
   IVY_ASSERT(fragmentShaderPath);
 
   IVY_MEMSET(program, 0, sizeof(*program));
 
-  program->vertexShader =
-      ivyCreateVulkanShader(allocator, context->device, vertexShaderPath);
-  if (!program->vertexShader) {
+  vulkanResult = ivyCreateVulkanShader(allocator, context->device,
+      vertexShaderPath, &program->vertexShader);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  program->fragmentShader =
-      ivyCreateVulkanShader(allocator, context->device, fragmentShaderPath);
-  if (!program->vertexShader) {
+  vulkanResult = ivyCreateVulkanShader(allocator, context->device,
+      fragmentShaderPath, &program->fragmentShader);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  program->pipeline = ivyCreateVulkanPipeline(context->device, viewportWidth,
-      viewportHeight, flags, context->attachmentSampleCounts, renderPass,
-      pipelineLayout, program->vertexShader, program->fragmentShader);
-  if (!program->pipeline) {
+  vulkanResult =
+      ivyCreateVulkanPipeline(context->device, viewportWidth, viewportHeight,
+          flags, context->attachmentSampleCounts, renderPass, pipelineLayout,
+          program->vertexShader, program->fragmentShader, &program->pipeline);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
@@ -371,7 +377,7 @@ IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
 error:
   ivyDestroyGraphicsProgram(context, program);
   // FIXME: check for when the path was not found
-  return IVY_ERROR_NO_GRAPHICS_MEMORY;
+  return ivyCode;
 }
 
 IVY_API void ivyDestroyGraphicsProgram(IvyGraphicsContext *context,

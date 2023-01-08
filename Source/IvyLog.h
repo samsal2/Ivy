@@ -4,7 +4,7 @@
 #include "IvyDeclarations.h"
 
 IVY_API void ivyLogImplementation(char const *functionName, char const *format,
-                                  ...);
+    ...);
 
 #if defined(__GNUC__) || defined(__clang__)
 #define IVY_CURRENT_FUNCTION_NAME __PRETTY_FUNCTION__
@@ -15,7 +15,7 @@ IVY_API void ivyLogImplementation(char const *functionName, char const *format,
 #endif
 
 #ifndef NDEBUG
-#define IVY_DEBUG_LOG(format, ...)                                             \
+#define IVY_DEBUG_LOG(format, ...)                                            \
   ivyLogImplementation(IVY_CURRENT_FUNCTION_NAME, format, __VA_ARGS__);
 #else
 #define IVY_DEBUG_LOG(format, ...)
