@@ -28,10 +28,8 @@ IVY_INTERNAL uint32_t ivyCalculateMipLevels(int32_t width, int32_t height) {
 }
 
 IVY_API VkResult ivyCreateVulkanImage(VkDevice device, int32_t width,
-                                      int32_t height, uint32_t mipLevels,
-                                      VkSampleCountFlagBits samples,
-                                      VkImageUsageFlags usage, VkFormat format,
-                                      VkImage *image) {
+    int32_t height, uint32_t mipLevels, VkSampleCountFlagBits samples,
+    VkImageUsageFlags usage, VkFormat format, VkImage *image) {
   VkImageCreateInfo imageCreateInfo;
 
   imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -56,9 +54,7 @@ IVY_API VkResult ivyCreateVulkanImage(VkDevice device, int32_t width,
 }
 
 IVY_API VkResult ivyCreateVulkanImageView(VkDevice device, VkImage image,
-                                          VkImageAspectFlags aspect,
-                                          VkFormat format,
-                                          VkImageView *imageView) {
+    VkImageAspectFlags aspect, VkFormat format, VkImageView *imageView) {
   VkImageViewCreateInfo imageViewCreateInfo;
 
   imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -81,9 +77,8 @@ IVY_API VkResult ivyCreateVulkanImageView(VkDevice device, VkImage image,
 }
 
 IVY_API IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
-                                           uint32_t mipLevels, VkImage image,
-                                           VkImageLayout sourceLayout,
-                                           VkImageLayout destinationLayout) {
+    uint32_t mipLevels, VkImage image, VkImageLayout sourceLayout,
+    VkImageLayout destinationLayout) {
   IvyCode ivyCode;
 
   VkImageMemoryBarrier imageMemoryBarrier;
@@ -160,8 +155,8 @@ IVY_API IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
     IVY_UNREACHABLE();
   }
 
-  vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, NULL,
-                       0, NULL, 1, &imageMemoryBarrier);
+  vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
+      NULL, 0, NULL, 1, &imageMemoryBarrier);
 
   // NOTE: even if it fails we are going to free the commandBuffer
   ivyCode = ivySubmitOneTimeCommandBuffer(context, commandBuffer);
@@ -170,8 +165,7 @@ IVY_API IvyCode ivyChangeVulkanImageLayout(IvyGraphicsContext *context,
 }
 
 IVY_API IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context,
-                                           int32_t width, int32_t height,
-                                           uint32_t mipLevels, VkImage image) {
+    int32_t width, int32_t height, uint32_t mipLevels, VkImage image) {
   uint32_t index;
   IvyCode ivyCode;
   VkImageMemoryBarrier imageMemoryBarrier;
@@ -210,8 +204,8 @@ IVY_API IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context,
     imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
     vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                         VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1,
-                         &imageMemoryBarrier);
+        VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1,
+        &imageMemoryBarrier);
 
     imageBlit.srcOffsets[0].x = 0;
     imageBlit.srcOffsets[0].y = 0;
@@ -235,8 +229,8 @@ IVY_API IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context,
     imageBlit.dstSubresource.layerCount = 1;
 
     vkCmdBlitImage(commandBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                   image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit,
-                   VK_FILTER_LINEAR);
+        image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit,
+        VK_FILTER_LINEAR);
 
     imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -244,8 +238,8 @@ IVY_API IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context,
     imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0,
-                         NULL, 1, &imageMemoryBarrier);
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1,
+        &imageMemoryBarrier);
   }
 
   imageMemoryBarrier.subresourceRange.baseMipLevel = mipLevels - 1;
@@ -255,8 +249,8 @@ IVY_API IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context,
   imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0,
-                       NULL, 1, &imageMemoryBarrier);
+      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1,
+      &imageMemoryBarrier);
 
   ivyCode = ivySubmitOneTimeCommandBuffer(context, commandBuffer);
   ivyFreeOneTimeCommandBuffer(context, commandBuffer);
@@ -264,7 +258,7 @@ IVY_API IvyCode ivyGenerateVulkanImageMips(IvyGraphicsContext *context,
 }
 
 IVY_INTERNAL VkResult ivyCreateVulkanSampler(VkDevice device,
-                                             VkSampler *sampler) {
+    VkSampler *sampler) {
   VkSamplerCreateInfo samplerCreateInfo;
 
   samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -295,9 +289,9 @@ IVY_INTERNAL VkResult ivyCreateVulkanSampler(VkDevice device,
   return vkCreateSampler(device, &samplerCreateInfo, NULL, sampler);
 }
 
-IVY_INTERNAL void ivyWriteVulkanTextureDynamicDescriptorSet(
-    VkDevice device, VkImageView imageView, VkSampler sampler,
-    VkImageLayout imageLayout, VkDescriptorSet descriptorSet) {
+IVY_INTERNAL void ivyWriteVulkanTextureDynamicDescriptorSet(VkDevice device,
+    VkImageView imageView, VkSampler sampler, VkImageLayout imageLayout,
+    VkDescriptorSet descriptorSet) {
   VkDescriptorImageInfo descriptorImageInfos[2];
   VkWriteDescriptorSet writeDescriptorSets[2];
 
@@ -332,7 +326,7 @@ IVY_INTERNAL void ivyWriteVulkanTextureDynamicDescriptorSet(
   writeDescriptorSets[1].pTexelBufferView = NULL;
 
   vkUpdateDescriptorSets(device, IVY_ARRAY_LENGTH(writeDescriptorSets),
-                         writeDescriptorSets, 0, NULL);
+      writeDescriptorSets, 0, NULL);
 }
 
 IVY_API IvyCode ivyCreateGraphicsTextureFromFile(
@@ -357,16 +351,16 @@ IVY_API IvyCode ivyCreateGraphicsTextureFromFile(
   }
 
   ivyCode = ivyCreateGraphicsTexture(allocator, context, graphicsAllocator,
-                                     textureDescriptorSetLayout, width, height,
-                                     IVY_RGBA8_SRGB, data, texture);
+      textureDescriptorSetLayout, width, height, IVY_RGBA8_SRGB, data,
+      texture);
 
   stbi_image_free(data);
 
   return ivyCode;
 }
 
-IVY_API IvyCode ivyCreateGraphicsTexture(
-    IvyAnyMemoryAllocator allocator, IvyGraphicsContext *context,
+IVY_API IvyCode ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator,
     VkDescriptorSetLayout textureDescriptorSetLayout, int32_t width,
     int32_t height, IvyPixelFormat format, void *data,
@@ -388,9 +382,8 @@ IVY_API IvyCode ivyCreateGraphicsTexture(
   currentTexture->mipLevels = ivyCalculateMipLevels(width, height);
   currentTexture->format = format;
 
-  vulkanResult = ivyCreateVulkanImage(
-      context->device, currentTexture->width, currentTexture->height,
-      currentTexture->mipLevels, VK_SAMPLE_COUNT_1_BIT,
+  vulkanResult = ivyCreateVulkanImage(context->device, currentTexture->width,
+      currentTexture->height, currentTexture->mipLevels, VK_SAMPLE_COUNT_1_BIT,
       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
           VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       ivyAsVulkanFormat(currentTexture->format), &currentTexture->image);
@@ -400,16 +393,15 @@ IVY_API IvyCode ivyCreateGraphicsTexture(
     goto error;
   }
 
-  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(
-      context, graphicsAllocator, IVY_GPU_LOCAL, currentTexture->image,
-      &currentTexture->memory);
+  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(context, graphicsAllocator,
+      IVY_GPU_LOCAL, currentTexture->image, &currentTexture->memory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
   }
 
-  vulkanResult = ivyCreateVulkanImageView(
-      context->device, currentTexture->image, VK_IMAGE_ASPECT_COLOR_BIT,
+  vulkanResult = ivyCreateVulkanImageView(context->device,
+      currentTexture->image, VK_IMAGE_ASPECT_COLOR_BIT,
       ivyAsVulkanFormat(currentTexture->format), &currentTexture->imageView);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
@@ -418,35 +410,34 @@ IVY_API IvyCode ivyCreateGraphicsTexture(
   }
 
   if (data) {
-    ivyCode = ivyChangeVulkanImageLayout(
-        context, currentTexture->mipLevels, currentTexture->image,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    ivyCode = ivyChangeVulkanImageLayout(context, currentTexture->mipLevels,
+        currentTexture->image, VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     IVY_ASSERT(!ivyCode);
     if (ivyCode) {
       goto error;
     }
 
-    ivyCode = ivyUploadDataToVulkanImage(
-        context, graphicsAllocator, currentTexture->width,
-        currentTexture->height, currentTexture->format, data,
+    ivyCode = ivyUploadDataToVulkanImage(context, graphicsAllocator,
+        currentTexture->width, currentTexture->height, currentTexture->format,
+        data, currentTexture->image);
+    IVY_ASSERT(!ivyCode);
+    if (ivyCode) {
+      goto error;
+    }
+
+    ivyCode = ivyGenerateVulkanImageMips(context, currentTexture->width,
+        currentTexture->height, currentTexture->mipLevels,
         currentTexture->image);
-    IVY_ASSERT(!ivyCode);
-    if (ivyCode) {
-      goto error;
-    }
-
-    ivyCode = ivyGenerateVulkanImageMips(
-        context, currentTexture->width, currentTexture->height,
-        currentTexture->mipLevels, currentTexture->image);
     IVY_ASSERT(!ivyCode);
     if (ivyCode) {
       goto error;
     }
   }
 
-  vulkanResult = ivyAllocateVulkanDescriptorSet(
-      context->device, context->globalDescriptorPool,
-      textureDescriptorSetLayout, &currentTexture->descriptorSet);
+  vulkanResult = ivyAllocateVulkanDescriptorSet(context->device,
+      context->globalDescriptorPool, textureDescriptorSetLayout,
+      &currentTexture->descriptorSet);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     goto error;
@@ -459,8 +450,8 @@ IVY_API IvyCode ivyCreateGraphicsTexture(
     goto error;
   }
 
-  ivyWriteVulkanTextureDynamicDescriptorSet(
-      context->device, currentTexture->imageView, currentTexture->sampler,
+  ivyWriteVulkanTextureDynamicDescriptorSet(context->device,
+      currentTexture->imageView, currentTexture->sampler,
       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, currentTexture->descriptorSet);
 
   *texture = currentTexture;
@@ -469,16 +460,15 @@ IVY_API IvyCode ivyCreateGraphicsTexture(
 
 error:
   ivyDestroyGraphicsTexture(allocator, context, graphicsAllocator,
-                            currentTexture);
+      currentTexture);
   *texture = NULL;
   return ivyCode;
 }
 
-IVY_API void
-ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
-                          IvyGraphicsContext *context,
-                          IvyAnyGraphicsMemoryAllocator graphicsAllocator,
-                          IvyGraphicsTexture *texture) {
+IVY_API void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
+    IvyGraphicsContext *context,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator,
+    IvyGraphicsTexture *texture) {
   if (!context || !graphicsAllocator || !texture) {
     return;
   }
@@ -495,7 +485,7 @@ ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
 
   if (texture->descriptorSet) {
     vkFreeDescriptorSets(context->device, context->globalDescriptorPool, 1,
-                         &texture->descriptorSet);
+        &texture->descriptorSet);
     texture->descriptorSet = VK_NULL_HANDLE;
   }
 

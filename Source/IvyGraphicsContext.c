@@ -9,7 +9,8 @@ IVY_INTERNAL char const *const validationLayers[] = {
     "VK_LAYER_KHRONOS_validation"};
 #endif
 
-IVY_INTERNAL VkInstanceCreateFlagBits ivyGetVulkanInstanceCreateFlagBits(void) {
+IVY_INTERNAL VkInstanceCreateFlagBits ivyGetVulkanInstanceCreateFlagBits(
+    void) {
 #ifdef __APPLE__
   return VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 #else
@@ -18,7 +19,7 @@ IVY_INTERNAL VkInstanceCreateFlagBits ivyGetVulkanInstanceCreateFlagBits(void) {
 }
 
 IVY_INTERNAL VkResult ivyCreateVulkanInstance(IvyApplication *application,
-                                              VkInstance *instance) {
+    VkInstance *instance) {
   VkApplicationInfo applicationInfo;
   VkInstanceCreateInfo instanceCreateInfo;
 
@@ -58,7 +59,7 @@ PFN_vkDestroyDebugUtilsMessengerEXT ivyDestroyDebugUtilsMessengerEXT = NULL;
 #endif
 
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
-#define IVY_VK_INSTANCE_PROC_ADDR(instance, name)                              \
+#define IVY_VK_INSTANCE_PROC_ADDR(instance, name)                             \
   (PFN_##name) vkGetInstanceProcAddr(instance, #name)
 #endif
 
@@ -101,8 +102,8 @@ static VKAPI_ATTR VKAPI_CALL VkBool32 ivyLogVulkanMessages(
 #endif
 
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
-IVY_INTERNAL VkResult ivyCreateVulkanDebugMessenger(
-    VkInstance instance, VkDebugUtilsMessengerEXT *messenger) {
+IVY_INTERNAL VkResult ivyCreateVulkanDebugMessenger(VkInstance instance,
+    VkDebugUtilsMessengerEXT *messenger) {
   VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo;
 
   ivyEnsureValidationFunctions(instance);
@@ -131,12 +132,13 @@ IVY_INTERNAL VkResult ivyCreateVulkanDebugMessenger(
   debugMessengerCreateInfo.pUserData = NULL;
 
   return ivyCreateDebugUtilsMessengerEXT(instance, &debugMessengerCreateInfo,
-                                         NULL, messenger);
+      NULL, messenger);
 }
 #endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
 
 IVY_INTERNAL VkQueueFamilyProperties *ivyAllocateVulkanQueueFamilyProperties(
-    IvyAnyMemoryAllocator allocator, VkPhysicalDevice device, uint32_t *count) {
+    IvyAnyMemoryAllocator allocator, VkPhysicalDevice device,
+    uint32_t *count) {
   VkQueueFamilyProperties *properties;
 
   vkGetPhysicalDeviceQueueFamilyProperties(device, count, NULL);
@@ -154,11 +156,10 @@ IVY_INTERNAL IvyBool ivyAreVulkanQueueFamilyIndicesValid(
          (uint32_t)-1 != presentQueueFamilyIndex;
 }
 
-IVY_INTERNAL void
-ivyFindVulkanQueueFamilyIndices(IvyAnyMemoryAllocator allocator,
-                                VkPhysicalDevice device, VkSurfaceKHR surface,
-                                uint32_t *selectedGraphicsQueueFamilyIndex,
-                                uint32_t *selectedPresentQueueFamilyIndex) {
+IVY_INTERNAL void ivyFindVulkanQueueFamilyIndices(
+    IvyAnyMemoryAllocator allocator, VkPhysicalDevice device,
+    VkSurfaceKHR surface, uint32_t *selectedGraphicsQueueFamilyIndex,
+    uint32_t *selectedPresentQueueFamilyIndex) {
   uint32_t index;
   uint32_t queueFamilyPropertiesCount;
   VkQueueFamilyProperties *queueFamilyProperties;
@@ -166,8 +167,8 @@ ivyFindVulkanQueueFamilyIndices(IvyAnyMemoryAllocator allocator,
   *selectedGraphicsQueueFamilyIndex = (uint32_t)-1;
   *selectedPresentQueueFamilyIndex = (uint32_t)-1;
 
-  queueFamilyProperties = ivyAllocateVulkanQueueFamilyProperties(
-      allocator, device, &queueFamilyPropertiesCount);
+  queueFamilyProperties = ivyAllocateVulkanQueueFamilyProperties(allocator,
+      device, &queueFamilyPropertiesCount);
   if (!queueFamilyProperties) {
     return;
   }
@@ -180,13 +181,13 @@ ivyFindVulkanQueueFamilyIndices(IvyAnyMemoryAllocator allocator,
     }
 
     vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface,
-                                         &isSurfaceSupported);
+        &isSurfaceSupported);
     if (isSurfaceSupported) {
       *selectedPresentQueueFamilyIndex = index;
     }
 
     if (ivyAreVulkanQueueFamilyIndicesValid(*selectedGraphicsQueueFamilyIndex,
-                                            *selectedPresentQueueFamilyIndex)) {
+            *selectedPresentQueueFamilyIndex)) {
       goto cleanup;
     }
   }
@@ -195,9 +196,8 @@ cleanup:
   ivyFreeMemory(allocator, queueFamilyProperties);
 }
 
-IVY_INTERNAL IvyCode ivyFindAvailableVulkanPhysicalDevices(
-    VkInstance instance, uint32_t *physicalDeviceCount,
-    VkPhysicalDevice *physicalDevices) {
+IVY_INTERNAL IvyCode ivyFindAvailableVulkanPhysicalDevices(VkInstance instance,
+    uint32_t *physicalDeviceCount, VkPhysicalDevice *physicalDevices) {
   VkResult vulkanResult;
 
   vulkanResult =
@@ -213,7 +213,7 @@ IVY_INTERNAL IvyCode ivyFindAvailableVulkanPhysicalDevices(
   }
 
   vulkanResult = vkEnumeratePhysicalDevices(instance, physicalDeviceCount,
-                                            physicalDevices);
+      physicalDevices);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     *physicalDeviceCount = 0;
@@ -223,24 +223,24 @@ IVY_INTERNAL IvyCode ivyFindAvailableVulkanPhysicalDevices(
   return IVY_OK;
 }
 
-IVY_INTERNAL VkExtensionProperties *
-ivyAllocateVulkanExtensionsProperties(IvyAnyMemoryAllocator allocator,
-                                      VkPhysicalDevice physicalDevice,
-                                      uint32_t *count) {
+IVY_INTERNAL VkExtensionProperties *ivyAllocateVulkanExtensionsProperties(
+    IvyAnyMemoryAllocator allocator, VkPhysicalDevice physicalDevice,
+    uint32_t *count) {
   VkExtensionProperties *extensions;
   vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count, NULL);
   extensions = ivyAllocateMemory(allocator, *count * sizeof(*extensions));
   if (!extensions) {
     return NULL;
   }
-  vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count, extensions);
+  vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count,
+      extensions);
   return extensions;
 }
 
 IVY_INTERNAL IvyBool ivyDoAllVulkanRequiredExtensionsExist(
     uint32_t availableExtensionCount,
-    VkExtensionProperties *availableExtensions, uint32_t requiredExtensionCount,
-    char const *const *requiredExtensions) {
+    VkExtensionProperties *availableExtensions,
+    uint32_t requiredExtensionCount, char const *const *requiredExtensions) {
   uint32_t requiredExtensionIndex;
   for (requiredExtensionIndex = 0;
        requiredExtensionIndex < requiredExtensionCount;
@@ -251,8 +251,7 @@ IVY_INTERNAL IvyBool ivyDoAllVulkanRequiredExtensionsExist(
          availableExtensionIndex < availableExtensionCount &&
          !existsInAvailableExtensions;
          ++availableExtensionIndex) {
-      if (!IVY_STRNCMP(
-              requiredExtensions[requiredExtensionIndex],
+      if (!IVY_STRNCMP(requiredExtensions[requiredExtensionIndex],
               availableExtensions[availableExtensionIndex].extensionName,
               VK_MAX_EXTENSION_NAME_SIZE)) {
         existsInAvailableExtensions = 1;
@@ -274,28 +273,27 @@ IVY_INTERNAL IvyBool ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(
   uint32_t availableExtensionCount;
   VkExtensionProperties *availableExtensions;
 
-  availableExtensions = ivyAllocateVulkanExtensionsProperties(
-      allocator, physicalDevice, &availableExtensionCount);
+  availableExtensions = ivyAllocateVulkanExtensionsProperties(allocator,
+      physicalDevice, &availableExtensionCount);
   if (!availableExtensions || !availableExtensionCount) {
     return 0;
   }
 
-  exist = ivyDoAllVulkanRequiredExtensionsExist(
-      availableExtensionCount, availableExtensions, requiredExtensionCount,
-      requiredExtensions);
+  exist = ivyDoAllVulkanRequiredExtensionsExist(availableExtensionCount,
+      availableExtensions, requiredExtensionCount, requiredExtensions);
 
   ivyFreeMemory(allocator, availableExtensions);
 
   return exist;
 }
 
-#define IVY_TEST_VULKAN_DEPTH_FORMAT(device, format)                           \
-  {                                                                            \
-    VkFormatProperties formatProperties;                                       \
-    vkGetPhysicalDeviceFormatProperties(device, format, &formatProperties);    \
-    if (VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT &                       \
-        formatProperties.optimalTilingFeatures)                                \
-      return format;                                                           \
+#define IVY_TEST_VULKAN_DEPTH_FORMAT(device, format)                          \
+  {                                                                           \
+    VkFormatProperties formatProperties;                                      \
+    vkGetPhysicalDeviceFormatProperties(device, format, &formatProperties);   \
+    if (VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT &                      \
+        formatProperties.optimalTilingFeatures)                               \
+      return format;                                                          \
   }
 IVY_INTERNAL VkFormat ivySelectVulkanDepthFormat(VkPhysicalDevice device) {
   IVY_TEST_VULKAN_DEPTH_FORMAT(device, VK_FORMAT_D24_UNORM_S8_UINT);
@@ -304,10 +302,9 @@ IVY_INTERNAL VkFormat ivySelectVulkanDepthFormat(VkPhysicalDevice device) {
 }
 #undef IVY_TEST_VULKAN_DEPTH_FORMAT
 
-IVY_INTERNAL VkSurfaceFormatKHR *
-ivyAllocateVulkanSurfaceFormats(IvyAnyMemoryAllocator allocator,
-                                VkPhysicalDevice device, VkSurfaceKHR surface,
-                                uint32_t *count) {
+IVY_INTERNAL VkSurfaceFormatKHR *ivyAllocateVulkanSurfaceFormats(
+    IvyAnyMemoryAllocator allocator, VkPhysicalDevice device,
+    VkSurfaceKHR surface, uint32_t *count) {
   VkResult vulkanResult;
   VkSurfaceFormatKHR *formats;
   vulkanResult =
@@ -328,9 +325,9 @@ ivyAllocateVulkanSurfaceFormats(IvyAnyMemoryAllocator allocator,
   return formats;
 }
 
-IVY_INTERNAL IvyBool ivyDoesVulkanFormatExists(
-    uint32_t surfaceFormatCount, VkSurfaceFormatKHR *surfaceFormats,
-    VkFormat format, VkColorSpaceKHR colorSpace) {
+IVY_INTERNAL IvyBool ivyDoesVulkanFormatExists(uint32_t surfaceFormatCount,
+    VkSurfaceFormatKHR *surfaceFormats, VkFormat format,
+    VkColorSpaceKHR colorSpace) {
   uint32_t index;
 
   for (index = 0; index < surfaceFormatCount; ++index) {
@@ -356,20 +353,20 @@ IVY_INTERNAL IvyBool ivyDoesVulkanPhysicalDeviceSupportFormat(
   VkSurfaceFormatKHR *surfaceFormats;
 
   surfaceFormats = ivyAllocateVulkanSurfaceFormats(allocator, device, surface,
-                                                   &surfaceFormatCount);
+      &surfaceFormatCount);
   if (!surfaceFormats || !surfaceFormatCount) {
     return 0;
   }
 
   exist = ivyDoesVulkanFormatExists(surfaceFormatCount, surfaceFormats, format,
-                                    colorSpace);
+      colorSpace);
 
   ivyFreeMemory(allocator, surfaceFormats);
   return exist;
 }
 
-IVY_INTERNAL IvyBool ivyDoesVulkanPresentModeExist(
-    uint32_t presentModeCount, VkPresentModeKHR const *presentModes,
+IVY_INTERNAL IvyBool ivyDoesVulkanPresentModeExist(uint32_t presentModeCount,
+    VkPresentModeKHR const *presentModes,
     VkPresentModeKHR requiredPresentMode) {
   uint32_t index;
   for (index = 0; index < presentModeCount; ++index) {
@@ -381,10 +378,9 @@ IVY_INTERNAL IvyBool ivyDoesVulkanPresentModeExist(
   return 0;
 }
 
-IVY_INTERNAL VkPresentModeKHR *
-ivyAllocateVulkanPresentModes(IvyAnyMemoryAllocator allocator,
-                              VkPhysicalDevice device, VkSurfaceKHR surface,
-                              uint32_t *count) {
+IVY_INTERNAL VkPresentModeKHR *ivyAllocateVulkanPresentModes(
+    IvyAnyMemoryAllocator allocator, VkPhysicalDevice device,
+    VkSurfaceKHR surface, uint32_t *count) {
   VkResult vulkanResult;
   VkPresentModeKHR *presentModes;
   vulkanResult =
@@ -397,7 +393,7 @@ ivyAllocateVulkanPresentModes(IvyAnyMemoryAllocator allocator,
     return NULL;
   }
   vulkanResult = vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
-                                                           count, presentModes);
+      count, presentModes);
   if (vulkanResult) {
     ivyFreeMemory(allocator, presentModes);
     return NULL;
@@ -413,13 +409,13 @@ IVY_INTERNAL IvyBool ivyDoesVulkanPhysicalDeviceSupportPresentMode(
   VkPresentModeKHR *presentModes;
 
   presentModes = ivyAllocateVulkanPresentModes(allocator, device, surface,
-                                               &presentModeCount);
+      &presentModeCount);
   if (!presentModes || !presentModeCount) {
     return 0;
   }
 
   exists = ivyDoesVulkanPresentModeExist(presentModeCount, presentModes,
-                                         requiredPresentMode);
+      requiredPresentMode);
 
   ivyFreeMemory(allocator, presentModes);
   return exists;
@@ -454,17 +450,15 @@ IVY_INTERNAL VkPhysicalDevice ivySelectVulkanPhysicalDevice(
   for (index = 0; index < availablePhysicalDeviceCount; ++index) {
     VkPhysicalDevice device = availablePhysicalDevices[index];
 
-    if (!ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(
-            allocator, device, IVY_ARRAY_LENGTH(requiredVulkanExtensions),
+    if (!ivyDoesVulkanPhysicalDeviceSupportRequiredExtensions(allocator,
+            device, IVY_ARRAY_LENGTH(requiredVulkanExtensions),
             requiredVulkanExtensions)) {
       continue;
     }
 
     ivyFindVulkanQueueFamilyIndices(allocator, device, surface,
-                                    selectedGraphicsQueueFamilyIndex,
-                                    selectedPresentQueueFamilyIndex);
-    if (!ivyAreVulkanQueueFamilyIndicesValid(
-            *selectedGraphicsQueueFamilyIndex,
+        selectedGraphicsQueueFamilyIndex, selectedPresentQueueFamilyIndex);
+    if (!ivyAreVulkanQueueFamilyIndicesValid(*selectedGraphicsQueueFamilyIndex,
             *selectedPresentQueueFamilyIndex)) {
       continue;
     }
@@ -474,18 +468,18 @@ IVY_INTERNAL VkPhysicalDevice ivySelectVulkanPhysicalDevice(
       continue;
     }
 
-    if (!ivyDoesVulkanPhysicalDeviceSupportFormat(
-            allocator, device, surface, requestedFormat, requestedColorSpace)) {
+    if (!ivyDoesVulkanPhysicalDeviceSupportFormat(allocator, device, surface,
+            requestedFormat, requestedColorSpace)) {
       continue;
     }
 
-    if (!ivyDoesVulkanPhysicalDeviceSupportPresentMode(
-            allocator, device, surface, requestedPresentMode)) {
+    if (!ivyDoesVulkanPhysicalDeviceSupportPresentMode(allocator, device,
+            surface, requestedPresentMode)) {
       continue;
     }
 
     if (!ivyDoesVulkanPhysicalDeviceSupportSampleCount(device,
-                                                       requestedSampleCount)) {
+            requestedSampleCount)) {
       continue;
     }
 
@@ -495,9 +489,8 @@ IVY_INTERNAL VkPhysicalDevice ivySelectVulkanPhysicalDevice(
   return VK_NULL_HANDLE;
 }
 
-IVY_INTERNAL VkResult ivyCreateVulkanDevice(
-    IvyAnyMemoryAllocator allocator, VkSurfaceKHR surface,
-    uint32_t availablePhysicalDeviceCount,
+IVY_INTERNAL VkResult ivyCreateVulkanDevice(IvyAnyMemoryAllocator allocator,
+    VkSurfaceKHR surface, uint32_t availablePhysicalDeviceCount,
     VkPhysicalDevice *availablePhysicalDevices, VkFormat requiredFormat,
     VkColorSpaceKHR requiredColorSpace, VkPresentModeKHR requiredPresentMode,
     VkSampleCountFlagBits requiredSampleCount,
@@ -511,10 +504,9 @@ IVY_INTERNAL VkResult ivyCreateVulkanDevice(
   VkDeviceQueueCreateInfo queueCreateInfos[2];
   VkDeviceCreateInfo deviceCreateInfo;
 
-  *selectedPhysicalDevice = ivySelectVulkanPhysicalDevice(
-      allocator, surface, availablePhysicalDeviceCount,
-      availablePhysicalDevices, requiredFormat, requiredColorSpace,
-      requiredPresentMode, requiredSampleCount,
+  *selectedPhysicalDevice = ivySelectVulkanPhysicalDevice(allocator, surface,
+      availablePhysicalDeviceCount, availablePhysicalDevices, requiredFormat,
+      requiredColorSpace, requiredPresentMode, requiredSampleCount,
       selectedGraphicsQueueFamilyIndex, selectedPresentQueueFamilyIndex,
       selectedDepthFormat);
   IVY_ASSERT(*selectedPhysicalDevice);
@@ -536,7 +528,8 @@ IVY_INTERNAL VkResult ivyCreateVulkanDevice(
   queueCreateInfos[1].queueCount = 1;
   queueCreateInfos[1].pQueuePriorities = &queuePriority;
 
-  vkGetPhysicalDeviceFeatures(*selectedPhysicalDevice, &physicalDeviceFeatures);
+  vkGetPhysicalDeviceFeatures(*selectedPhysicalDevice,
+      &physicalDeviceFeatures);
 
   deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   deviceCreateInfo.pNext = NULL;
@@ -562,15 +555,15 @@ IVY_INTERNAL VkResult ivyCreateVulkanDevice(
   }
 
   vkGetDeviceQueue(*device, *selectedGraphicsQueueFamilyIndex, 0,
-                   createdGraphicsQueue);
+      createdGraphicsQueue);
   vkGetDeviceQueue(*device, *selectedPresentQueueFamilyIndex, 0,
-                   createdPresentQueue);
+      createdPresentQueue);
 
   return vulkanResult;
 }
 
 VkResult ivyCreateVulkanTransientCommandPool(VkDevice device, uint32_t family,
-                                             VkCommandPool *commandPool) {
+    VkCommandPool *commandPool) {
   VkCommandPoolCreateInfo commandPoolCreateInfo;
 
   commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -578,14 +571,15 @@ VkResult ivyCreateVulkanTransientCommandPool(VkDevice device, uint32_t family,
   commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
   commandPoolCreateInfo.queueFamilyIndex = family;
 
-  return vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, commandPool);
+  return vkCreateCommandPool(device, &commandPoolCreateInfo, NULL,
+      commandPool);
 }
 
 IVY_API void ivyDestroyGraphicsContext(IvyAnyMemoryAllocator allocator,
-                                       IvyGraphicsContext *context) {
+    IvyGraphicsContext *context) {
   if (context->globalDescriptorPool) {
     vkDestroyDescriptorPool(context->device, context->globalDescriptorPool,
-                            NULL);
+        NULL);
     context->globalDescriptorPool = VK_NULL_HANDLE;
   }
 
@@ -606,8 +600,8 @@ IVY_API void ivyDestroyGraphicsContext(IvyAnyMemoryAllocator allocator,
 
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   if (context->debugMessenger) {
-    ivyDestroyDebugUtilsMessengerEXT(context->instance, context->debugMessenger,
-                                     NULL);
+    ivyDestroyDebugUtilsMessengerEXT(context->instance,
+        context->debugMessenger, NULL);
     context->debugMessenger = VK_NULL_HANDLE;
   }
 #endif
@@ -624,7 +618,7 @@ IVY_API void ivyDestroyGraphicsContext(IvyAnyMemoryAllocator allocator,
 #define IVY_DEFAULT_DESCRIPTOR_COUNT 256
 
 VkResult ivyCreateVulkanGlobalDescriptorPool(VkDevice device,
-                                             VkDescriptorPool *descriptorPool) {
+    VkDescriptorPool *descriptorPool) {
   VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
   VkDescriptorPoolSize descriptorPoolSizes[IVY_MAX_DESCRIPTOR_POOL_TYPES];
 
@@ -661,12 +655,11 @@ VkResult ivyCreateVulkanGlobalDescriptorPool(VkDevice device,
   descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes;
 
   return vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, NULL,
-                                descriptorPool);
+      descriptorPool);
 }
 
 IVY_API IvyCode ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
-                                         IvyApplication *application,
-                                         IvyGraphicsContext **graphicsContext) {
+    IvyApplication *application, IvyGraphicsContext **graphicsContext) {
   IvyCode ivyCode;
   VkResult vulkanResult;
   IvyGraphicsContext *currentGraphicsContext;
@@ -694,7 +687,7 @@ IVY_API IvyCode ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
 #ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   vulkanResult =
       ivyCreateVulkanDebugMessenger(currentGraphicsContext->instance,
-                                    &currentGraphicsContext->debugMessenger);
+          &currentGraphicsContext->debugMessenger);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
@@ -705,18 +698,17 @@ IVY_API IvyCode ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
 #endif
 
   vulkanResult = ivyCreateVulkanSurface(currentGraphicsContext->instance,
-                                        currentGraphicsContext->application,
-                                        &currentGraphicsContext->surface);
+      currentGraphicsContext->application, &currentGraphicsContext->surface);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  ivyCode = ivyFindAvailableVulkanPhysicalDevices(
-      currentGraphicsContext->instance,
-      &currentGraphicsContext->availableDeviceCount,
-      currentGraphicsContext->availableDevices);
+  ivyCode =
+      ivyFindAvailableVulkanPhysicalDevices(currentGraphicsContext->instance,
+          &currentGraphicsContext->availableDeviceCount,
+          currentGraphicsContext->availableDevices);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -728,8 +720,8 @@ IVY_API IvyCode ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
   currentGraphicsContext->presentMode = VK_PRESENT_MODE_FIFO_KHR;
   currentGraphicsContext->attachmentSampleCounts = VK_SAMPLE_COUNT_2_BIT;
 
-  vulkanResult = ivyCreateVulkanDevice(
-      allocator, currentGraphicsContext->surface,
+  vulkanResult = ivyCreateVulkanDevice(allocator,
+      currentGraphicsContext->surface,
       currentGraphicsContext->availableDeviceCount,
       currentGraphicsContext->availableDevices,
       currentGraphicsContext->surfaceFormat.format,
@@ -748,19 +740,19 @@ IVY_API IvyCode ivyCreateGraphicsContext(IvyAnyMemoryAllocator allocator,
     goto error;
   }
 
-  vulkanResult = ivyCreateVulkanTransientCommandPool(
-      currentGraphicsContext->device,
-      currentGraphicsContext->graphicsQueueFamilyIndex,
-      &currentGraphicsContext->transientCommandPool);
+  vulkanResult =
+      ivyCreateVulkanTransientCommandPool(currentGraphicsContext->device,
+          currentGraphicsContext->graphicsQueueFamilyIndex,
+          &currentGraphicsContext->transientCommandPool);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  vulkanResult = ivyCreateVulkanGlobalDescriptorPool(
-      currentGraphicsContext->device,
-      &currentGraphicsContext->globalDescriptorPool);
+  vulkanResult =
+      ivyCreateVulkanGlobalDescriptorPool(currentGraphicsContext->device,
+          &currentGraphicsContext->globalDescriptorPool);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
@@ -777,9 +769,8 @@ error:
   return ivyCode;
 }
 
-IVY_API VkResult
-ivyAllocateVulkanCommandBuffer(VkDevice device, VkCommandPool commandPool,
-                               VkCommandBuffer *commandBuffer) {
+IVY_API VkResult ivyAllocateVulkanCommandBuffer(VkDevice device,
+    VkCommandPool commandPool, VkCommandBuffer *commandBuffer) {
   VkCommandBufferAllocateInfo commandBufferAllocateInfo;
 
   commandBufferAllocateInfo.sType =
@@ -790,19 +781,19 @@ ivyAllocateVulkanCommandBuffer(VkDevice device, VkCommandPool commandPool,
   commandBufferAllocateInfo.commandBufferCount = 1;
 
   return vkAllocateCommandBuffers(device, &commandBufferAllocateInfo,
-                                  commandBuffer);
+      commandBuffer);
 }
 
-IVY_API IvyCode ivyAllocateOneTimeCommandBuffer(
-    IvyGraphicsContext *context, VkCommandBuffer *commandBuffer) {
+IVY_API IvyCode ivyAllocateOneTimeCommandBuffer(IvyGraphicsContext *context,
+    VkCommandBuffer *commandBuffer) {
   VkResult vulkanResult;
   VkCommandBufferBeginInfo beginInfo;
 
   IVY_ASSERT(context);
   IVY_ASSERT(commandBuffer);
 
-  vulkanResult = ivyAllocateVulkanCommandBuffer(
-      context->device, context->transientCommandPool, commandBuffer);
+  vulkanResult = ivyAllocateVulkanCommandBuffer(context->device,
+      context->transientCommandPool, commandBuffer);
   if (vulkanResult) {
     return ivyVulkanResultAsIvyCode(vulkanResult);
   }
@@ -822,17 +813,17 @@ IVY_API IvyCode ivyAllocateOneTimeCommandBuffer(
 }
 
 IVY_API void ivyFreeOneTimeCommandBuffer(IvyGraphicsContext *context,
-                                         VkCommandBuffer commandBuffer) {
+    VkCommandBuffer commandBuffer) {
   if (!context || !commandBuffer) {
     return;
   }
 
   vkFreeCommandBuffers(context->device, context->transientCommandPool, 1,
-                       &commandBuffer);
+      &commandBuffer);
 }
 
 IVY_API VkResult ivySubmitOneTimeCommandBuffer(IvyGraphicsContext *context,
-                                               VkCommandBuffer commandBuffer) {
+    VkCommandBuffer commandBuffer) {
   VkResult vulkanResult;
 
   VkSubmitInfo submitInfo;

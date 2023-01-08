@@ -13,17 +13,16 @@ IVY_INTERNAL IvyCode ivyCreateAndAllocateUploadBuffer(
 
   graphicsMemory->memory = VK_NULL_HANDLE;
 
-  vulkanResult = ivyCreateVulkanBuffer(context->device, IVY_SOURCE_BUFFER, size,
-                                       uploadBuffer);
+  vulkanResult = ivyCreateVulkanBuffer(context->device, IVY_SOURCE_BUFFER,
+      size, uploadBuffer);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(
-      context, graphicsAllocator, IVY_HOST_VISIBLE, *uploadBuffer,
-      graphicsMemory);
+  ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(context,
+      graphicsAllocator, IVY_HOST_VISIBLE, *uploadBuffer, graphicsMemory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -57,8 +56,7 @@ IVY_INTERNAL uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
   }
 }
 
-IVY_API IvyCode ivyUploadDataToVulkanImage(
-    IvyGraphicsContext *context,
+IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
     IvyAnyGraphicsMemoryAllocator graphicsAllocator, int32_t width,
     int32_t height, IvyPixelFormat format, void *data, VkImage image) {
   IvyCode ivyCode;
@@ -75,8 +73,7 @@ IVY_API IvyCode ivyUploadDataToVulkanImage(
     goto error;
   }
 
-  ivyCode = ivyCreateAndAllocateUploadBuffer(
-      context, graphicsAllocator,
+  ivyCode = ivyCreateAndAllocateUploadBuffer(context, graphicsAllocator,
       width * height * ivyGetPixelFormatSize(format), data, &uploadMemory,
       &uploadBuffer);
   IVY_ASSERT(!ivyCode);
@@ -99,8 +96,7 @@ IVY_API IvyCode ivyUploadDataToVulkanImage(
   bufferImageCopy.imageExtent.depth = 1;
 
   vkCmdCopyBufferToImage(commandBuffer, uploadBuffer, image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
-                         &bufferImageCopy);
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
 
   ivyCode = ivySubmitOneTimeCommandBuffer(context, commandBuffer);
   IVY_ASSERT(!ivyCode);
