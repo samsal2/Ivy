@@ -2,13 +2,46 @@
 #define IVY_RENDERER_H
 
 #include "IvyDummyGraphicsMemoryAllocator.h"
-#include "IvyGraphicsAttachment.h"
-#include "IvyGraphicsContext.h"
 #include "IvyGraphicsProgram.h"
-#include "IvyGraphicsTemporaryBuffer.h"
 #include "IvyMemoryAllocator.h"
 
 #define IVY_MAX_SWAPCHAIN_IMAGES 8
+
+typedef struct IvyApplication IvyApplication;
+
+typedef struct IvyGraphicsDevice {
+  VkPhysicalDevice physicalDevice;
+  VkDevice logicalDevice;
+  uint32_t graphicsQueueFamilyIndex;
+  uint32_t presentQueueFamilyIndex;
+  VkQueue graphicsQueue;
+  VkQueue presentQueue;
+} IvyGraphicsDevice;
+
+typedef struct IvyGraphicsAttachment {
+  int32_t width;
+  int32_t height;
+  VkImage image;
+  VkImageView imageView;
+  IvyGraphicsMemory memory;
+} IvyGraphicsAttachment;
+
+typedef struct IvyGraphicsRenderBufferChunk {
+  uint64_t size;
+  uint64_t offset;
+  VkBuffer buffer;
+  VkDescriptorSet descriptorSet;
+  IvyGraphicsMemory memory;
+} IvyGraphicsRenderBufferChunk;
+
+typedef struct IvyGraphicsTemporaryBuffer {
+  void *data;
+  uint64_t offsetInU64;
+  uint32_t offsetInU32;
+  uint64_t size;
+  VkBuffer buffer;
+  VkDescriptorSet descriptorSet;
+} IvyGraphicsTemporaryBuffer;
 
 typedef struct IvyGraphicsFrame {
   VkCommandPool commandPool;
@@ -17,7 +50,9 @@ typedef struct IvyGraphicsFrame {
   VkImageView imageView;
   VkFramebuffer framebuffer;
   VkFence inFlightFence;
-  IvyGraphicsTemporaryBufferProvider temporaryBufferProvider;
+  IvyGraphicsRenderBufferChunk currentChunk;
+  uint32_t garbageChunkCount;
+  IvyGraphicsRenderBufferChunk *garbageChunks;
 } IvyGraphicsFrame;
 
 typedef struct IvyGraphicsRenderSemaphores {
@@ -26,8 +61,23 @@ typedef struct IvyGraphicsRenderSemaphores {
 } IvyGraphicsRenderSemaphores;
 
 typedef struct IvyRenderer {
+  IvyApplication *application;
   IvyAnyMemoryAllocator ownerMemoryAllocator;
-  IvyGraphicsContext *graphicsContext;
+  VkInstance instance;
+  PFN_vkCreateDebugUtilsMessengerEXT createDebugUtilsMessengerEXT;
+  PFN_vkDestroyDebugUtilsMessengerEXT destroyDebugUtilsMessengerEXT;
+  VkDebugUtilsMessengerEXT debugMessenger;
+  VkSurfaceKHR surface;
+  VkFormat surfaceFormat;
+  VkColorSpaceKHR surfaceColorspace;
+  VkPresentModeKHR presentMode;
+  VkFormat depthFormat;
+  VkSampleCountFlagBits attachmentsSampleCounts;
+  uint32_t availablePhysicalDeviceCount;
+  VkPhysicalDevice *availablePhysicalDevices;
+  IvyGraphicsDevice device;
+  VkCommandPool transientCommandPool;
+  VkDescriptorPool globalDescriptorPool;
   IvyDummyGraphicsMemoryAllocator defaultGraphicsMemoryAllocator;
   VkClearValue clearValues[2];
   VkRenderPass mainRenderPass;
@@ -60,11 +110,10 @@ IVY_API IvyGraphicsFrame *ivyGetCurrentGraphicsFrame(IvyRenderer *renderer);
 
 IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer);
 
-IVY_API IvyCode ivyRequestGraphicsTemporaryBufferFromRenderer(
-    IvyRenderer *renderer, uint64_t size,
-    IvyGraphicsTemporaryBuffer *temporaryBuffer);
+IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyRenderer *renderer,
+    uint64_t size, IvyGraphicsTemporaryBuffer *temporaryBuffer);
 
-IVY_API void ivyBindGraphicsProgramInRenderer(IvyRenderer *renderer,
+IVY_API void ivyBindGraphicsProgram(IvyRenderer *renderer,
     IvyGraphicsProgram *program);
 
 IVY_API IvyCode ivyBeginGraphicsFrame(IvyRenderer *renderer);

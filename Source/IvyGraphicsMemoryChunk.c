@@ -1,5 +1,8 @@
 #include "IvyGraphicsMemoryChunk.h"
 
+#include "IvyRenderer.h"
+#include "IvyVulkanUtilities.h"
+
 IVY_INTERNAL VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(
     uint32_t flags) {
   VkMemoryPropertyFlagBits properties = 0;
@@ -15,13 +18,13 @@ IVY_INTERNAL VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(
   return properties;
 }
 
-IVY_INTERNAL uint32_t ivyFindVulkanMemoryTypeIndex(IvyGraphicsContext *context,
-    uint32_t flags, uint32_t type) {
+IVY_INTERNAL uint32_t ivyFindVulkanMemoryTypeIndex(
+    VkPhysicalDevice physicalDevice, uint32_t flags, uint32_t type) {
   uint32_t index;
   VkMemoryPropertyFlagBits memoryProperties;
   VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
 
-  vkGetPhysicalDeviceMemoryProperties(context->physicalDevice,
+  vkGetPhysicalDeviceMemoryProperties(physicalDevice,
       &physicalDeviceMemoryProperties);
 
   memoryProperties = ivyGetVulkanMemoryProperties(flags);
@@ -46,33 +49,25 @@ IVY_INTERNAL uint32_t ivyFindVulkanMemoryTypeIndex(IvyGraphicsContext *context,
   return (uint32_t)-1;
 }
 
-IVY_INTERNAL VkDeviceMemory ivyAllocateVulkanMemory(
-    IvyGraphicsContext *context, uint32_t flags, uint32_t type,
-    uint64_t size) {
-  VkResult vulkanResult;
-  VkDeviceMemory memory;
+IVY_INTERNAL VkResult ivyAllocateVulkanMemory(VkPhysicalDevice physicalDevice,
+    VkDevice device, uint32_t flags, uint32_t type, uint64_t size,
+    VkDeviceMemory *memory) {
   VkMemoryAllocateInfo memoryAllocateInfo;
 
-  IVY_ASSERT(context);
+  IVY_ASSERT(physicalDevice);
+  IVY_ASSERT(device);
 
   memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   memoryAllocateInfo.pNext = NULL;
   memoryAllocateInfo.allocationSize = size;
   memoryAllocateInfo.memoryTypeIndex =
-      ivyFindVulkanMemoryTypeIndex(context, flags, type);
+      ivyFindVulkanMemoryTypeIndex(physicalDevice, flags, type);
   IVY_ASSERT((uint32_t)-1 != memoryAllocateInfo.memoryTypeIndex);
   if ((uint32_t)-1 == memoryAllocateInfo.memoryTypeIndex) {
-    return VK_NULL_HANDLE;
+    return VK_ERROR_UNKNOWN;
   }
 
-  vulkanResult =
-      vkAllocateMemory(context->device, &memoryAllocateInfo, NULL, &memory);
-  IVY_ASSERT(!vulkanResult);
-  if (vulkanResult) {
-    return VK_NULL_HANDLE;
-  }
-
-  return memory;
+  return vkAllocateMemory(device, &memoryAllocateInfo, NULL, memory);
 }
 
 IVY_API void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk) {
@@ -84,24 +79,30 @@ IVY_API void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk) {
   chunk->memory = VK_NULL_HANDLE;
 }
 
-IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
+IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsDevice *device,
     uint32_t flags, uint32_t type, uint64_t size,
     IvyGraphicsMemoryChunk *chunk) {
+  VkResult vulkanResult;
+  IvyCode ivyCode;
+
   chunk->flags = flags;
   chunk->type = type;
   chunk->size = size;
   chunk->owners = 1;
-  chunk->memory = ivyAllocateVulkanMemory(context, flags, type, size);
-  if (!chunk->memory) {
-    return IVY_ERROR_NO_GRAPHICS_MEMORY;
+
+  vulkanResult = ivyAllocateVulkanMemory(device->physicalDevice,
+      device->logicalDevice, flags, type, size, &chunk->memory);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
+    goto error;
   }
 
   if (IVY_CPU_VISIBLE & flags) {
-    VkResult vulkanResult;
-    vulkanResult =
-        vkMapMemory(context->device, chunk->memory, 0, size, 0, &chunk->data);
+    vulkanResult = vkMapMemory(device->logicalDevice, chunk->memory, 0, size,
+        0, &chunk->data);
     if (vulkanResult) {
-      ivyFreeGraphicsMemoryChunk(context, chunk);
+      ivyFreeGraphicsMemoryChunk(device, chunk);
       return IVY_ERROR_NO_GRAPHICS_MEMORY;
     }
   } else {
@@ -109,12 +110,20 @@ IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsContext *context,
   }
 
   return IVY_OK;
+
+error:
+  ivyFreeGraphicsMemoryChunk(device, chunk);
+  return ivyCode;
 }
 
-IVY_API void ivyFreeGraphicsMemoryChunk(IvyGraphicsContext *context,
+IVY_API void ivyFreeGraphicsMemoryChunk(IvyGraphicsDevice *device,
     IvyGraphicsMemoryChunk *chunk) {
+  if (IVY_CPU_VISIBLE & chunk->flags) {
+    vkUnmapMemory(device->logicalDevice, chunk->memory);
+  }
+
   if (chunk->memory) {
-    vkFreeMemory(context->device, chunk->memory, NULL);
+    vkFreeMemory(device->logicalDevice, chunk->memory, NULL);
     chunk->memory = VK_NULL_HANDLE;
   }
 }

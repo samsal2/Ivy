@@ -27,6 +27,9 @@ IVY_INTERNAL void *ivyDummyMemoryAllocatorAllocateAndZeroMemory(
 IVY_INTERNAL void *ivyDummyMemoryAllocatorReallocate(
     IvyAnyMemoryAllocator allocator, void *data, uint64_t newSize) {
   IvyDummyMemoryAllocator *dummyAllocator = allocator;
+  if (!data) {
+    ++dummyAllocator->aliveAllocationCount;
+  }
   IVY_UNUSED(allocator);
   IVY_UNUSED(dummyAllocator);
   IVY_DEBUG_LOG("dummyAllocator: %p\n  data: %p\n  newSize: %lu\n  "

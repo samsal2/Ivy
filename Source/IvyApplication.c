@@ -1,7 +1,5 @@
 #include "IvyApplication.h"
 
-#include "IvyGraphicsContext.h"
-
 /* clang-format off */
 #define GLFW_INCLUDE_NONE
 #include <vulkan/vulkan.h>

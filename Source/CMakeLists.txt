@@ -8,10 +8,6 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyDummyGraphicsMemoryAllocator.h
   IvyDummyMemoryAllocator.c
   IvyDummyMemoryAllocator.h
-  IvyGraphicsAttachment.c
-  IvyGraphicsAttachment.h
-  IvyGraphicsContext.c
-  IvyGraphicsContext.h
   IvyGraphicsDataUploader.c
   IvyGraphicsDataUploader.h
   IvyGraphicsMemoryAllocator.c
@@ -20,8 +16,6 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyGraphicsMemoryChunk.h
   IvyGraphicsProgram.c
   IvyGraphicsProgram.h
-  IvyGraphicsTemporaryBuffer.c
-  IvyGraphicsTemporaryBuffer.h
   IvyGraphicsTexture.c
   IvyGraphicsTexture.h
   IvyLog.c
@@ -34,8 +28,3 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyVectorMath.h
   IvyVulkanUtilities.c
   IvyVulkanUtilities.h)
-
-
-
-
-

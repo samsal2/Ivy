@@ -1,5 +1,7 @@
 #include "IvyDummyGraphicsMemoryAllocator.h"
+
 #include "IvyGraphicsMemoryChunk.h"
+#include "IvyRenderer.h"
 
 IVY_INTERNAL IvyBool ivyIsGraphicsMemoryChunkEmpty(
     IvyGraphicsMemoryChunk *chunk) {
@@ -24,13 +26,13 @@ ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(
 }
 
 IVY_INTERNAL IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator allocator,
     uint32_t flags, uint32_t type, uint64_t size, IvyGraphicsMemory *memory) {
   IvyCode ivyCode;
   IvyGraphicsMemoryChunk *chunk;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 
-  IVY_ASSERT(context);
+  IVY_ASSERT(device);
   IVY_ASSERT(allocator);
   IVY_ASSERT(memory);
 
@@ -41,7 +43,7 @@ IVY_INTERNAL IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
     return IVY_ERROR_NO_MEMORY;
   }
 
-  ivyCode = ivyAllocateGraphicsMemoryChunk(context, flags, type, size, chunk);
+  ivyCode = ivyAllocateGraphicsMemoryChunk(device, flags, type, size, chunk);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     return ivyCode;
@@ -60,12 +62,12 @@ IVY_INTERNAL IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
 }
 
 IVY_INTERNAL void ivyDummyGraphicsMemoryAllocatorFree(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator allocator,
     IvyGraphicsMemory *allocation) {
   IvyGraphicsMemoryChunk *chunk;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 
-  IVY_ASSERT(context);
+  IVY_ASSERT(device);
   IVY_ASSERT(allocator);
   IVY_ASSERT(allocation);
   IVY_ASSERT(0 <= allocation->slot);
@@ -73,11 +75,11 @@ IVY_INTERNAL void ivyDummyGraphicsMemoryAllocatorFree(
   dummyAllocator = allocator;
   --dummyAllocator->occupiedChunkCount;
   chunk = &dummyAllocator->chunks[allocation->slot];
-  ivyFreeGraphicsMemoryChunk(context, chunk);
+  ivyFreeGraphicsMemoryChunk(device, chunk);
 }
 
 IVY_INTERNAL void ivyDestroyDummyGraphicsMemoryAllocator(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator) {
+    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator allocator) {
   int index;
   IvyDummyGraphicsMemoryAllocator *dummyAllocator;
 
@@ -86,7 +88,7 @@ IVY_INTERNAL void ivyDestroyDummyGraphicsMemoryAllocator(
 
   for (index = 0; index < IVY_ARRAY_LENGTH(dummyAllocator->chunks); ++index) {
     if (!ivyIsGraphicsMemoryChunkEmpty(&dummyAllocator->chunks[index])) {
-      ivyFreeGraphicsMemoryChunk(context, &dummyAllocator->chunks[index]);
+      ivyFreeGraphicsMemoryChunk(device, &dummyAllocator->chunks[index]);
     }
   }
 }
@@ -98,10 +100,10 @@ IVY_INTERNAL IvyGraphicsMemoryAllocatorDispatch const
         ivyDestroyDummyGraphicsMemoryAllocator};
 
 IVY_API IvyCode ivyCreateDummyGraphicsMemoryAllocator(
-    IvyGraphicsContext *context, IvyDummyGraphicsMemoryAllocator *allocator) {
+    IvyGraphicsDevice *device, IvyDummyGraphicsMemoryAllocator *allocator) {
   int index;
 
-  IVY_ASSERT(context);
+  IVY_ASSERT(device);
   IVY_ASSERT(allocator);
 
   IVY_MEMSET(allocator, 0, sizeof(*allocator));

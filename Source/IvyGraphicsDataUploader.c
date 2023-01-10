@@ -1,28 +1,28 @@
 
 #include "IvyGraphicsDataUploader.h"
 
-#include "IvyGraphicsTemporaryBuffer.h"
+#include "IvyRenderer.h"
 #include "IvyVulkanUtilities.h"
 
 IVY_INTERNAL IvyCode ivyCreateAndAllocateUploadBuffer(
-    IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator graphicsAllocator, uint64_t size, void *data,
-    IvyGraphicsMemory *graphicsMemory, VkBuffer *uploadBuffer) {
+    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator graphicsAllocator,
+    uint64_t size, void *data, IvyGraphicsMemory *graphicsMemory,
+    VkBuffer *uploadBuffer) {
   VkResult vulkanResult;
   IvyCode ivyCode;
 
   graphicsMemory->memory = VK_NULL_HANDLE;
 
-  vulkanResult = ivyCreateVulkanBuffer(context->device, IVY_SOURCE_BUFFER,
-      size, uploadBuffer);
+  vulkanResult = ivyCreateVulkanBuffer(device->logicalDevice,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT, size, uploadBuffer);
   IVY_ASSERT(!vulkanResult);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(context,
-      graphicsAllocator, IVY_HOST_VISIBLE, *uploadBuffer, graphicsMemory);
+  ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(device, graphicsAllocator,
+      IVY_HOST_VISIBLE, *uploadBuffer, graphicsMemory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -34,12 +34,12 @@ IVY_INTERNAL IvyCode ivyCreateAndAllocateUploadBuffer(
 
 error:
   if (graphicsMemory->memory) {
-    ivyFreeGraphicsMemory(context, graphicsAllocator, graphicsMemory);
+    ivyFreeGraphicsMemory(device, graphicsAllocator, graphicsMemory);
     graphicsMemory->memory = VK_NULL_HANDLE;
   }
 
   if (*uploadBuffer) {
-    vkDestroyBuffer(context->device, *uploadBuffer, NULL);
+    vkDestroyBuffer(device->logicalDevice, *uploadBuffer, NULL);
     *uploadBuffer = NULL;
   }
 
@@ -56,10 +56,12 @@ IVY_INTERNAL uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
   }
 }
 
-IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
-    IvyAnyGraphicsMemoryAllocator graphicsAllocator, int32_t width,
-    int32_t height, IvyPixelFormat format, void *data, VkImage image) {
+IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsDevice *device,
+    IvyAnyGraphicsMemoryAllocator graphicsAllocator, VkCommandPool commandPool,
+    int32_t width, int32_t height, IvyPixelFormat format, void *data,
+    VkImage image) {
   IvyCode ivyCode;
+  VkResult vulkanResult;
   VkBufferImageCopy bufferImageCopy;
   VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
   VkBuffer uploadBuffer = VK_NULL_HANDLE;
@@ -67,13 +69,15 @@ IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
 
   uploadMemory.memory = VK_NULL_HANDLE;
 
-  ivyCode = ivyAllocateOneTimeCommandBuffer(context, &commandBuffer);
-  IVY_ASSERT(!ivyCode);
-  if (ivyCode) {
+  vulkanResult = ivyAllocateAndBeginVulkanCommandBuffer(device->logicalDevice,
+      commandPool, &commandBuffer);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  ivyCode = ivyCreateAndAllocateUploadBuffer(context, graphicsAllocator,
+  ivyCode = ivyCreateAndAllocateUploadBuffer(device, graphicsAllocator,
       width * height * ivyGetPixelFormatSize(format), data, &uploadMemory,
       &uploadBuffer);
   IVY_ASSERT(!ivyCode);
@@ -98,29 +102,26 @@ IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsContext *context,
   vkCmdCopyBufferToImage(commandBuffer, uploadBuffer, image,
       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
 
-  ivyCode = ivySubmitOneTimeCommandBuffer(context, commandBuffer);
-  IVY_ASSERT(!ivyCode);
-  if (ivyCode) {
+  vulkanResult = ivyEndSubmitAndFreeVulkanCommandBuffer(device->logicalDevice,
+      device->graphicsQueue, commandPool, commandBuffer);
+  IVY_ASSERT(!vulkanResult);
+  if (vulkanResult) {
+    ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  ivyFreeGraphicsMemory(context, graphicsAllocator, &uploadMemory);
-  vkDestroyBuffer(context->device, uploadBuffer, NULL);
-  ivyFreeOneTimeCommandBuffer(context, commandBuffer);
+  ivyFreeGraphicsMemory(device, graphicsAllocator, &uploadMemory);
+  vkDestroyBuffer(device->logicalDevice, uploadBuffer, NULL);
 
   return IVY_OK;
 
 error:
   if (uploadMemory.memory) {
-    ivyFreeGraphicsMemory(context, graphicsAllocator, &uploadMemory);
+    ivyFreeGraphicsMemory(device, graphicsAllocator, &uploadMemory);
   }
 
   if (uploadBuffer) {
-    vkDestroyBuffer(context->device, uploadBuffer, NULL);
-  }
-
-  if (commandBuffer) {
-    ivyFreeOneTimeCommandBuffer(context, commandBuffer);
+    vkDestroyBuffer(device->logicalDevice, uploadBuffer, NULL);
   }
 
   return ivyCode;

@@ -1,9 +1,10 @@
 #ifndef IVY_DUMMY_GRAPHICS_MEMORY_ALLOCATOR_H
 #define IVY_DUMMY_GRAPHICS_MEMORY_ALLOCATOR_H
 
-#include "IvyGraphicsContext.h"
 #include "IvyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsMemoryChunk.h"
+
+typedef struct IvyGraphicsDevice IvyGraphicsDevice;
 
 typedef struct IvyDummyGraphicsMemoryAllocator {
   IvyGraphicsMemoryAllocatorBase base;
@@ -12,6 +13,6 @@ typedef struct IvyDummyGraphicsMemoryAllocator {
 } IvyDummyGraphicsMemoryAllocator;
 
 IVY_API IvyCode ivyCreateDummyGraphicsMemoryAllocator(
-    IvyGraphicsContext *context, IvyDummyGraphicsMemoryAllocator *allocator);
+    IvyGraphicsDevice *device, IvyDummyGraphicsMemoryAllocator *allocator);
 
 #endif

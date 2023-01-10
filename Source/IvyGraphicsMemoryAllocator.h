@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 
 #include "IvyDeclarations.h"
-#include "IvyGraphicsContext.h"
 
+typedef struct IvyGraphicsDevice IvyGraphicsDevice;
 typedef void *IvyAnyGraphicsMemoryAllocator;
 
 #define IVY_MAX_GRAPHICS_MEMORY_CHUNKS 64
@@ -22,17 +22,17 @@ typedef struct IvyGraphicsMemory {
 } IvyGraphicsMemory;
 
 typedef IvyCode (*IvyAllocateGraphicsMemoryCallback)(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    IvyGraphicsDevice *context, IvyAnyGraphicsMemoryAllocator allocator,
     uint32_t flags, uint32_t type, uint64_t size, IvyGraphicsMemory *memory);
 
-typedef void (*IvyFreeGraphicsMemoryCallback)(IvyGraphicsContext *context,
+typedef void (*IvyFreeGraphicsMemoryCallback)(IvyGraphicsDevice *context,
     IvyAnyGraphicsMemoryAllocator allocator, IvyGraphicsMemory *memory);
 
 typedef void (*IvyReleaseGraphicsMemoryAllocatorCallback)(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator);
+    IvyGraphicsDevice *context, IvyAnyGraphicsMemoryAllocator allocator);
 
 typedef void (*IvyDestroyGraphicsMemoryAllocatorCallback)(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator);
+    IvyGraphicsDevice *context, IvyAnyGraphicsMemoryAllocator allocator);
 
 typedef struct IvyGraphicsMemoryAllocatorDispatch {
   IvyAllocateGraphicsMemoryCallback allocate;
@@ -50,22 +50,22 @@ IVY_API void ivySetupGraphicsMemoryAllocatorBase(
     IvyGraphicsMemoryAllocatorDispatch const *dispatch,
     IvyGraphicsMemoryAllocatorBase *base);
 
-IVY_API void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsContext *context,
+IVY_API void ivyDestroyGraphicsMemoryAllocator(IvyGraphicsDevice *device,
     IvyAnyGraphicsMemoryAllocator allocator);
 
-IVY_API IvyCode ivyAllocateGraphicsMemory(IvyGraphicsContext *context,
+IVY_API IvyCode ivyAllocateGraphicsMemory(IvyGraphicsDevice *device,
     IvyAnyGraphicsMemoryAllocator allocator, uint32_t flags, uint32_t type,
     uint64_t size, IvyGraphicsMemory *memory);
 
-IVY_API void ivyFreeGraphicsMemory(IvyGraphicsContext *context,
+IVY_API void ivyFreeGraphicsMemory(IvyGraphicsDevice *device,
     IvyAnyGraphicsMemoryAllocator allocator, IvyGraphicsMemory *memory);
 
 IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator allocator,
     uint32_t flags, VkBuffer buffer, IvyGraphicsMemory *memory);
 
 IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
-    IvyGraphicsContext *context, IvyAnyGraphicsMemoryAllocator allocator,
+    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator allocator,
     uint32_t flags, VkImage image, IvyGraphicsMemory *allocation);
 
 #endif

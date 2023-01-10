@@ -6,7 +6,7 @@ IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
   IvyGraphicsTemporaryBuffer vertexBuffer;
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
-  ivyCode = ivyRequestGraphicsTemporaryBufferFromRenderer(renderer,
+  ivyCode = ivyRequestGraphicsTemporaryBuffer(renderer,
       vertexCount * sizeof(*vertices), &vertexBuffer);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -16,7 +16,7 @@ IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
   IVY_MEMCPY(vertexBuffer.data, vertices, vertexBuffer.size);
 
   vkCmdBindVertexBuffers(frame->commandBuffer, 0, 1, &vertexBuffer.buffer,
-      &vertexBuffer.offset);
+      &vertexBuffer.offsetInU64);
 
   return IVY_OK;
 }
@@ -27,7 +27,7 @@ IVY_INTERNAL IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
   IvyGraphicsTemporaryBuffer indexBuffer;
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
-  ivyCode = ivyRequestGraphicsTemporaryBufferFromRenderer(renderer,
+  ivyCode = ivyRequestGraphicsTemporaryBuffer(renderer,
       indexCount * sizeof(*indices), &indexBuffer);
   if (ivyCode) {
     return ivyCode;
@@ -36,7 +36,7 @@ IVY_INTERNAL IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
   IVY_MEMCPY(indexBuffer.data, indices, indexBuffer.size);
 
   vkCmdBindIndexBuffer(frame->commandBuffer, indexBuffer.buffer,
-      indexBuffer.offset, VK_INDEX_TYPE_UINT32);
+      indexBuffer.offsetInU32, VK_INDEX_TYPE_UINT32);
 
   return IVY_OK;
 }
@@ -44,22 +44,20 @@ IVY_INTERNAL IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
 IVY_INTERNAL IvyCode IvyBindGraphicsUniformData(IvyRenderer *renderer,
     IvyGraphicsProgramUniform *uniform) {
   IvyCode ivyCode;
-  uint32_t offset;
   IvyGraphicsTemporaryBuffer uniformBuffer;
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
-  ivyCode = ivyRequestGraphicsTemporaryBufferFromRenderer(renderer,
-      sizeof(*uniform), &uniformBuffer);
+  ivyCode = ivyRequestGraphicsTemporaryBuffer(renderer, sizeof(*uniform),
+      &uniformBuffer);
   if (ivyCode) {
     return ivyCode;
   }
 
   IVY_MEMCPY(uniformBuffer.data, uniform, uniformBuffer.size);
 
-  offset = uniformBuffer.offset;
   vkCmdBindDescriptorSets(frame->commandBuffer,
       VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->mainPipelineLayout, 0, 1,
-      &uniformBuffer.descriptorSet, 1, &offset);
+      &uniformBuffer.descriptorSet, 1, &uniformBuffer.offsetInU32);
 
   return IVY_OK;
 }
@@ -119,7 +117,7 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
   vertices[3].uv[0] = 1.0F;
   vertices[3].uv[1] = 1.0F;
 
-  ivyBindGraphicsProgramInRenderer(renderer, &renderer->basicGraphicsProgram);
+  ivyBindGraphicsProgram(renderer, &renderer->basicGraphicsProgram);
 
   ivyCode = ivyBindGraphicsVertexData(renderer, IVY_ARRAY_LENGTH(vertices),
       vertices);
