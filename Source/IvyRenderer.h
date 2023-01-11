@@ -93,7 +93,6 @@ typedef struct IvyRenderer {
   uint32_t swapchainImageCount;
   uint32_t currentSwapchainImageIndex;
   uint32_t currentSemaphoreIndex;
-  uint32_t frameCount;
   IvyGraphicsFrame *frames;
   IvyGraphicsRenderSemaphores *renderSemaphores;
   IvyGraphicsProgram basicGraphicsProgram;

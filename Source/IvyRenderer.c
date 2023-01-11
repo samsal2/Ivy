@@ -1458,8 +1458,6 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
     goto error;
   }
 
-  currentRenderer->frameCount = currentRenderer->swapchainImageCount;
-
   ivyCode = ivyCreateGraphicsProgram(allocator, &currentRenderer->device,
       currentRenderer->attachmentsSampleCounts,
       currentRenderer->mainRenderPass, currentRenderer->mainPipelineLayout,
@@ -1710,8 +1708,6 @@ IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
   if (ivyCode) {
     goto error;
   }
-
-  renderer->frameCount = renderer->swapchainImageCount;
 
   ivyCode = ivyCreateGraphicsProgram(allocator, &renderer->device,
       renderer->attachmentsSampleCounts, renderer->mainRenderPass,
