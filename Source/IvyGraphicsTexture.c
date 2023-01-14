@@ -10,7 +10,7 @@
 #ifndef IVY_FLOOR
 #include <math.h>
 #define IVY_FLOOR floor
-#define IVY_DEBUG_LOG2 log2
+#define IVY_LOG2 log2
 #endif
 
 IVY_INTERNAL VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
@@ -24,7 +24,7 @@ IVY_INTERNAL VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
 }
 
 IVY_INTERNAL uint32_t ivyCalculateMipLevels(int32_t width, int32_t height) {
-  return (uint32_t)(IVY_FLOOR(IVY_DEBUG_LOG2(IVY_MAX(width, height))) + 1);
+  return (uint32_t)(IVY_FLOOR(IVY_LOG2(IVY_MAX(width, height))) + 1);
 }
 
 IVY_API VkResult ivyChangeVulkanImageLayout(VkDevice device,
@@ -140,10 +140,10 @@ IVY_API IvyCode ivyGenerateVulkanImageMips(VkDevice device,
 
   imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   imageMemoryBarrier.pNext = NULL;
-  /* image_memory_imageMemoryBarrier.srcAccessMask =  later */
-  /* image_memory_imageMemoryBarrier.dstAccessMask =  later */
-  /* image_memory_imageMemoryBarrier.oldLayout =  later */
-  /* image_memory_imageMemoryBarrier.newLayout =  later */
+  imageMemoryBarrier.srcAccessMask = 0;
+  imageMemoryBarrier.dstAccessMask = 0;
+  imageMemoryBarrier.oldLayout = 0;
+  imageMemoryBarrier.newLayout = 0;
   imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   imageMemoryBarrier.image = image;
