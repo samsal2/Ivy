@@ -42,7 +42,7 @@ IVY_INTERNAL VkResult ivyCreateVulkanInstance(IvyApplication *application,
 #else  /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
   instanceCreateInfo.enabledLayerCount = 0;
   instanceCreateInfo.ppEnabledLayerNames = NULL;
-#endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERSOWL_ENABLE_VALIDATION */
+#endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
   instanceCreateInfo.ppEnabledExtensionNames = ivyGetRequiredVulkanExtensions(
       application, &instanceCreateInfo.enabledExtensionCount);
 
@@ -106,6 +106,7 @@ IVY_INTERNAL VkResult ivyCreateVulkanDebugMessenger(VkInstance instance,
   if (!*createDebugUtilsMessengerEXT || !*destroyDebugUtilsMessengerEXT) {
     return VK_ERROR_UNKNOWN;
   }
+
 
   debugMessengerCreateInfo.sType =
       VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -406,7 +407,7 @@ IVY_INTERNAL VkPresentModeKHR *ivyAllocateVulkanPresentModes(
 IVY_INTERNAL IvyBool ivyDoesVulkanPhysicalDeviceSupportPresentMode(
     IvyAnyMemoryAllocator allocator, VkPhysicalDevice device,
     VkSurfaceKHR surface, VkPresentModeKHR requiredPresentMode) {
-  IvyBool exists;
+  IvyBool exist;
   uint32_t presentModeCount;
   VkPresentModeKHR *presentModes;
 
@@ -416,11 +417,11 @@ IVY_INTERNAL IvyBool ivyDoesVulkanPhysicalDeviceSupportPresentMode(
     return 0;
   }
 
-  exists = ivyDoesVulkanPresentModeExist(presentModeCount, presentModes,
+  exist = ivyDoesVulkanPresentModeExist(presentModeCount, presentModes,
       requiredPresentMode);
 
   ivyFreeMemory(allocator, presentModes);
-  return exists;
+  return exist;
 }
 
 IVY_INTERNAL IvyBool ivyDoesVulkanPhysicalDeviceSupportSampleCount(
@@ -515,6 +516,7 @@ IVY_INTERNAL VkResult ivyCreateVulkanDevice(IvyAnyMemoryAllocator allocator,
   if (!*selectedPhysicalDevice) {
     return VK_ERROR_UNKNOWN;
   }
+
 
   queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   queueCreateInfos[0].pNext = NULL;
