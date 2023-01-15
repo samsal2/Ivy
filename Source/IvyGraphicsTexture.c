@@ -15,10 +15,10 @@
 
 IVY_INTERNAL VkFormat ivyAsVulkanFormat(IvyPixelFormat format) {
   switch (format) {
-  case IVY_R8_UNORM:
+  case IVY_PIXEL_FORMAT_R8_UNORM:
     return VK_FORMAT_R8_UNORM;
 
-  case IVY_RGBA8_SRGB:
+  case IVY_PIXEL_FORMAT_RGBA8_SRGB:
     return VK_FORMAT_R8G8B8A8_SRGB;
   }
 }
@@ -120,7 +120,7 @@ IVY_API VkResult ivyChangeVulkanImageLayout(VkDevice device,
   return VK_SUCCESS;
 }
 
-IVY_API IvyCode ivyGenerateVulkanImageMips(VkDevice device,
+IVY_INTERNAL VkResult ivyGenerateVulkanImageMips(VkDevice device,
     VkQueue graphicsQueue, VkCommandPool commandPool, int32_t width,
     int32_t height, uint32_t mipLevels, VkImage image) {
   uint32_t index;
@@ -309,7 +309,7 @@ IVY_API IvyCode ivyCreateGraphicsTextureFromFile(
   }
 
   ivyCode = ivyCreateGraphicsTexture(allocator, renderer, width, height,
-      IVY_RGBA8_SRGB, data, texture);
+      IVY_PIXEL_FORMAT_RGBA8_SRGB, data, texture);
 
   stbi_image_free(data);
 
@@ -349,8 +349,9 @@ IVY_API IvyCode ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
   }
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(&renderer->device,
-      &renderer->defaultGraphicsMemoryAllocator, IVY_GPU_LOCAL,
-      currentTexture->image, &currentTexture->memory);
+      &renderer->defaultGraphicsMemoryAllocator,
+      IVY_GRAPHICS_MEMORY_PROPERTY_GPU_LOCAL, currentTexture->image,
+      &currentTexture->memory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -366,12 +367,13 @@ IVY_API IvyCode ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
   }
 
   if (data) {
-    ivyCode = ivyChangeVulkanImageLayout(renderer->device.logicalDevice,
+    vulkanResult = ivyChangeVulkanImageLayout(renderer->device.logicalDevice,
         renderer->device.graphicsQueue, renderer->transientCommandPool,
         currentTexture->mipLevels, currentTexture->image,
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    IVY_ASSERT(!ivyCode);
-    if (ivyCode) {
+    IVY_ASSERT(!vulkanResult);
+    if (vulkanResult) {
+      ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
       goto error;
     }
 
@@ -385,12 +387,13 @@ IVY_API IvyCode ivyCreateGraphicsTexture(IvyAnyMemoryAllocator allocator,
       goto error;
     }
 
-    ivyCode = ivyGenerateVulkanImageMips(renderer->device.logicalDevice,
+    vulkanResult = ivyGenerateVulkanImageMips(renderer->device.logicalDevice,
         renderer->device.graphicsQueue, renderer->transientCommandPool,
         currentTexture->width, currentTexture->height,
         currentTexture->mipLevels, currentTexture->image);
-    IVY_ASSERT(!ivyCode);
-    if (ivyCode) {
+    IVY_ASSERT(!vulkanResult);
+    if (vulkanResult) {
+      ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
       goto error;
     }
   }
@@ -426,8 +429,11 @@ error:
 
 IVY_API void ivyDestroyGraphicsTexture(IvyAnyMemoryAllocator allocator,
     IvyRenderer *renderer, IvyGraphicsTexture *texture) {
+  if (!texture) {
+    return;
+  }
+
   if (renderer->device.logicalDevice) {
-    // FIXME: stopping the device just to destroy a texture...
     vkDeviceWaitIdle(renderer->device.logicalDevice);
   }
 

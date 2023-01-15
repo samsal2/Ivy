@@ -76,6 +76,10 @@ IVY_API IvyCode ivyCreateApplication(IvyAnyMemoryAllocator allocator,
 
 IVY_API void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
     IvyApplication *application) {
+  if (!application) {
+    return;
+  }
+  
   ivyPollApplicationEvents(application);
   glfwTerminate();
   ivyFreeMemory(allocator, application);

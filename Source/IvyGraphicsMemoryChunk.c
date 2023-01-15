@@ -7,11 +7,11 @@ IVY_INTERNAL VkMemoryPropertyFlagBits ivyGetVulkanMemoryProperties(
     uint32_t flags) {
   VkMemoryPropertyFlagBits properties = 0;
 
-  if (IVY_GPU_LOCAL & flags) {
+  if (IVY_GRAPHICS_MEMORY_PROPERTY_GPU_LOCAL & flags) {
     properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   }
 
-  if (IVY_CPU_VISIBLE & flags) {
+  if (IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE & flags) {
     properties |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
   }
 
@@ -80,7 +80,7 @@ IVY_API void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk) {
 }
 
 IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsDevice *device,
-    uint32_t flags, uint32_t type, uint64_t size,
+    IvyGraphicsMemoryPropertyFlags flags, uint32_t type, uint64_t size,
     IvyGraphicsMemoryChunk *chunk) {
   VkResult vulkanResult;
   IvyCode ivyCode;
@@ -98,12 +98,12 @@ IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsDevice *device,
     goto error;
   }
 
-  if (IVY_CPU_VISIBLE & flags) {
+  if (IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE & flags) {
     vulkanResult = vkMapMemory(device->logicalDevice, chunk->memory, 0, size,
         0, &chunk->data);
     if (vulkanResult) {
-      ivyFreeGraphicsMemoryChunk(device, chunk);
-      return IVY_ERROR_NO_GRAPHICS_MEMORY;
+      ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
+      goto error;
     }
   } else {
     chunk->data = NULL;
@@ -118,7 +118,7 @@ error:
 
 IVY_API void ivyFreeGraphicsMemoryChunk(IvyGraphicsDevice *device,
     IvyGraphicsMemoryChunk *chunk) {
-  if (IVY_CPU_VISIBLE & chunk->flags) {
+  if (IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE & chunk->flags) {
     vkUnmapMemory(device->logicalDevice, chunk->memory);
   }
 

@@ -6,14 +6,17 @@
 #include "IvyMemoryAllocator.h"
 #include "IvyVectorMath.h"
 
-#define IVY_POLYGON_MODE_FILL 0x00000001
-#define IVY_POLYGON_MODE_LINE 0x00000002
-#define IVY_DEPTH_ENABLE 0x00000004
-#define IVY_BLEND_ENABLE 0x00000008
-#define IVY_CULL_FRONT 0x00000010
-#define IVY_CULL_BACK 0x00000020
-#define IVY_FRONT_FACE_COUNTERCLOCKWISE 0x00000040
-#define IVY_FRONT_FACE_CLOCKWISE 0x00000080
+typedef enum IvyGraphicsProgramProperty {
+  IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_FILL = 0x00000001,
+  IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_LINE = 0x00000002,
+  IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE = 0x00000004,
+  IVY_GRAPHICS_PROGRAM_PROPERTY_BLEND_ENABLE = 0x00000008,
+  IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_FRONT = 0x00000010,
+  IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK = 0x00000020,
+  IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE = 0x00000040,
+  IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_CLOCKWISE = 0x00000080
+} IvyGraphicsProgramProperty;
+typedef uint32_t IvyGraphicsProgramPropertyFlags;
 
 typedef uint32_t IvyGraphicsProgramIndex;
 typedef struct IvyGraphicsDevice IvyGraphicsDevice;
@@ -41,7 +44,7 @@ IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
     VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
     int32_t viewportWidth, int32_t viewportHeight,
     char const *vertexShaderPath, char const *fragmentShaderPath,
-    uint64_t flags, IvyGraphicsProgram *program);
+    IvyGraphicsProgramPropertyFlags flags, IvyGraphicsProgram *program);
 
 IVY_API void ivyDestroyGraphicsProgram(IvyGraphicsDevice *device,
     IvyGraphicsProgram *program);

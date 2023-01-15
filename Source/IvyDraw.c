@@ -1,5 +1,7 @@
 #include "IvyDraw.h"
 
+#include "IvyLog.h"
+
 IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
     uint64_t vertexCount, IvyGraphicsProgramVertex *vertices) {
   IvyCode ivyCode;
@@ -90,6 +92,12 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
   vertices[0].uv[0] = 0.0F;
   vertices[0].uv[1] = 0.0F;
 
+#if 0
+  IVY_DEBUG_LOG(" red: %.2f\n"#include "IvyLog.h", red);
+  IVY_DEBUG_LOG(" green: %.2f\n", green);
+  IVY_DEBUG_LOG(" blue: %.2f\n", blue);
+#endif
+
   vertices[1].position[0] = bottomRightX;
   vertices[1].position[1] = topLeftY;
   vertices[1].position[2] = 0.0F;
@@ -142,14 +150,8 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
 
   ivyBindGraphicsTexture(renderer, texture);
 
-#if 1
   vkCmdDrawIndexed(frame->commandBuffer, IVY_ARRAY_LENGTH(indices), 1, 0, 0,
       0);
-#elif 1
-  vkCmdDraw(frame->commandBuffer, IVY_ARRAY_LENGTH(vertices), 1, 0, 0);
-#else
-  vkCmdDraw(frame->commandBuffer, 3, 1, 0, 0);
-#endif
 
   return IVY_OK;
 }

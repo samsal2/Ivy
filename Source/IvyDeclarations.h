@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-typedef int IvyCode;
 typedef int IvyBool;
 
 #define IVY_INTERNAL static
@@ -17,6 +16,7 @@ typedef int IvyBool;
 #define IVY_ERROR_UNKNOWN -5
 #define IVY_ERROR_INVALID_DYNAMIC_DISPATCH -6
 #define IVY_ERROR_MORE_THAN_ONE_INSTANCE -7
+typedef int IvyCode;
 
 #define IVY_UNUSED(e) (void)e
 #define IVY_ARRAY_LENGTH(a) (long)(sizeof(a) / sizeof((a)[0]))

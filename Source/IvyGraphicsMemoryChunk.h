@@ -7,12 +7,15 @@
 
 typedef struct IvyGraphicsDevice IvyGraphicsDevice;
 
-#define IVY_GPU_LOCAL 0x0001
-#define IVY_CPU_VISIBLE 0x0002
+typedef enum IvyGraphicsMemoryProperty {
+  IVY_GRAPHICS_MEMORY_PROPERTY_GPU_LOCAL = 0x0001,
+  IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE = 0x0002,
+} IvyGraphicsMemoryChunkProperty;
+typedef uint64_t IvyGraphicsMemoryPropertyFlags;
 
 typedef struct IvyGraphicsMemoryChunk {
   void *data;
-  uint32_t flags;
+  IvyGraphicsMemoryPropertyFlags flags;
   uint32_t type;
   uint64_t size;
   int32_t owners;
@@ -22,7 +25,7 @@ typedef struct IvyGraphicsMemoryChunk {
 IVY_API void ivySetupEmptyGraphicsMemoryChunk(IvyGraphicsMemoryChunk *chunk);
 
 IVY_API IvyCode ivyAllocateGraphicsMemoryChunk(IvyGraphicsDevice *device,
-    uint32_t flags, uint32_t type, uint64_t size,
+    IvyGraphicsMemoryPropertyFlags flags, uint32_t type, uint64_t size,
     IvyGraphicsMemoryChunk *chunk);
 
 IVY_API void ivyFreeGraphicsMemoryChunk(IvyGraphicsDevice *device,

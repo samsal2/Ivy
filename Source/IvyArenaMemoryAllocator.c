@@ -12,46 +12,86 @@ IVY_INTERNAL uint64_t ivyRoundUp(uint64_t value, uint64_t by) {
   return by * n + n;
 }
 
+#include <stdio.h>
 IVY_INTERNAL void *ivyArenaMemoryAllocatorAllocate(
     IvyAnyMemoryAllocator allocator, uint64_t size) {
+  uint64_t position;
+  uint64_t newPosition;
+  uint64_t requiredSize;
   IvyArenaMemoryAllocator *arenaAllocator = allocator;
-  uint64_t pastSize = arenaAllocator->size;
-  uint64_t newSize = pastSize + ivyRoundUp(size, arenaAllocator->alignment);
+  uint8_t *data = arenaAllocator->data;
 
-  if (
+  position = arenaAllocator->position;
+  newPosition = position + ivyRoundUp(size, arenaAllocator->alignment);
+  requiredSize = position + size;
 
-  return arenaAllocator->previousAllocation = (void *)next;
+  printf("%s\n", __PRETTY_FUNCTION__);
+  printf("  arenaAllocator: %p, position: %llu\n  newPosition: %llu\n", allocator, position, newPosition);
+
+  if (requiredSize > arenaAllocator->capacity)
+    return NULL;
+
+  arenaAllocator->position = newPosition;  
+
+  ++arenaAllocator->aliveAllocationCount;
+  return arenaAllocator->previousAllocation = data + position;
 }
 
 IVY_INTERNAL void *ivyArenaMemoryAllocatorAllocateAndZeroMemory(
     IvyAnyMemoryAllocator allocator, uint64_t count, uint64_t elementSize) {
+  uint64_t size = count * elementSize;
+  void *allocation = ivyAllocateMemory(allocator, size);
+  IVY_MEMSET(allocation, 0, size);
+  return allocation;
 }
 
 IVY_INTERNAL void *ivyArenaMemoryAllocatorReallocate(
     IvyAnyMemoryAllocator allocator, void *data, uint64_t newSize) {
+  IVY_UNUSED(allocator);
+  IVY_UNUSED(data);
+  IVY_UNUSED(newSize);
+  return NULL;
 }
 
 IVY_INTERNAL void ivyArenaMemoryAllocatorClear(
     IvyAnyMemoryAllocator allocator) {
-  IVY_UNUSED(allocator);
-  IVY_TODO();
+  IvyArenaMemoryAllocator *arenaAllocator = allocator;
+  arenaAllocator->position = 0; 
+  arenaAllocator->previousAllocation = NULL; 
+  arenaAllocator->aliveAllocationCount = 0; 
 }
 
 IVY_INTERNAL void ivyArenaMemoryAllocatorFree(IvyAnyMemoryAllocator allocator,
     void *data) {
+  IvyArenaMemoryAllocator *arenaAllocator = allocator;
+
+  IVY_UNUSED(data);
+
+  IVY_ASSERT(arenaAllocator->aliveAllocationCount);
+
+  if (arenaAllocator->aliveAllocationCount) {
+    --arenaAllocator->aliveAllocationCount;
+  } 
+
+  if (!arenaAllocator->aliveAllocationCount) {
+    ivyClearMemoryAllocator(allocator);
+  }
 }
 
-IVY_INTERNAL void ivyDestroyArenaMemoryAllocator(
+IVY_INTERNAL void ivyArenaMemoryAllocatorDestroy(
     IvyAnyMemoryAllocator allocator) {
+  IvyArenaMemoryAllocator *arenaAllocator = allocator;
+  IVY_ASSERT(!arenaAllocator->aliveAllocationCount);
+  free(arenaAllocator->data);
 }
 
 static IvyMemoryAllocatorDispatch arenaMemoryAllocatorDispatch = {
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    ivyArenaMemoryAllocatorAllocate,
+    ivyArenaMemoryAllocatorAllocateAndZeroMemory,
+    ivyArenaMemoryAllocatorReallocate,
+    ivyArenaMemoryAllocatorFree,
+    ivyArenaMemoryAllocatorClear,
+    ivyArenaMemoryAllocatorDestroy
 };
 
 IVY_API IvyCode ivyCreateArenaMemoryAllocator(uint64_t size,
@@ -62,10 +102,12 @@ IVY_API IvyCode ivyCreateArenaMemoryAllocator(uint64_t size,
 
   ivySetupMemoryAllocatorBase(&arenaMemoryAllocatorDispatch, &allocator->base);
 
-  allocator->size = size;
+  allocator->capacity = size;
+  allocator->position = 0;
   allocator->alignment = sizeof(void *);
+  allocator->aliveAllocationCount = 0;
   allocator->previousAllocation = NULL;
-  allocator->data = malloc(allocator->size);
+  allocator->data = malloc(allocator->capacity);
   if (!allocator->data) {
     return IVY_ERROR_NO_MEMORY;
   }

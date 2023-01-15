@@ -168,7 +168,7 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   rasterizationStateCreateInfo.pNext = NULL;
   rasterizationStateCreateInfo.flags = 0;
-  if (IVY_DEPTH_ENABLE & flags) {
+  if (IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE & flags) {
     rasterizationStateCreateInfo.depthClampEnable = VK_TRUE;
   } else {
     rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
@@ -176,27 +176,29 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
 
   rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 
-  if (IVY_POLYGON_MODE_FILL & flags) {
+  if (IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_FILL & flags) {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-  } else if (IVY_POLYGON_MODE_LINE & flags) {
+  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_LINE & flags) {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_LINE;
   } else {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
   }
 
-  if (IVY_CULL_FRONT & flags && IVY_CULL_BACK & flags) {
+  if (IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK & flags &&
+      IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_FRONT & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
-  } else if (IVY_CULL_FRONT & flags) {
+  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_FRONT & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
-  } else if (IVY_CULL_BACK & flags) {
+  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
   } else {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
   }
 
-  if (IVY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
+  if (IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-  } else if (IVY_FRONT_FACE_CLOCKWISE & flags) {
+  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE &
+             flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
   } else {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -219,7 +221,7 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
   multisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;
   multisampleStateCreateInfo.alphaToOneEnable = VK_FALSE;
 
-  if (IVY_BLEND_ENABLE & flags) {
+  if (IVY_GRAPHICS_PROGRAM_PROPERTY_BLEND_ENABLE & flags) {
     colorBlendAttachmentState.blendEnable = VK_TRUE;
     colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     colorBlendAttachmentState.dstColorBlendFactor =
@@ -261,7 +263,7 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
   depthStencilStateCreateInfo.pNext = NULL;
   depthStencilStateCreateInfo.flags = 0;
-  if (IVY_DEPTH_ENABLE & flags) {
+  if (IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE & flags) {
     depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
     depthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
   } else {
@@ -335,7 +337,7 @@ IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
     VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
     int32_t viewportWidth, int32_t viewportHeight,
     char const *vertexShaderPath, char const *fragmentShaderPath,
-    uint64_t flags, IvyGraphicsProgram *program) {
+    IvyGraphicsProgramPropertyFlags flags, IvyGraphicsProgram *program) {
   VkResult vulkanResult;
   IvyCode ivyCode;
 

@@ -7,11 +7,16 @@
 #include <stdio.h>
 
 IvyAnyMemoryAllocator allocator;
-IvyApplication *application;
-IvyRenderer *renderer;
-IvyGraphicsTexture *texture;
+IvyApplication *application = NULL;
+IvyWindow *window = NULL;
+IvyRenderer *renderer = NULL;
+IvyGraphicsTexture *texture = NULL;
+
 
 int main(void) {
+  int iterationDirection = 1;
+  int iteration = 0;
+  float r = 1.0F;
   IvyCode ivyCode;
   allocator = ivyGetGlobalMemoryAllocator();
 
@@ -21,7 +26,8 @@ int main(void) {
     goto error;
   }
 
-  if (!ivyAddWindow(application, 600, 600, "hi")) {
+  window = ivyAddWindow(application, 600, 600, "hi");
+  if (!window) {
     printf("failed to add window\n");
     goto error;
   }
@@ -41,7 +47,18 @@ int main(void) {
 
   while (!ivyShouldApplicationClose(application)) {
     ivyBeginGraphicsFrame(renderer);
-    ivyDrawRectangle(renderer, -1, -1, 1, 1, 1, 1, 1, texture);
+    
+    iteration += iterationDirection;
+    if (iteration == 60)
+      iterationDirection *= -1;
+    else if (iteration == 0)
+      iterationDirection *= -1;
+
+    r = ((float)iteration) / 60.0F;
+
+    ivyDrawRectangle(renderer, -1, -1, 0, 0, r, 1, 1, texture);
+    ivyDrawRectangle(renderer, 0, 0, 1, 1, r, 1, r, texture);
+
     ivyEndGraphicsFrame(renderer);
     ivyPollApplicationEvents(application);
   }

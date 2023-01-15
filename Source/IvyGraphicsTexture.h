@@ -7,8 +7,8 @@
 typedef struct IvyRenderer IvyRenderer;
 
 typedef enum IvyPixelFormat {
-  IVY_RGBA8_SRGB,
-  IVY_R8_UNORM
+  IVY_PIXEL_FORMAT_RGBA8_SRGB,
+  IVY_PIXEL_FORMAT_R8_UNORM
 } IvyPixelFormat;
 
 typedef struct IvyGraphicsTexture {

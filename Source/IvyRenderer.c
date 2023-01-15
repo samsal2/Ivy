@@ -25,6 +25,8 @@ IVY_INTERNAL VkResult ivyCreateVulkanInstance(IvyApplication *application,
   VkInstanceCreateInfo instanceCreateInfo;
 
   applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+
+  applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
   applicationInfo.pNext = NULL;
   applicationInfo.pApplicationName = application->name;
   applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -106,7 +108,6 @@ IVY_INTERNAL VkResult ivyCreateVulkanDebugMessenger(VkInstance instance,
   if (!*createDebugUtilsMessengerEXT || !*destroyDebugUtilsMessengerEXT) {
     return VK_ERROR_UNKNOWN;
   }
-
 
   debugMessengerCreateInfo.sType =
       VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -516,7 +517,6 @@ IVY_INTERNAL VkResult ivyCreateVulkanDevice(IvyAnyMemoryAllocator allocator,
   if (!*selectedPhysicalDevice) {
     return VK_ERROR_UNKNOWN;
   }
-
 
   queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   queueCreateInfos[0].pNext = NULL;
@@ -1215,9 +1215,9 @@ IVY_INTERNAL IvyCode ivyCreateGraphicsAttachment(IvyGraphicsDevice *device,
     goto error;
   }
 
-  ivyCode =
-      ivyAllocateAndBindGraphicsMemoryToImage(device, graphicsMemoryAllocator,
-          IVY_GPU_LOCAL, attachment->image, &attachment->memory);
+  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(device,
+      graphicsMemoryAllocator, IVY_GRAPHICS_MEMORY_PROPERTY_GPU_LOCAL,
+      attachment->image, &attachment->memory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -1465,8 +1465,11 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
       currentRenderer->mainRenderPass, currentRenderer->mainPipelineLayout,
       currentRenderer->swapchainWidth, currentRenderer->swapchainHeight,
       "../GLSL/Basic.vert.spv", "../GLSL/Basic.frag.spv",
-      IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
-          IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+      IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_FILL |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_BLEND_ENABLE |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE,
       &currentRenderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -1490,6 +1493,9 @@ error:
 
 IVY_API void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
     IvyRenderer *renderer) {
+  if (!renderer) {
+    return;
+  }
 
   ivyDestroyGraphicsProgram(&renderer->device,
       &renderer->basicGraphicsProgram);
@@ -1716,8 +1722,11 @@ IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
       renderer->mainPipelineLayout, renderer->swapchainWidth,
       renderer->swapchainHeight, "../GLSL/Basic.vert.spv",
       "../GLSL/Basic.frag.spv",
-      IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE | IVY_BLEND_ENABLE |
-          IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+      IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_FILL |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_BLEND_ENABLE |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK |
+          IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE,
       &renderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -1825,8 +1834,8 @@ IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyRenderer *renderer,
     }
 
     ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(&renderer->device,
-        &renderer->defaultGraphicsMemoryAllocator, IVY_HOST_VISIBLE, newBuffer,
-        &newMemory);
+        &renderer->defaultGraphicsMemoryAllocator,
+        IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE, newBuffer, &newMemory);
     IVY_ASSERT(!ivyCode);
     if (ivyCode) {
       vkDestroyBuffer(renderer->device.logicalDevice, newBuffer, NULL);
@@ -1999,6 +2008,7 @@ IVY_API IvyCode ivyEndGraphicsFrame(IvyRenderer *renderer) {
   // FIXME(samuel): check vulkanResult
   vulkanResult =
       vkQueuePresentKHR(renderer->device.presentQueue, &presentInfo);
+  IVY_ASSERT(!vulkanResult);
 
   ++renderer->currentSemaphoreIndex;
   if (renderer->currentSemaphoreIndex == renderer->swapchainImageCount) {
@@ -2012,10 +2022,12 @@ IVY_API IvyCode ivyEndGraphicsFrame(IvyRenderer *renderer) {
 
 IVY_API void ivyBindGraphicsProgram(IvyRenderer *renderer,
     IvyGraphicsProgram *program) {
-  if (renderer->boundGraphicsProgram != program) {
-    IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
-    renderer->boundGraphicsProgram = program;
-    vkCmdBindPipeline(frame->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        program->pipeline);
-  }
+  IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
+
+  if (renderer->boundGraphicsProgram == program)
+    return;
+
+  renderer->boundGraphicsProgram = program;
+  vkCmdBindPipeline(frame->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+      program->pipeline);
 }

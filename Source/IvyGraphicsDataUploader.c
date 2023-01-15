@@ -22,7 +22,7 @@ IVY_INTERNAL IvyCode ivyCreateAndAllocateUploadBuffer(
   }
 
   ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(device, graphicsAllocator,
-      IVY_HOST_VISIBLE, *uploadBuffer, graphicsMemory);
+      IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE, *uploadBuffer, graphicsMemory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -48,10 +48,10 @@ error:
 
 IVY_INTERNAL uint64_t ivyGetPixelFormatSize(IvyPixelFormat format) {
   switch (format) {
-  case IVY_R8_UNORM:
+  case IVY_PIXEL_FORMAT_R8_UNORM:
     return 1 * sizeof(uint8_t);
 
-  case IVY_RGBA8_SRGB:
+  case IVY_PIXEL_FORMAT_RGBA8_SRGB:
     return 4 * sizeof(uint8_t);
   }
 }

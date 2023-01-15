@@ -9,8 +9,6 @@ typedef struct IvyGraphicsDevice IvyGraphicsDevice;
 typedef void *IvyAnyGraphicsMemoryAllocator;
 
 #define IVY_MAX_GRAPHICS_MEMORY_CHUNKS 64
-#define IVY_GPU_LOCAL 0x0001
-#define IVY_HOST_VISIBLE 0x0002
 
 typedef struct IvyGraphicsMemory {
   void *data;
