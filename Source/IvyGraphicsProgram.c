@@ -73,22 +73,25 @@ IVY_API VkResult ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
 
   vulkanResult = vkCreateShaderModule(device, &shaderCreateInfo, NULL, shader);
   if (vulkanResult) {
-    ivyFreeMemory(allocator, shaderCode);
-    return vulkanResult;
+    goto cleanup;
   }
 
+cleanup:
   ivyFreeMemory(allocator, shaderCode);
-
-  return VK_SUCCESS;
+  return vulkanResult;
 }
 
-IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
-    int32_t height, uint64_t flags, VkSampleCountFlagBits sampleCounts,
+// FIXME(samuel): validate flags
+IVY_API VkResult ivyCreateVulkanPipeline(IvyAnyMemoryAllocator allocator,
+    VkDevice device, int32_t width, int32_t height,
+    IvyGraphicsProgramPropertyFlags flags, VkSampleCountFlagBits sampleCounts,
     VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
     VkShaderModule vertexShader, VkShaderModule fragmentShader,
     VkPipeline *pipeline) {
+  VkResult vulkanResult;
   VkVertexInputBindingDescription vertexInputBindingDescription;
-  VkVertexInputAttributeDescription vertexInputAttributesDescriptions[3];
+  uint32_t vertexInputAttributesDescriptionCount = 0;
+  VkVertexInputAttributeDescription *vertexInputAttributesDescriptions = NULL;
   VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo;
   VkViewport viewport;
@@ -102,37 +105,114 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
   VkPipelineShaderStageCreateInfo shaderStageCreateInfos[2];
   VkGraphicsPipelineCreateInfo pipelineCreateInfo;
 
-  vertexInputBindingDescription.binding = 0;
-  vertexInputBindingDescription.stride = sizeof(IvyGraphicsProgramVertex);
-  vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+  if (IVY_VERTEX_3_ENABLE & flags) {
+    vertexInputAttributesDescriptionCount = 1;
+    vertexInputAttributesDescriptions = ivyAllocateMemory(allocator,
+        vertexInputAttributesDescriptionCount *
+            sizeof(*vertexInputAttributesDescriptions));
+  } else if (IVY_VERTEX_332_ENABLE & flags) {
+    vertexInputAttributesDescriptionCount = 3;
+    vertexInputAttributesDescriptions = ivyAllocateMemory(allocator,
+        vertexInputAttributesDescriptionCount *
+            sizeof(*vertexInputAttributesDescriptions));
+  } else if (IVY_VERTEX_3322444_ENABLE & flags) {
+    vertexInputAttributesDescriptionCount = 7;
+    vertexInputAttributesDescriptions = ivyAllocateMemory(allocator,
+        vertexInputAttributesDescriptionCount *
+            sizeof(*vertexInputAttributesDescriptions));
+  }
 
-  vertexInputAttributesDescriptions[0].binding = 0;
-  vertexInputAttributesDescriptions[0].location = 0;
-  vertexInputAttributesDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-  vertexInputAttributesDescriptions[0].offset =
-      IVY_OFFSETOF(IvyGraphicsProgramVertex, position);
+  if (IVY_VERTEX_ENABLE_MASK & flags) {
+    vertexInputBindingDescription.binding = 0;
+    vertexInputBindingDescription.stride = sizeof(IvyGraphicsVertex332);
+    vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+  }
 
-  vertexInputAttributesDescriptions[1].binding = 0;
-  vertexInputAttributesDescriptions[1].location = 1;
-  vertexInputAttributesDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-  vertexInputAttributesDescriptions[1].offset =
-      IVY_OFFSETOF(IvyGraphicsProgramVertex, color);
+  if (IVY_VERTEX_3_ENABLE & flags) {
+    vertexInputAttributesDescriptions[0].binding = 0;
+    vertexInputAttributesDescriptions[0].location = 0;
+    vertexInputAttributesDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttributesDescriptions[0].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3, position);
+  } else if (IVY_VERTEX_332_ENABLE & flags) {
+    vertexInputAttributesDescriptions[0].binding = 0;
+    vertexInputAttributesDescriptions[0].location = 0;
+    vertexInputAttributesDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttributesDescriptions[0].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex332, position);
 
-  vertexInputAttributesDescriptions[2].binding = 0;
-  vertexInputAttributesDescriptions[2].location = 2;
-  vertexInputAttributesDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-  vertexInputAttributesDescriptions[2].offset =
-      IVY_OFFSETOF(IvyGraphicsProgramVertex, uv);
+    vertexInputAttributesDescriptions[1].binding = 0;
+    vertexInputAttributesDescriptions[1].location = 1;
+    vertexInputAttributesDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttributesDescriptions[1].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex332, color);
+
+    vertexInputAttributesDescriptions[2].binding = 0;
+    vertexInputAttributesDescriptions[2].location = 2;
+    vertexInputAttributesDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+    vertexInputAttributesDescriptions[2].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex332, uv);
+  } else if (IVY_VERTEX_3322444_ENABLE & flags) {
+    vertexInputAttributesDescriptions[0].binding = 0;
+    vertexInputAttributesDescriptions[0].location = 0;
+    vertexInputAttributesDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttributesDescriptions[0].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3322444, position);
+
+    vertexInputAttributesDescriptions[1].binding = 0;
+    vertexInputAttributesDescriptions[1].location = 1;
+    vertexInputAttributesDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttributesDescriptions[1].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3322444, normal);
+
+    vertexInputAttributesDescriptions[2].binding = 0;
+    vertexInputAttributesDescriptions[2].location = 2;
+    vertexInputAttributesDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+    vertexInputAttributesDescriptions[2].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3322444, uv0);
+
+    vertexInputAttributesDescriptions[3].binding = 0;
+    vertexInputAttributesDescriptions[3].location = 2;
+    vertexInputAttributesDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
+    vertexInputAttributesDescriptions[3].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3322444, uv1);
+
+    vertexInputAttributesDescriptions[4].binding = 0;
+    vertexInputAttributesDescriptions[4].location = 1;
+    vertexInputAttributesDescriptions[4].format =
+        VK_FORMAT_R32G32B32A32_SFLOAT;
+    vertexInputAttributesDescriptions[4].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3322444, joint0);
+
+    vertexInputAttributesDescriptions[5].binding = 0;
+    vertexInputAttributesDescriptions[5].location = 2;
+    vertexInputAttributesDescriptions[5].format =
+        VK_FORMAT_R32G32B32A32_SFLOAT;
+    vertexInputAttributesDescriptions[5].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3322444, weight0);
+
+    vertexInputAttributesDescriptions[6].binding = 0;
+    vertexInputAttributesDescriptions[6].location = 2;
+    vertexInputAttributesDescriptions[6].format =
+        VK_FORMAT_R32G32B32A32_SFLOAT;
+    vertexInputAttributesDescriptions[6].offset =
+        IVY_OFFSETOF(IvyGraphicsVertex3322444, color0);
+  }
 
   vertexInputStateCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
   vertexInputStateCreateInfo.pNext = NULL;
   vertexInputStateCreateInfo.flags = 0;
-  vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
-  vertexInputStateCreateInfo.pVertexBindingDescriptions =
-      &vertexInputBindingDescription;
+  if (IVY_VERTEX_ENABLE_MASK & flags) {
+    vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+    vertexInputStateCreateInfo.pVertexBindingDescriptions =
+        &vertexInputBindingDescription;
+  } else {
+    vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
+    vertexInputStateCreateInfo.pVertexBindingDescriptions = NULL;
+  }
   vertexInputStateCreateInfo.vertexAttributeDescriptionCount =
-      IVY_ARRAY_LENGTH(vertexInputAttributesDescriptions);
+      vertexInputAttributesDescriptionCount;
   vertexInputStateCreateInfo.pVertexAttributeDescriptions =
       vertexInputAttributesDescriptions;
 
@@ -168,7 +248,7 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   rasterizationStateCreateInfo.pNext = NULL;
   rasterizationStateCreateInfo.flags = 0;
-  if (IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE & flags) {
+  if (IVY_DEPTH_ENABLE & flags) {
     rasterizationStateCreateInfo.depthClampEnable = VK_TRUE;
   } else {
     rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
@@ -176,29 +256,27 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
 
   rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 
-  if (IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_FILL & flags) {
+  if (IVY_POLYGON_MODE_FILL & flags) {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_LINE & flags) {
+  } else if (IVY_POLYGON_MODE_LINE & flags) {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_LINE;
   } else {
     rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
   }
 
-  if (IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK & flags &&
-      IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_FRONT & flags) {
+  if (IVY_CULL_BACK & flags && IVY_CULL_FRONT & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
-  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_FRONT & flags) {
+  } else if (IVY_CULL_FRONT & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
-  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK & flags) {
+  } else if (IVY_CULL_BACK & flags) {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
   } else {
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
   }
 
-  if (IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
+  if (IVY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-  } else if (IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE &
-             flags) {
+  } else if (IVY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
   } else {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -221,7 +299,7 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
   multisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;
   multisampleStateCreateInfo.alphaToOneEnable = VK_FALSE;
 
-  if (IVY_GRAPHICS_PROGRAM_PROPERTY_BLEND_ENABLE & flags) {
+  if (IVY_BLEND_ENABLE & flags) {
     colorBlendAttachmentState.blendEnable = VK_TRUE;
     colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     colorBlendAttachmentState.dstColorBlendFactor =
@@ -263,7 +341,7 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
   depthStencilStateCreateInfo.pNext = NULL;
   depthStencilStateCreateInfo.flags = 0;
-  if (IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE & flags) {
+  if (IVY_DEPTH_ENABLE & flags) {
     depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
     depthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
   } else {
@@ -328,8 +406,12 @@ IVY_API VkResult ivyCreateVulkanPipeline(VkDevice device, int32_t width,
   pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
   pipelineCreateInfo.basePipelineIndex = -1;
 
-  return vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
+  vulkanResult = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
       &pipelineCreateInfo, NULL, pipeline);
+
+  ivyFreeMemory(allocator, vertexInputAttributesDescriptions);
+
+  return vulkanResult;
 }
 
 IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
@@ -340,6 +422,8 @@ IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
     IvyGraphicsProgramPropertyFlags flags, IvyGraphicsProgram *program) {
   VkResult vulkanResult;
   IvyCode ivyCode;
+  VkShaderModule vertexShader = VK_NULL_HANDLE;
+  VkShaderModule fragmentShader = VK_NULL_HANDLE;
 
   IVY_ASSERT(program);
   IVY_ASSERT(vertexShaderPath);
@@ -348,31 +432,43 @@ IVY_API IvyCode ivyCreateGraphicsProgram(IvyAnyMemoryAllocator allocator,
   IVY_MEMSET(program, 0, sizeof(*program));
 
   vulkanResult = ivyCreateVulkanShader(allocator, device->logicalDevice,
-      vertexShaderPath, &program->vertexShader);
+      vertexShaderPath, &vertexShader);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
   vulkanResult = ivyCreateVulkanShader(allocator, device->logicalDevice,
-      fragmentShaderPath, &program->fragmentShader);
+      fragmentShaderPath, &fragmentShader);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
 
-  vulkanResult = ivyCreateVulkanPipeline(device->logicalDevice, viewportWidth,
-      viewportHeight, flags, samples, renderPass, pipelineLayout,
-      program->vertexShader, program->fragmentShader, &program->pipeline);
+  vulkanResult = ivyCreateVulkanPipeline(allocator, device->logicalDevice,
+      viewportWidth, viewportHeight, flags, samples, renderPass,
+      pipelineLayout, vertexShader, fragmentShader, &program->pipeline);
   if (vulkanResult) {
     ivyCode = ivyVulkanResultAsIvyCode(vulkanResult);
     goto error;
   }
+
+  vkDestroyShaderModule(device->logicalDevice, fragmentShader, NULL);
+  vkDestroyShaderModule(device->logicalDevice, vertexShader, NULL);
 
   return IVY_OK;
 
 error:
   ivyDestroyGraphicsProgram(device, program);
+
+  if (fragmentShader) {
+    vkDestroyShaderModule(device->logicalDevice, fragmentShader, NULL);
+  }
+
+  if (vertexShader) {
+    vkDestroyShaderModule(device->logicalDevice, vertexShader, NULL);
+  }
+
   // FIXME: check for when the path was not found
   return ivyCode;
 }
@@ -382,16 +478,5 @@ IVY_API void ivyDestroyGraphicsProgram(IvyGraphicsDevice *device,
   if (program->pipeline) {
     vkDestroyPipeline(device->logicalDevice, program->pipeline, NULL);
     program->pipeline = VK_NULL_HANDLE;
-  }
-
-  if (program->fragmentShader) {
-    vkDestroyShaderModule(device->logicalDevice, program->fragmentShader,
-        NULL);
-    program->fragmentShader = VK_NULL_HANDLE;
-  }
-
-  if (program->vertexShader) {
-    vkDestroyShaderModule(device->logicalDevice, program->vertexShader, NULL);
-    program->vertexShader = VK_NULL_HANDLE;
   }
 }

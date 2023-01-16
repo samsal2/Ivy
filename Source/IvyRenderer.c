@@ -230,14 +230,23 @@ IVY_INTERNAL IvyCode ivyFindAvailableVulkanPhysicalDevices(
 IVY_INTERNAL VkExtensionProperties *ivyAllocateVulkanExtensionsProperties(
     IvyAnyMemoryAllocator allocator, VkPhysicalDevice physicalDevice,
     uint32_t *count) {
+  VkResult vulkanResult;
   VkExtensionProperties *extensions;
-  vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count, NULL);
+  vulkanResult =
+      vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count, NULL);
+  if (vulkanResult) {
+    return NULL;
+  }
   extensions = ivyAllocateMemory(allocator, *count * sizeof(*extensions));
   if (!extensions) {
     return NULL;
   }
-  vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, count,
-      extensions);
+  vulkanResult = vkEnumerateDeviceExtensionProperties(physicalDevice, NULL,
+      count, extensions);
+  if (vulkanResult) {
+    ivyFreeMemory(allocator, extensions);
+    return NULL;
+  }
   return extensions;
 }
 
@@ -764,6 +773,11 @@ IVY_INTERNAL void ivyDestroyGraphicsFrames(IvyAnyMemoryAllocator allocator,
     VkDescriptorPool descriptorPool, uint32_t frameCount,
     IvyGraphicsFrame *frames) {
   uint32_t frameIndex;
+
+  if (!frames) {
+    return;
+  }
+
   for (frameIndex = 0; frameIndex < frameCount; ++frameIndex) {
     IvyGraphicsFrame *frame = &frames[frameIndex];
 
@@ -774,10 +788,7 @@ IVY_INTERNAL void ivyDestroyGraphicsFrames(IvyAnyMemoryAllocator allocator,
         IvyGraphicsRenderBufferChunk *chunk =
             &frame->garbageChunks[garbageChunkIndex];
 
-        if (chunk->memory.memory) {
-          ivyFreeGraphicsMemory(device, graphicsMemoryAllocator,
-              &chunk->memory);
-        }
+        ivyFreeGraphicsMemory(device, graphicsMemoryAllocator, &chunk->memory);
 
         if (chunk->descriptorSet) {
           vkFreeDescriptorSets(device->logicalDevice, descriptorPool, 1,
@@ -794,10 +805,8 @@ IVY_INTERNAL void ivyDestroyGraphicsFrames(IvyAnyMemoryAllocator allocator,
       ivyFreeMemory(allocator, frame->garbageChunks);
     }
 
-    if (frame->currentChunk.memory.memory) {
-      ivyFreeGraphicsMemory(device, graphicsMemoryAllocator,
-          &frame->currentChunk.memory);
-    }
+    ivyFreeGraphicsMemory(device, graphicsMemoryAllocator,
+        &frame->currentChunk.memory);
 
     if (frame->currentChunk.descriptorSet) {
       vkFreeDescriptorSets(device->logicalDevice, descriptorPool, 1,
@@ -930,6 +939,11 @@ IVY_INTERNAL void ivyDestroyGraphicsRenderSemaphores(
     IvyAnyMemoryAllocator allocator, IvyGraphicsDevice *device, uint32_t count,
     IvyGraphicsRenderSemaphores *semaphores) {
   uint32_t index;
+
+  if (!semaphores) {
+    return;
+  }
+
   for (index = 0; index < count; ++index) {
     IvyGraphicsRenderSemaphores *semaphore = &semaphores[index];
     if (semaphore->swapchainImageAvailableSemaphore) {
@@ -944,6 +958,7 @@ IVY_INTERNAL void ivyDestroyGraphicsRenderSemaphores(
       semaphore->renderDoneSemaphore = VK_NULL_HANDLE;
     }
   }
+
   ivyFreeMemory(allocator, semaphores);
 }
 
@@ -1117,34 +1132,23 @@ IVY_INTERNAL VkResult ivyCreateVulkanUniformDescriptorSetLayout(
 
 IVY_INTERNAL VkResult ivyCreateVulkanTextureDescriptorSetLayout(
     VkDevice device, VkDescriptorSetLayout *descriptorSetLayout) {
-  uint32_t index;
-  VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[2];
+  VkDescriptorSetLayoutBinding descriptorSetLayoutBinding;
   VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
 
-  for (index = 0; index < IVY_ARRAY_LENGTH(descriptorSetLayoutBindings);
-       ++index) {
-    descriptorSetLayoutBindings[index].binding = index;
-    if (0 == index) {
-      descriptorSetLayoutBindings[index].descriptorType =
-          VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-    } else if (1 == index) {
-      descriptorSetLayoutBindings[index].descriptorType =
-          VK_DESCRIPTOR_TYPE_SAMPLER;
-    }
-    descriptorSetLayoutBindings[index].descriptorCount = 1;
-    descriptorSetLayoutBindings[index].stageFlags = 0;
-    descriptorSetLayoutBindings[index].stageFlags |=
-        VK_SHADER_STAGE_FRAGMENT_BIT;
-    descriptorSetLayoutBindings[index].pImmutableSamplers = NULL;
-  }
+  descriptorSetLayoutBinding.binding = 0;
+  descriptorSetLayoutBinding.descriptorType =
+      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  descriptorSetLayoutBinding.descriptorCount = 1;
+  descriptorSetLayoutBinding.stageFlags = 0;
+  descriptorSetLayoutBinding.stageFlags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+  descriptorSetLayoutBinding.pImmutableSamplers = NULL;
 
   descriptorSetLayoutCreateInfo.sType =
       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
   descriptorSetLayoutCreateInfo.pNext = NULL;
   descriptorSetLayoutCreateInfo.flags = 0;
-  descriptorSetLayoutCreateInfo.bindingCount =
-      IVY_ARRAY_LENGTH(descriptorSetLayoutBindings);
-  descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBindings;
+  descriptorSetLayoutCreateInfo.bindingCount = 1;
+  descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
 
   return vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo,
       NULL, descriptorSetLayout);
@@ -1177,11 +1181,7 @@ IVY_INTERNAL VkResult ivyCreateVulkanMainPipelineLayout(VkDevice device,
 IVY_INTERNAL void ivyDestroyGraphicsAttachment(IvyGraphicsDevice *device,
     IvyAnyGraphicsMemoryAllocator graphicsMemoryAllocator,
     IvyGraphicsAttachment *attachment) {
-  if (attachment->memory.memory) {
-    ivyFreeGraphicsMemory(device, graphicsMemoryAllocator,
-        &attachment->memory);
-    attachment->memory.memory = VK_NULL_HANDLE;
-  }
+  ivyFreeGraphicsMemory(device, graphicsMemoryAllocator, &attachment->memory);
 
   if (attachment->imageView) {
     vkDestroyImageView(device->logicalDevice, attachment->imageView, NULL);
@@ -1215,9 +1215,9 @@ IVY_INTERNAL IvyCode ivyCreateGraphicsAttachment(IvyGraphicsDevice *device,
     goto error;
   }
 
-  ivyCode = ivyAllocateAndBindGraphicsMemoryToImage(device,
-      graphicsMemoryAllocator, IVY_GRAPHICS_MEMORY_PROPERTY_GPU_LOCAL,
-      attachment->image, &attachment->memory);
+  ivyCode =
+      ivyAllocateAndBindGraphicsMemoryToImage(device, graphicsMemoryAllocator,
+          IVY_GPU_LOCAL, attachment->image, &attachment->memory);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
     goto error;
@@ -1465,11 +1465,8 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
       currentRenderer->mainRenderPass, currentRenderer->mainPipelineLayout,
       currentRenderer->swapchainWidth, currentRenderer->swapchainHeight,
       "../GLSL/Basic.vert.spv", "../GLSL/Basic.frag.spv",
-      IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_FILL |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_BLEND_ENABLE |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE,
+      IVY_VERTEX_332_ENABLE | IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE |
+          IVY_BLEND_ENABLE | IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
       &currentRenderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -1500,19 +1497,15 @@ IVY_API void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
   ivyDestroyGraphicsProgram(&renderer->device,
       &renderer->basicGraphicsProgram);
 
-  if (renderer->renderSemaphores) {
-    ivyDestroyGraphicsRenderSemaphores(allocator, &renderer->device,
-        renderer->swapchainImageCount, renderer->renderSemaphores);
-    renderer->renderSemaphores = NULL;
-  }
+  ivyDestroyGraphicsRenderSemaphores(allocator, &renderer->device,
+      renderer->swapchainImageCount, renderer->renderSemaphores);
+  renderer->renderSemaphores = NULL;
 
-  if (renderer->frames) {
-    ivyDestroyGraphicsFrames(allocator, &renderer->device,
-        &renderer->defaultGraphicsMemoryAllocator,
-        renderer->globalDescriptorPool, renderer->swapchainImageCount,
-        renderer->frames);
-    renderer->frames = NULL;
-  }
+  ivyDestroyGraphicsFrames(allocator, &renderer->device,
+      &renderer->defaultGraphicsMemoryAllocator,
+      renderer->globalDescriptorPool, renderer->swapchainImageCount,
+      renderer->frames);
+  renderer->frames = NULL;
 
   if (renderer->swapchain) {
     vkDestroySwapchainKHR(renderer->device.logicalDevice, renderer->swapchain,
@@ -1569,10 +1562,8 @@ IVY_API void ivyDestroyRenderer(IvyAnyMemoryAllocator allocator,
     renderer->device.logicalDevice = VK_NULL_HANDLE;
   }
 
-  if (renderer->availablePhysicalDevices) {
-    ivyFreeMemory(allocator, renderer->availablePhysicalDevices);
-    renderer->availablePhysicalDevices = NULL;
-  }
+  ivyFreeMemory(allocator, renderer->availablePhysicalDevices);
+  renderer->availablePhysicalDevices = NULL;
 
   if (renderer->surface) {
     vkDestroySurfaceKHR(renderer->instance, renderer->surface, NULL);
@@ -1722,11 +1713,8 @@ IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
       renderer->mainPipelineLayout, renderer->swapchainWidth,
       renderer->swapchainHeight, "../GLSL/Basic.vert.spv",
       "../GLSL/Basic.frag.spv",
-      IVY_GRAPHICS_PROGRAM_PROPERTY_POLYGON_MODE_FILL |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_DEPTH_ENABLE |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_BLEND_ENABLE |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_CULL_BACK |
-          IVY_GRAPHICS_PROGRAM_PROPERTY_FRONT_FACE_COUNTERCLOCKWISE,
+      IVY_VERTEX_332_ENABLE | IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE |
+          IVY_BLEND_ENABLE | IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
       &renderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -1834,8 +1822,8 @@ IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyRenderer *renderer,
     }
 
     ivyCode = ivyAllocateAndBindGraphicsMemoryToBuffer(&renderer->device,
-        &renderer->defaultGraphicsMemoryAllocator,
-        IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE, newBuffer, &newMemory);
+        &renderer->defaultGraphicsMemoryAllocator, IVY_CPU_VISIBLE, newBuffer,
+        &newMemory);
     IVY_ASSERT(!ivyCode);
     if (ivyCode) {
       vkDestroyBuffer(renderer->device.logicalDevice, newBuffer, NULL);
@@ -2008,7 +1996,6 @@ IVY_API IvyCode ivyEndGraphicsFrame(IvyRenderer *renderer) {
   // FIXME(samuel): check vulkanResult
   vulkanResult =
       vkQueuePresentKHR(renderer->device.presentQueue, &presentInfo);
-  IVY_ASSERT(!vulkanResult);
 
   ++renderer->currentSemaphoreIndex;
   if (renderer->currentSemaphoreIndex == renderer->swapchainImageCount) {
@@ -2024,9 +2011,9 @@ IVY_API void ivyBindGraphicsProgram(IvyRenderer *renderer,
     IvyGraphicsProgram *program) {
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
-  if (renderer->boundGraphicsProgram == program)
+  if (renderer->boundGraphicsProgram == program) {
     return;
-
+  }
   renderer->boundGraphicsProgram = program;
   vkCmdBindPipeline(frame->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
       program->pipeline);

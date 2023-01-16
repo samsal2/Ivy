@@ -8,8 +8,8 @@
 typedef struct IvyGraphicsDevice IvyGraphicsDevice;
 
 typedef enum IvyGraphicsMemoryProperty {
-  IVY_GRAPHICS_MEMORY_PROPERTY_GPU_LOCAL = 0x0001,
-  IVY_GRAPHICS_MEMORY_PROPERTY_CPU_VISIBLE = 0x0002,
+  IVY_GPU_LOCAL = 0x0001,
+  IVY_CPU_VISIBLE = 0x0002,
 } IvyGraphicsMemoryChunkProperty;
 typedef uint64_t IvyGraphicsMemoryPropertyFlags;
 

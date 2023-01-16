@@ -3,7 +3,7 @@
 #include "IvyLog.h"
 
 IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
-    uint64_t vertexCount, IvyGraphicsProgramVertex *vertices) {
+    uint64_t vertexCount, IvyGraphicsVertex332 *vertices) {
   IvyCode ivyCode;
   IvyGraphicsTemporaryBuffer vertexBuffer;
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
@@ -78,7 +78,7 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
   IvyCode ivyCode;
 
   IvyGraphicsProgramUniform uniform;
-  IvyGraphicsProgramVertex vertices[4];
+  IvyGraphicsVertex332 vertices[4];
   IvyGraphicsProgramIndex indices[] = {0, 2, 1, 2, 3, 1};
 
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);

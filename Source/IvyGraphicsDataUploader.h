@@ -7,8 +7,12 @@
 typedef struct IvyGraphicsDevice IvyGraphicsDevice;
 
 IVY_API IvyCode ivyUploadDataToVulkanImage(IvyGraphicsDevice *device,
-    IvyAnyGraphicsMemoryAllocator allocator, VkCommandPool commandPool,
-    int32_t width, int32_t height, IvyPixelFormat format, void *data,
-    VkImage image);
+    IvyAnyGraphicsMemoryAllocator graphicsMemoryAllocator,
+    VkCommandPool commandPool, int32_t width, int32_t height,
+    IvyPixelFormat format, void *data, VkImage image);
+
+IVY_API IvyCode ivyUploadDataToVulkanBuffer(IvyGraphicsDevice *device,
+    IvyAnyGraphicsMemoryAllocator graphicsMemoryAllocator,
+    VkCommandPool commandPool, uint64_t size, void *data, VkBuffer buffer);
 
 #endif

@@ -60,6 +60,25 @@ typedef struct IvyGraphicsRenderSemaphores {
   VkSemaphore swapchainImageAvailableSemaphore;
 } IvyGraphicsRenderSemaphores;
 
+typedef struct IvyGraphicsEnvironmentTexture {
+  VkImage image;
+  VkImageView imageView;
+  IvyGraphicsMemory memory;
+} IvyGraphicsEnvironmentTexture;
+
+typedef struct IvyGraphicsEnviromentMap {
+  VkImage image;
+  VkImageView imageView;
+  IvyGraphicsMemory memory;
+} IvyGraphicsEnviromentMap;
+
+typedef struct IvyGraphicsEnviroment {
+  VkDescriptorSet descriptorSet;
+  IvyGraphicsEnvironmentTexture skybox;
+  IvyGraphicsEnviromentMap brdflut;
+  IvyGraphicsEnviromentMap irradiance;
+} IvyGraphicsEnvironment;
+
 typedef struct IvyRenderer {
   IvyApplication *application;
   IvyAnyMemoryAllocator ownerMemoryAllocator;
@@ -93,6 +112,7 @@ typedef struct IvyRenderer {
   uint32_t swapchainImageCount;
   uint32_t currentSwapchainImageIndex;
   uint32_t currentSemaphoreIndex;
+  IvyGraphicsEnvironment environment;
   IvyGraphicsFrame *frames;
   IvyGraphicsRenderSemaphores *renderSemaphores;
   IvyGraphicsProgram basicGraphicsProgram;
