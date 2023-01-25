@@ -12,10 +12,15 @@ typedef IvyV2 IvyM2[2];
 typedef IvyV3 IvyM3[3];
 typedef IvyV4 IvyM4[4];
 
+IVY_API float ivyDegToRad(float deg);
+
+IVY_API void ivySetV3(float x, float y, float z, IvyV3 out);
+
 // TODO(samuel): inline versions
 
 IVY_API void ivyCopyV3(IvyV3 const vector, IvyV3 out);
 IVY_API void ivyCopyV4(IvyV4 const vector, IvyV4 out);
+IVY_API void ivyCopyM4(IvyM4 const matrix, IvyM4 out);
 
 IVY_API void ivyIdentityM3(IvyM3 matrix);
 IVY_API void ivyIdentityM4(IvyM4 matrix);

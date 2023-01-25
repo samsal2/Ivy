@@ -3,8 +3,20 @@
 
 #include <math.h>
 
+#define IVY_PI 3.14159265358979323846
+
 IVY_INTERNAL float ivySqrt(float value) {
   return sqrtf(value);
+}
+
+IVY_API float ivyDegToRad(float deg) {
+  return deg / 180.0F * IVY_PI;
+}
+
+IVY_API void ivySetV3(float x, float y, float z, IvyV3 out) {
+  out[0] = x;
+  out[1] = y;
+  out[2] = z;
 }
 
 IVY_API void ivyCopyV3(IvyV3 const vector, IvyV3 out) {
@@ -17,7 +29,11 @@ IVY_API void ivyCopyV4(IvyV4 const vector, IvyV4 out) {
   out[0] = vector[0];
   out[1] = vector[1];
   out[2] = vector[2];
-  out[4] = vector[4];
+  out[3] = vector[3];
+}
+
+IVY_API void ivyCopyM4(IvyM4 const matrix, IvyM4 out) {
+  IVY_MEMCPY(out, matrix, sizeof(IvyM4));
 }
 
 IVY_API void ivyIdentityM3(IvyM3 matrix) {
@@ -51,18 +67,18 @@ IVY_API void ivyIdentityM4(IvyM4 matrix) {
   matrix[3][3] = 1.0F;
 }
 
-IVY_API void ivyBroadcastV2(IVY_API float value, IvyV2 vector) {
+IVY_API void ivyBroadcastV2(float value, IvyV2 vector) {
   vector[0] = value;
   vector[1] = value;
 }
 
-IVY_API void ivyBroadcastV3(IVY_API float value, IvyV3 vector) {
+IVY_API void ivyBroadcastV3(float value, IvyV3 vector) {
   vector[0] = value;
   vector[1] = value;
   vector[2] = value;
 }
 
-IVY_API void ivyBroadcastV4(IVY_API float value, IvyV4 vector) {
+IVY_API void ivyBroadcastV4(float value, IvyV4 vector) {
   vector[0] = value;
   vector[1] = value;
   vector[2] = value;
@@ -81,18 +97,18 @@ IVY_API float ivyGetMagnitudeOfV4(IvyV4 vector) {
   return ivySqrt(ivyDotV4ToV4(vector, vector));
 }
 
-IVY_API void ivyScaleV2(IVY_API float value, IvyV2 inOut) {
+IVY_API void ivyScaleV2(float value, IvyV2 inOut) {
   inOut[0] *= value;
   inOut[1] *= value;
 }
 
-IVY_API void ivyScaleV3(IVY_API float value, IvyV3 inOut) {
+IVY_API void ivyScaleV3(float value, IvyV3 inOut) {
   inOut[0] *= value;
   inOut[1] *= value;
   inOut[2] *= value;
 }
 
-IVY_API void ivyScaleV4(IVY_API float value, IvyV4 inOut) {
+IVY_API void ivyScaleV4(float value, IvyV4 inOut) {
   inOut[0] *= value;
   inOut[1] *= value;
   inOut[2] *= value;
@@ -123,9 +139,20 @@ IVY_API void ivyZeroV4(IvyV4 out) {
   ivyBroadcastV4(0.0F, out);
 }
 
-IVY_API void ivyInvM2(IvyM2 out);
-IVY_API void ivyInvM3(IvyM3 out);
-IVY_API void ivyInvM4(IvyM4 out);
+IVY_API void ivyInvM2(IvyM2 out) {
+  IVY_UNUSED(out);
+  IVY_TODO();
+}
+
+IVY_API void ivyInvM3(IvyM3 out) {
+  IVY_UNUSED(out);
+  IVY_TODO();
+}
+
+IVY_API void ivyInvM4(IvyM4 out) {
+  IVY_UNUSED(out);
+  IVY_TODO();
+}
 
 IVY_API void ivyCrossV2ToV2(IvyV2 const lhs, IvyV2 const rhs,
     IvyV2 const out) {
@@ -237,15 +264,16 @@ IVY_API void ivyMulM3ToM3(IvyM3 const lhs, IvyM3 const rhs, IvyM3 out) {
 
 IVY_API void ivyMulM4ToM4(IvyM4 const lhs, const IvyM4 rhs, IvyM4 out) {
   /* clang-format off */
-  IVY_API float a00 = lhs[0][0], a01 = lhs[0][1], a02 = lhs[0][2], a03 = lhs[0][3], // NOLINT
-        a10 = lhs[1][0], a11 = lhs[1][1], a12 = lhs[1][2], a13 = lhs[1][3],
-        a20 = lhs[2][0], a21 = lhs[2][1], a22 = lhs[2][2], a23 = lhs[2][3],
-        a30 = lhs[3][0], a31 = lhs[3][1], a32 = lhs[3][2], a33 = lhs[3][3],
+  float const
+    a00 = lhs[0][0], a01 = lhs[0][1], a02 = lhs[0][2], a03 = lhs[0][3], // NOLINT
+    a10 = lhs[1][0], a11 = lhs[1][1], a12 = lhs[1][2], a13 = lhs[1][3],
+    a20 = lhs[2][0], a21 = lhs[2][1], a22 = lhs[2][2], a23 = lhs[2][3],
+    a30 = lhs[3][0], a31 = lhs[3][1], a32 = lhs[3][2], a33 = lhs[3][3],
 
-        b00 = rhs[0][0], b01 = rhs[0][1], b02 = rhs[0][2], b03 = rhs[0][3],
-        b10 = rhs[1][0], b11 = rhs[1][1], b12 = rhs[1][2], b13 = rhs[1][3],
-        b20 = rhs[2][0], b21 = rhs[2][1], b22 = rhs[2][2], b23 = rhs[2][3],
-        b30 = rhs[3][0], b31 = rhs[3][1], b32 = rhs[3][2], b33 = rhs[3][3];
+    b00 = rhs[0][0], b01 = rhs[0][1], b02 = rhs[0][2], b03 = rhs[0][3],
+    b10 = rhs[1][0], b11 = rhs[1][1], b12 = rhs[1][2], b13 = rhs[1][3],
+    b20 = rhs[2][0], b21 = rhs[2][1], b22 = rhs[2][2], b23 = rhs[2][3],
+    b30 = rhs[3][0], b31 = rhs[3][1], b32 = rhs[3][2], b33 = rhs[3][3];
   /* clang-format on */
 
   out[0][0] = a00 * b00 + a10 * b01 + a20 * b02 + a30 * b03;
@@ -266,7 +294,7 @@ IVY_API void ivyMulM4ToM4(IvyM4 const lhs, const IvyM4 rhs, IvyM4 out) {
   out[3][3] = a03 * b30 + a13 * b31 + a23 * b32 + a33 * b33;
 }
 
-IVY_API void ivyMakeRotateM4(IVY_API float angle, IvyV3 const axis,
+IVY_API void ivyMakeRotateM4(float angle, IvyV3 const axis,
     IvyM4 out) {
   IVY_UNUSED(angle);
   IVY_UNUSED(axis);
@@ -275,13 +303,26 @@ IVY_API void ivyMakeRotateM4(IVY_API float angle, IvyV3 const axis,
 }
 
 IVY_API void ivyTranslateM4(IvyV3 const offset, IvyM4 inOut) {
-  IVY_UNUSED(offset);
-  IVY_UNUSED(inOut);
+  IvyV4 v0;
+  IvyV4 v1;
+  IvyV4 v2;
+
+  ivyCopyV4(inOut[0], v0);
+  ivyCopyV4(inOut[1], v1);
+  ivyCopyV4(inOut[2], v2);
+
+  ivyScaleV4(offset[0], v0);
+  ivyScaleV4(offset[1], v1);
+  ivyScaleV4(offset[2], v2);
+
+  ivyAddV4ToV4(v0, inOut[3], inOut[3]);
+  ivyAddV4ToV4(v1, inOut[3], inOut[3]);
+  ivyAddV4ToV4(v2, inOut[3], inOut[3]);
 }
 
-IVY_API void ivyCreateOrthographicM4(IVY_API float left, IVY_API float right,
-    IVY_API float bottom, IVY_API float top, IVY_API float near,
-    IVY_API float far, IvyM4 out) {
+IVY_API void ivyCreateOrthographicM4(float left, float right,
+    float bottom, float top, float near,
+    float far, IvyM4 out) {
   IVY_UNUSED(left);
   IVY_UNUSED(right);
   IVY_UNUSED(bottom);
@@ -292,14 +333,14 @@ IVY_API void ivyCreateOrthographicM4(IVY_API float left, IVY_API float right,
   IVY_TODO();
 }
 
-IVY_INTERNAL float ivyTan(IVY_API float value) {
+IVY_INTERNAL float ivyTan(float value) {
   return tanf(value);
 }
 
-IVY_API void ivyCreatePerspectiveM4(IVY_API float fov, IVY_API float ratio,
-    IVY_API float near, IVY_API float far, IvyM4 out) {
-  IVY_API float const focalLength = 1.0F / ivyTan(fov * 0.5F);
-  IVY_API float const inverseOfFarNear = 1.0F / (far - near);
+IVY_API void ivyCreatePerspectiveM4(float fov, float ratio,
+    float near, float far, IvyM4 out) {
+  float const focalLength = 1.0F / ivyTan(fov * 0.5F);
+  float const inverseOfFarNear = 1.0F / (far - near);
 
   out[0][0] = focalLength / ratio;
   out[0][1] = 0.0F;
@@ -366,7 +407,7 @@ IVY_API void ivyCreateLookAtM4(IvyV3 const eye, IvyV3 const atPoint,
   out[3][3] = 0.0F;
 }
 
-IVY_API void ivyCreateDirectionV3(IVY_API float pitch, IVY_API float yaw,
+IVY_API void ivyCreateDirectionV3(float pitch, float yaw,
     IvyV3 const upDirection, IvyV3 const out) {
   IVY_UNUSED(pitch);
   IVY_UNUSED(yaw);
@@ -375,7 +416,7 @@ IVY_API void ivyCreateDirectionV3(IVY_API float pitch, IVY_API float yaw,
   IVY_TODO();
 }
 
-IVY_API void ivyRotateM4(IvyM4 matrix, IVY_API float angle, IvyV3 const axis,
+IVY_API void ivyRotateM4(IvyM4 matrix, float angle, IvyV3 const axis,
     IvyM4 out) {
   IVY_UNUSED(matrix);
   IVY_UNUSED(angle);
@@ -405,7 +446,7 @@ IVY_API void ivyGetDistanceBetweenV4AndV4(IvyV4 const source,
 }
 
 IVY_API void ivyMixV3(IvyV3 const source, IvyV3 const destination,
-    IVY_API float weight, IvyV3 const out) {
+    float weight, IvyV3 const out) {
   IVY_UNUSED(source);
   IVY_UNUSED(destination);
   IVY_UNUSED(weight);
@@ -414,7 +455,7 @@ IVY_API void ivyMixV3(IvyV3 const source, IvyV3 const destination,
 }
 
 IVY_API void ivyMixV4(IvyV4 const source, IvyV4 const destination,
-    IVY_API float weight, IvyV4 const out) {
+    float weight, IvyV4 const out) {
   IVY_UNUSED(source);
   IVY_UNUSED(destination);
   IVY_UNUSED(weight);

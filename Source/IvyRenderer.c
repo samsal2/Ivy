@@ -1238,6 +1238,19 @@ error:
   return ivyCode;
 }
 
+IVY_INTERNAL float ivyGetGraphicsSwapchainRatio(IvyRenderer *renderer) {
+  return (float)renderer->swapchainWidth / (float)renderer->swapchainHeight;
+}
+
+IVY_INTERNAL void ivyComputeRendererProjectionAndView(IvyRenderer *renderer) {
+  float const near = 0.01;
+  float const far = 10.0F;
+  float ratio = ivyGetGraphicsSwapchainRatio(renderer);
+
+  ivyCreatePerspectiveM4(ivyDegToRad(90.0F), ratio, near, far, renderer->projection);
+  ivyCreateLookM4(renderer->cameraEye, renderer->cameraDirection, renderer->cameraUp, renderer->cameraView);
+}
+
 IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
     IvyApplication *application, IvyRenderer **renderer) {
   IvyCode ivyCode = IVY_OK;
@@ -1256,6 +1269,11 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
 
   currentRenderer->application = application;
   currentRenderer->ownerMemoryAllocator = allocator;
+
+
+  ivySetV3(0.0F, 1.0F, 0.0F, currentRenderer->cameraUp);
+  ivySetV3(0.0F, 0.0F, 1.0F, currentRenderer->cameraDirection);
+  ivySetV3(0.0F, -0.5F, 3.0F, currentRenderer->cameraEye);
 
   vulkanResult =
       ivyCreateVulkanInstance(application, &currentRenderer->instance);
@@ -1429,6 +1447,8 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
     goto error;
   }
 
+  ivyComputeRendererProjectionAndView(currentRenderer);
+
   swapchainImages = ivyAllocateVulkanSwapchainImages(allocator,
       currentRenderer->device.logicalDevice, currentRenderer->swapchain,
       &currentRenderer->swapchainImageCount);
@@ -1466,7 +1486,7 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
       currentRenderer->swapchainWidth, currentRenderer->swapchainHeight,
       "../GLSL/Basic.vert.spv", "../GLSL/Basic.frag.spv",
       IVY_VERTEX_332_ENABLE | IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE |
-          IVY_BLEND_ENABLE | IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+          IVY_BLEND_ENABLE | IVY_CULL_BACK | IVY_FRONT_FACE_CLOCKWISE,
       &currentRenderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -1714,7 +1734,7 @@ IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
       renderer->swapchainHeight, "../GLSL/Basic.vert.spv",
       "../GLSL/Basic.frag.spv",
       IVY_VERTEX_332_ENABLE | IVY_POLYGON_MODE_FILL | IVY_DEPTH_ENABLE |
-          IVY_BLEND_ENABLE | IVY_CULL_BACK | IVY_FRONT_FACE_COUNTERCLOCKWISE,
+          IVY_BLEND_ENABLE | IVY_CULL_BACK | IVY_FRONT_FACE_COUNTER_CLOCKWISE,
       &renderer->basicGraphicsProgram);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
@@ -1897,6 +1917,7 @@ IVY_API IvyCode ivyBeginGraphicsFrame(IvyRenderer *renderer) {
 
   if (renderer->requiresSwapchainRebuild) {
     ivyRebuildGraphicsSwapchain(renderer);
+    ivyComputeRendererProjectionAndView(renderer);
   }
 
   ivyCode = ivyAcquireNextVulkanSwapchainImageIndex(renderer);
@@ -2014,6 +2035,7 @@ IVY_API void ivyBindGraphicsProgram(IvyRenderer *renderer,
   if (renderer->boundGraphicsProgram == program) {
     return;
   }
+
   renderer->boundGraphicsProgram = program;
   vkCmdBindPipeline(frame->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
       program->pipeline);

@@ -274,9 +274,9 @@ IVY_API VkResult ivyCreateVulkanPipeline(IvyAnyMemoryAllocator allocator,
     rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
   }
 
-  if (IVY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
+  if (IVY_FRONT_FACE_COUNTER_CLOCKWISE & flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-  } else if (IVY_FRONT_FACE_COUNTERCLOCKWISE & flags) {
+  } else if (IVY_FRONT_FACE_COUNTER_CLOCKWISE & flags) {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
   } else {
     rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;

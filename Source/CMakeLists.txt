@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.25)
+
 target_sources(${PROJECT_NAME} PRIVATE 
   IvyApplication.c
   IvyApplication.h
@@ -12,6 +14,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyDummyMemoryAllocator.h
   IvyGraphicsDataUploader.c
   IvyGraphicsDataUploader.h
+  IvyGraphicsIndexBuffer.c
+  IvyGraphicsIndexBuffer.h
   IvyGraphicsMemoryAllocator.c
   IvyGraphicsMemoryAllocator.h
   IvyGraphicsMemoryChunk.c
@@ -20,6 +24,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyGraphicsProgram.h
   IvyGraphicsTexture.c
   IvyGraphicsTexture.h
+  IvyGraphicsVertexBuffer.c
+  IvyGraphicsVertexBuffer.h
   IvyLog.c
   IvyLog.h
   IvyMemoryAllocator.c

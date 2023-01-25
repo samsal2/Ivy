@@ -4,6 +4,7 @@
 #include "IvyDummyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsProgram.h"
 #include "IvyMemoryAllocator.h"
+#include "IvyVectorMath.h"
 
 #define IVY_MAX_SWAPCHAIN_IMAGES 8
 
@@ -80,6 +81,11 @@ typedef struct IvyGraphicsEnviroment {
 } IvyGraphicsEnvironment;
 
 typedef struct IvyRenderer {
+  IvyM4 projection;
+  IvyM4 cameraView;
+  IvyV3 cameraDirection;
+  IvyV3 cameraUp;
+  IvyV3 cameraEye;
   IvyApplication *application;
   IvyAnyMemoryAllocator ownerMemoryAllocator;
   VkInstance instance;
@@ -112,7 +118,7 @@ typedef struct IvyRenderer {
   uint32_t swapchainImageCount;
   uint32_t currentSwapchainImageIndex;
   uint32_t currentSemaphoreIndex;
-  IvyGraphicsEnvironment environment;
+  // IvyGraphicsEnvironment environment;
   IvyGraphicsFrame *frames;
   IvyGraphicsRenderSemaphores *renderSemaphores;
   IvyGraphicsProgram basicGraphicsProgram;

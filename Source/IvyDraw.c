@@ -3,7 +3,7 @@
 #include "IvyLog.h"
 
 IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
-    uint64_t vertexCount, IvyGraphicsVertex332 *vertices) {
+    uint64_t vertexCount, IvyGraphicsVertex332 const *vertices) {
   IvyCode ivyCode;
   IvyGraphicsTemporaryBuffer vertexBuffer;
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
@@ -24,7 +24,7 @@ IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
 }
 
 IVY_INTERNAL IvyCode ivyBindGraphicsIndexData(IvyRenderer *renderer,
-    uint64_t indexCount, IvyGraphicsProgramIndex *indices) {
+    uint64_t indexCount, IvyGraphicsProgramIndex const *indices) {
   IvyCode ivyCode;
   IvyGraphicsTemporaryBuffer indexBuffer;
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
@@ -79,7 +79,8 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
 
   IvyGraphicsProgramUniform uniform;
   IvyGraphicsVertex332 vertices[4];
-  IvyGraphicsProgramIndex indices[] = {0, 2, 1, 2, 3, 1};
+  IvyGraphicsProgramIndex const indices[] = {0, 2, 1, 2, 3, 1};
+  // IvyGraphicsProgramIndex const indices[] = {2, 3, 1, 1, 3, 0};
 
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
@@ -141,7 +142,17 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
     return ivyCode;
   }
 
-  IVY_MEMSET(&uniform, 0, sizeof(uniform));
+  ivyCopyM4(renderer->projection, uniform.projection);
+  ivyCopyM4(renderer->cameraView, uniform.view);
+
+  {
+    // IvyV3 position = {0.0F, 0.0F, 2.0F};
+    ivyIdentityM4(uniform.model);
+    ivyIdentityM4(uniform.view);
+    ivyIdentityM4(uniform.projection);
+    // ivyTranslateM4(position, uniform.model);
+  }
+
   ivyCode = IvyBindGraphicsUniformData(renderer, &uniform);
   IVY_ASSERT(!ivyCode);
   if (ivyCode) {
