@@ -84,14 +84,14 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
 
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
-  vertices[0].position[0] = topLeftX;
-  vertices[0].position[1] = topLeftY;
-  vertices[0].position[2] = 0.0F;
-  vertices[0].color[0] = red;
-  vertices[0].color[1] = green;
-  vertices[0].color[2] = blue;
-  vertices[0].uv[0] = 0.0F;
-  vertices[0].uv[1] = 0.0F;
+  vertices[0].position.x = topLeftX;
+  vertices[0].position.y = topLeftY;
+  vertices[0].position.z = 0.0F;
+  vertices[0].color.x = red;
+  vertices[0].color.y = green;
+  vertices[0].color.z = blue;
+  vertices[0].uv.x = 0.0F;
+  vertices[0].uv.y = 0.0F;
 
 #if 0
   IVY_DEBUG_LOG(" red: %.2f\n"#include "IvyLog.h", red);
@@ -99,32 +99,32 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
   IVY_DEBUG_LOG(" blue: %.2f\n", blue);
 #endif
 
-  vertices[1].position[0] = bottomRightX;
-  vertices[1].position[1] = topLeftY;
-  vertices[1].position[2] = 0.0F;
-  vertices[1].color[0] = red;
-  vertices[1].color[1] = green;
-  vertices[1].color[2] = blue;
-  vertices[1].uv[0] = 1.0F;
-  vertices[1].uv[1] = 0.0F;
+  vertices[1].position.x = bottomRightX;
+  vertices[1].position.y = topLeftY;
+  vertices[1].position.z = 0.0F;
+  vertices[1].color.x = red;
+  vertices[1].color.y = green;
+  vertices[1].color.z = blue;
+  vertices[1].uv.x = 1.0F;
+  vertices[1].uv.y = 0.0F;
 
-  vertices[2].position[0] = topLeftX;
-  vertices[2].position[1] = bottomRightY;
-  vertices[2].position[2] = 0.0F;
-  vertices[2].color[0] = red;
-  vertices[2].color[1] = green;
-  vertices[2].color[2] = blue;
-  vertices[2].uv[0] = 0.0F;
-  vertices[2].uv[1] = 1.0F;
+  vertices[2].position.x = topLeftX;
+  vertices[2].position.y = bottomRightY;
+  vertices[2].position.z = 0.0F;
+  vertices[2].color.x = red;
+  vertices[2].color.y = green;
+  vertices[2].color.z = blue;
+  vertices[2].uv.x = 0.0F;
+  vertices[2].uv.y = 1.0F;
 
-  vertices[3].position[0] = bottomRightX;
-  vertices[3].position[1] = bottomRightY;
-  vertices[3].position[2] = 0.0F;
-  vertices[3].color[0] = red;
-  vertices[3].color[1] = green;
-  vertices[3].color[2] = blue;
-  vertices[3].uv[0] = 1.0F;
-  vertices[3].uv[1] = 1.0F;
+  vertices[3].position.x = bottomRightX;
+  vertices[3].position.y = bottomRightY;
+  vertices[3].position.z = 0.0F;
+  vertices[3].color.x = red;
+  vertices[3].color.y = green;
+  vertices[3].color.z = blue;
+  vertices[3].uv.x = 1.0F;
+  vertices[3].uv.y = 1.0F;
 
   ivyBindGraphicsProgram(renderer, &renderer->basicGraphicsProgram);
 
@@ -142,14 +142,14 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
     return ivyCode;
   }
 
-  ivyCopyM4(renderer->projection, uniform.projection);
-  ivyCopyM4(renderer->cameraView, uniform.view);
+  ivyCopyM4(&renderer->projection, &uniform.projection);
+  ivyCopyM4(&renderer->cameraView, &uniform.view);
 
   {
     // IvyV3 position = {0.0F, 0.0F, 2.0F};
-    ivyIdentityM4(uniform.model);
-    ivyIdentityM4(uniform.view);
-    ivyIdentityM4(uniform.projection);
+    ivyIdentityM4(&uniform.model);
+    ivyIdentityM4(&uniform.view);
+    ivyIdentityM4(&uniform.projection);
     // ivyTranslateM4(position, uniform.model);
   }
 

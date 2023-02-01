@@ -79,7 +79,7 @@ IVY_API void ivyDestroyApplication(IvyAnyMemoryAllocator allocator,
   if (!application) {
     return;
   }
-  
+
   ivyPollApplicationEvents(application);
   glfwTerminate();
   ivyFreeMemory(allocator, application);

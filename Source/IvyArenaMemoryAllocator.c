@@ -26,12 +26,13 @@ IVY_INTERNAL void *ivyArenaMemoryAllocatorAllocate(
   requiredSize = position + size;
 
   printf("%s\n", __PRETTY_FUNCTION__);
-  printf("  arenaAllocator: %p, position: %llu\n  newPosition: %llu\n", allocator, position, newPosition);
+  printf("  arenaAllocator: %p, position: %llu\n  newPosition: %llu\n",
+      allocator, position, newPosition);
 
   if (requiredSize > arenaAllocator->capacity)
     return NULL;
 
-  arenaAllocator->position = newPosition;  
+  arenaAllocator->position = newPosition;
 
   ++arenaAllocator->aliveAllocationCount;
   return arenaAllocator->previousAllocation = data + position;
@@ -56,9 +57,9 @@ IVY_INTERNAL void *ivyArenaMemoryAllocatorReallocate(
 IVY_INTERNAL void ivyArenaMemoryAllocatorClear(
     IvyAnyMemoryAllocator allocator) {
   IvyArenaMemoryAllocator *arenaAllocator = allocator;
-  arenaAllocator->position = 0; 
-  arenaAllocator->previousAllocation = NULL; 
-  arenaAllocator->aliveAllocationCount = 0; 
+  arenaAllocator->position = 0;
+  arenaAllocator->previousAllocation = NULL;
+  arenaAllocator->aliveAllocationCount = 0;
 }
 
 IVY_INTERNAL void ivyArenaMemoryAllocatorFree(IvyAnyMemoryAllocator allocator,
@@ -71,7 +72,7 @@ IVY_INTERNAL void ivyArenaMemoryAllocatorFree(IvyAnyMemoryAllocator allocator,
 
   if (arenaAllocator->aliveAllocationCount) {
     --arenaAllocator->aliveAllocationCount;
-  } 
+  }
 
   if (!arenaAllocator->aliveAllocationCount) {
     ivyClearMemoryAllocator(allocator);
@@ -88,11 +89,8 @@ IVY_INTERNAL void ivyArenaMemoryAllocatorDestroy(
 static IvyMemoryAllocatorDispatch arenaMemoryAllocatorDispatch = {
     ivyArenaMemoryAllocatorAllocate,
     ivyArenaMemoryAllocatorAllocateAndZeroMemory,
-    ivyArenaMemoryAllocatorReallocate,
-    ivyArenaMemoryAllocatorFree,
-    ivyArenaMemoryAllocatorClear,
-    ivyArenaMemoryAllocatorDestroy
-};
+    ivyArenaMemoryAllocatorReallocate, ivyArenaMemoryAllocatorFree,
+    ivyArenaMemoryAllocatorClear, ivyArenaMemoryAllocatorDestroy};
 
 IVY_API IvyCode ivyCreateArenaMemoryAllocator(uint64_t size,
     IvyArenaMemoryAllocator *allocator) {

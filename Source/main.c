@@ -12,7 +12,6 @@ IvyWindow *window = NULL;
 IvyRenderer *renderer = NULL;
 IvyGraphicsTexture *texture = NULL;
 
-
 int main(void) {
   int iterationDirection = 1;
   int iteration = 0;
@@ -47,7 +46,7 @@ int main(void) {
 
   while (!ivyShouldApplicationClose(application)) {
     ivyBeginGraphicsFrame(renderer);
-    
+
     iteration += iterationDirection;
     if (iteration == 60)
       iterationDirection *= -1;

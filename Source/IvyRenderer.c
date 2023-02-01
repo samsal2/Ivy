@@ -1247,8 +1247,10 @@ IVY_INTERNAL void ivyComputeRendererProjectionAndView(IvyRenderer *renderer) {
   float const far = 10.0F;
   float ratio = ivyGetGraphicsSwapchainRatio(renderer);
 
-  ivyCreatePerspectiveM4(ivyDegToRad(90.0F), ratio, near, far, renderer->projection);
-  ivyCreateLookM4(renderer->cameraEye, renderer->cameraDirection, renderer->cameraUp, renderer->cameraView);
+  ivyCreatePerspectiveM4(ivyDegToRad(90.0F), ratio, near, far,
+      &renderer->projection);
+  ivyCreateLookM4(&renderer->cameraEye, &renderer->cameraDirection,
+      &renderer->cameraUp, &renderer->cameraView);
 }
 
 IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
@@ -1270,10 +1272,9 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
   currentRenderer->application = application;
   currentRenderer->ownerMemoryAllocator = allocator;
 
-
-  ivySetV3(0.0F, 1.0F, 0.0F, currentRenderer->cameraUp);
-  ivySetV3(0.0F, 0.0F, 1.0F, currentRenderer->cameraDirection);
-  ivySetV3(0.0F, -0.5F, 3.0F, currentRenderer->cameraEye);
+  ivySetV3(0.0F, 1.0F, 0.0F, &currentRenderer->cameraUp);
+  ivySetV3(0.0F, 0.0F, 1.0F, &currentRenderer->cameraDirection);
+  ivySetV3(0.0F, -0.5F, 3.0F, &currentRenderer->cameraEye);
 
   vulkanResult =
       ivyCreateVulkanInstance(application, &currentRenderer->instance);
