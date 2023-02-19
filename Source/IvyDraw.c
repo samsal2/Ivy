@@ -1,5 +1,7 @@
 #include "IvyDraw.h"
 
+#include <stdio.h>
+
 #include "IvyLog.h"
 
 IVY_INTERNAL IvyCode ivyBindGraphicsVertexData(IvyRenderer *renderer,
@@ -79,8 +81,10 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
 
   IvyGraphicsProgramUniform uniform;
   IvyGraphicsVertex332 vertices[4];
-  IvyGraphicsProgramIndex const indices[] = {0, 2, 1, 2, 3, 1};
-  // IvyGraphicsProgramIndex const indices[] = {2, 3, 1, 1, 3, 0};
+  // IvyGraphicsProgramIndex const indices[] = {0, 2, 1, 2, 3, 1};
+  // IvyGraphicsProgramIndex const indices[] = {1, 3, 2, 0, 0, 0};
+  // IvyGraphicsProgramIndex const indices[] = {3, 2, 1, 2, 3, 1};
+  IvyGraphicsProgramIndex const indices[] = {0, 2, 3, 3, 1, 0};
 
   IvyGraphicsFrame *frame = ivyGetCurrentGraphicsFrame(renderer);
 
@@ -142,16 +146,17 @@ IVY_API IvyCode ivyDrawRectangle(IvyRenderer *renderer, float topLeftX,
     return ivyCode;
   }
 
-  ivyCopyM4(&renderer->projection, &uniform.projection);
   ivyCopyM4(&renderer->cameraView, &uniform.view);
+  ivyCopyM4(&renderer->projection, &uniform.projection);
 
+#if 1
   {
-    // IvyV3 position = {0.0F, 0.0F, 2.0F};
+    IvyV3 const position = {0.0F, 0.0F, 0.0F};
+
     ivyIdentityM4(&uniform.model);
-    ivyIdentityM4(&uniform.view);
-    ivyIdentityM4(&uniform.projection);
-    // ivyTranslateM4(position, uniform.model);
+    ivyTranslateM4(&position, &uniform.model);
   }
+#endif
 
   ivyCode = IvyBindGraphicsUniformData(renderer, &uniform);
   IVY_ASSERT(!ivyCode);

@@ -4,6 +4,7 @@
 
 #include "IvyRenderer.h"
 #include "IvyVulkanUtilities.h"
+#include "IvyLog.h"
 
 IVY_INTERNAL char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
     char const *path, uint64_t *size) {
@@ -72,11 +73,6 @@ IVY_API VkResult ivyCreateVulkanShader(IvyAnyMemoryAllocator allocator,
   shaderCreateInfo.pCode = (uint32_t *)shaderCode;
 
   vulkanResult = vkCreateShaderModule(device, &shaderCreateInfo, NULL, shader);
-  if (vulkanResult) {
-    goto cleanup;
-  }
-
-cleanup:
   ivyFreeMemory(allocator, shaderCode);
   return vulkanResult;
 }

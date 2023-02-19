@@ -111,9 +111,9 @@ IVY_API void ivyCreatePerspectiveM4(float fov, float ratio, float near,
     float far, IvyM4 *out);
 
 IVY_API void ivyCreateLookM4(IvyV3 const *eye, IvyV3 const *direction,
-    IvyV3 const *up, IvyM4 *out);
-IVY_API void ivyCreateLookAtM4(IvyV3 const *eye, IvyV3 const *at,
-    IvyV3 const *up, IvyM4 *out);
+    IvyV3 const *upDirection, IvyM4 *out);
+IVY_API void ivyCreateLookAtM4(IvyV3 const *eye, IvyV3 const *atPoint,
+    IvyV3 const *upDirection, IvyM4 *out);
 IVY_API void ivyCreateDirectionV3(float pitch, float yaw, IvyV3 const *up,
     IvyV3 const *out);
 
@@ -134,5 +134,7 @@ IVY_API void ivyMixV4(IvyV4 const *source, IvyV4 const *destination,
 IVY_API void ivyQ4AsM4(IvyQ4 const *quaternion, IvyM3 *out);
 IVY_API void ivyScaleM4ByV3(IvyM4 const *matrix, IvyV3 const *scale,
     IvyM4 *out);
+
+IVY_API void ivyPrintM4(IvyM4 const *matrix);
 
 #endif

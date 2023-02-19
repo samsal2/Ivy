@@ -37,7 +37,7 @@ IVY_API void *ivyReallocateMemory(IvyAnyMemoryAllocator allocator, void *data,
   IVY_ASSERT(base);
   IVY_ASSERT(IVY_MEMORY_ALLOCATOR_MAGIC == base->magic);
   IVY_ASSERT(base->dispatch);
-  IVY_ASSERT(base->dispatch->allocateAndZero);
+  IVY_ASSERT(base->dispatch->reallocate);
   return base->dispatch->reallocate(allocator, data, newSize);
 }
 

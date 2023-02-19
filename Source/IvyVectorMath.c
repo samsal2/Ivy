@@ -344,16 +344,16 @@ IVY_API void ivyTranslateM4(IvyV3 const *offset, IvyM4 *inOut) {
   ivyScaleV4(offset->z, &v2);
 
   inOut->a[3][0] += v0.x;
-  inOut->a[3][0] += v0.y;
-  inOut->a[3][0] += v0.z;
+  inOut->a[3][1] += v0.y;
+  inOut->a[3][2] += v0.z;
 
   inOut->a[3][0] += v1.x;
-  inOut->a[3][0] += v1.y;
-  inOut->a[3][0] += v1.z;
+  inOut->a[3][1] += v1.y;
+  inOut->a[3][2] += v1.z;
 
   inOut->a[3][0] += v2.x;
-  inOut->a[3][0] += v2.y;
-  inOut->a[3][0] += v2.z;
+  inOut->a[3][1] += v2.y;
+  inOut->a[3][2] += v2.z;
 }
 
 IVY_API void ivyCreateOrthographicM4(float left, float right, float bottom,
@@ -383,7 +383,7 @@ IVY_API void ivyCreatePerspectiveM4(float fov, float ratio, float near,
   out->a[0][3] = 0.0F;
 
   out->a[1][0] = 0.0F;
-  out->a[1][1] = focalLength;
+  out->a[1][1] = -focalLength;
   out->a[1][2] = 0.0F;
   out->a[1][3] = 0.0F;
 
@@ -412,7 +412,7 @@ IVY_API void ivyCreateLookAtM4(IvyV3 const *eye, IvyV3 const *atPoint,
   IvyV3 yAxis;
   IvyV3 zAxis;
 
-  ivySubV3ToV3(atPoint, eye, &zAxis);
+  ivySubV3ToV3(eye, atPoint, &zAxis);
   ivyNormalizeV3(&zAxis);
 
   ivyCrossV3ToV3(&zAxis, upDirection, &xAxis);
@@ -439,7 +439,7 @@ IVY_API void ivyCreateLookAtM4(IvyV3 const *eye, IvyV3 const *atPoint,
   out->a[3][0] = -ivyDotV3ToV3(&xAxis, eye);
   out->a[3][1] = -ivyDotV3ToV3(&yAxis, eye);
   out->a[3][2] = -ivyDotV3ToV3(&zAxis, eye);
-  out->a[3][3] = 0.0F;
+  out->a[3][3] = 1.0F;
 }
 
 IVY_API void ivyCreateDirectionV3(float pitch, float yaw,
@@ -510,4 +510,16 @@ IVY_API void ivyScaleM4ByV3(IvyM4 const *matrix, IvyV3 const *scale,
   IVY_UNUSED(scale);
   IVY_UNUSED(out);
   IVY_TODO();
+}
+
+#include <stdio.h>
+IVY_API void ivyPrintM4(IvyM4 const *matrix) {
+  int i, j;
+  for (i = 0; i < 4; ++i) {
+    for (j = 0; j < 4; ++j) {
+      printf("a[%i][%i] = %.5f, ", i, j, matrix->a[i][j]);
+    }
+    printf("\n");
+  }
+  printf("\n");
 }
