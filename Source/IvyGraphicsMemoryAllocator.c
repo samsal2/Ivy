@@ -78,20 +78,20 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
 }
 
 IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
-    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator graphicsAllocator,
+    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator graphicsMemoryAllocator,
     uint32_t flags, VkImage image, IvyGraphicsMemory *allocation) {
   IvyCode ivyCode;
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;
 
   IVY_ASSERT(device);
-  IVY_ASSERT(graphicsAllocator);
+  IVY_ASSERT(graphicsMemoryAllocator);
   IVY_ASSERT(allocation);
 
   vkGetImageMemoryRequirements(device->logicalDevice, image,
       &memoryRequirements);
 
-  ivyCode = ivyAllocateGraphicsMemory(device, graphicsAllocator, flags,
+  ivyCode = ivyAllocateGraphicsMemory(device, graphicsMemoryAllocator, flags,
       memoryRequirements.memoryTypeBits, memoryRequirements.size, allocation);
   if (ivyCode) {
     return ivyCode;
@@ -100,7 +100,7 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
   vulkanResult = vkBindImageMemory(device->logicalDevice, image,
       allocation->memory, allocation->offset);
   if (vulkanResult) {
-    ivyFreeGraphicsMemory(device, graphicsAllocator, allocation);
+    ivyFreeGraphicsMemory(device, graphicsMemoryAllocator, allocation);
     return ivyVulkanResultAsIvyCode(vulkanResult);
   }
 
