@@ -12,7 +12,7 @@ typedef struct IvyGraphicsIndexBuffer IvyGraphicsIndexBuffer;
 typedef struct IvyBoundingBox {
   IvyV3 min;
   IvyV3 max;
-  IvyBool valid;
+  IvyBool isValid;
 } IvyBoundingBox;
 
 typedef enum IvyModelMaterialAlphaMode {
@@ -160,7 +160,7 @@ typedef struct IvyModelTexture {
 } IvyModelTexture;
 
 typedef struct IvyModel {
-  IvyAnyMemoryAllocator ownerMemoyAllocator;
+  IvyAnyMemoryAllocator ownerMemoryAllocator;
   char path[256];
   char directory[256];
   IvyGraphicsVertexBuffer *vertexBuffer;

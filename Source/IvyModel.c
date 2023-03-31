@@ -76,9 +76,10 @@ error:
       ivyDestroyGraphicsTexture(allocator, renderer,
           currentImages[imageIndex]);
     }
+
+    ivyFreeMemory(allocator, currentImages);
   }
 
-  ivyFreeMemory(allocator, currentImages);
   *imageCount = 0;
   *images = NULL;
   return ivyCode;
@@ -136,10 +137,10 @@ IVY_INTERNAL IvyCode ivyLoadModelMaterials(IvyAnyMemoryAllocator allocator,
 
     material->isDoubleSided = cgltfMaterial->double_sided;
     material->alphaCutoff = cgltfMaterial->alpha_cutoff;
-    material->emissiveFactor[0] = 1.0F;
-    material->emissiveFactor[1] = 1.0F;
-    material->emissiveFactor[2] = 1.0F;
-    material->emissiveFactor[3] = 1.0F;
+    material->emissiveFactor.x = 1.0F;
+    material->emissiveFactor.y = 1.0F;
+    material->emissiveFactor.z = 1.0F;
+    material->emissiveFactor.w = 1.0F;
     material->baseColorTexcoord = -1;
     material->normalTexcoord = -1;
     material->emissiveTexcoord = -1;
@@ -151,10 +152,10 @@ IVY_INTERNAL IvyCode ivyLoadModelMaterials(IvyAnyMemoryAllocator allocator,
     material->specularGlossinessTexcoord = -1;
     material->roughnessFactor = 1.0F;
     material->metallicFactor = 1.0F;
-    material->baseColorFactor[0] = 1.0F;
-    material->baseColorFactor[1] = 1.0F;
-    material->baseColorFactor[2] = 1.0F;
-    material->baseColorFactor[3] = 1.0F;
+    material->baseColorFactor.x = 1.0F;
+    material->baseColorFactor.y = 1.0F;
+    material->baseColorFactor.z = 1.0F;
+    material->baseColorFactor.w = 1.0F;
 
     material->enableMetallicRoughness =
         cgltfMaterial->has_pbr_metallic_roughness;
@@ -196,13 +197,13 @@ IVY_INTERNAL IvyCode ivyLoadModelMaterials(IvyAnyMemoryAllocator allocator,
 
       material->roughnessFactor = cgltfPBRMetallicRoughness->roughness_factor;
       material->metallicFactor = cgltfPBRMetallicRoughness->metallic_factor;
-      material->baseColorFactor[0] =
+      material->baseColorFactor.x =
           cgltfPBRMetallicRoughness->base_color_factor[0];
-      material->baseColorFactor[1] =
+      material->baseColorFactor.y =
           cgltfPBRMetallicRoughness->base_color_factor[1];
-      material->baseColorFactor[2] =
+      material->baseColorFactor.z =
           cgltfPBRMetallicRoughness->base_color_factor[2];
-      material->baseColorFactor[3] =
+      material->baseColorFactor.w =
           cgltfPBRMetallicRoughness->base_color_factor[3];
     }
 
@@ -267,18 +268,15 @@ IVY_INTERNAL IvyCode ivyLoadModelMaterials(IvyAnyMemoryAllocator allocator,
         material->diffuseTextureIndex = -1;
       }
 
-      material->diffuseFactor[0] = cgltfSpecularGlossiness->diffuse_factor[0];
-      material->diffuseFactor[1] = cgltfSpecularGlossiness->diffuse_factor[1];
-      material->diffuseFactor[2] = cgltfSpecularGlossiness->diffuse_factor[2];
-      material->diffuseFactor[3] = cgltfSpecularGlossiness->diffuse_factor[3];
+      material->diffuseFactor.x = cgltfSpecularGlossiness->diffuse_factor[0];
+      material->diffuseFactor.y = cgltfSpecularGlossiness->diffuse_factor[1];
+      material->diffuseFactor.z = cgltfSpecularGlossiness->diffuse_factor[2];
+      material->diffuseFactor.w = cgltfSpecularGlossiness->diffuse_factor[3];
 
-      material->specularFactor[0] =
-          cgltfSpecularGlossiness->specular_factor[0];
-      material->specularFactor[1] =
-          cgltfSpecularGlossiness->specular_factor[1];
-      material->specularFactor[2] =
-          cgltfSpecularGlossiness->specular_factor[2];
-      material->specularFactor[3] = 1.0F;
+      material->specularFactor.x = cgltfSpecularGlossiness->specular_factor[0];
+      material->specularFactor.y = cgltfSpecularGlossiness->specular_factor[1];
+      material->specularFactor.z = cgltfSpecularGlossiness->specular_factor[2];
+      material->specularFactor.w = 1.0F;
     }
   }
 

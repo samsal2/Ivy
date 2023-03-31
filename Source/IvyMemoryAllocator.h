@@ -54,7 +54,7 @@ void ivyClearMemoryAllocator(IvyAnyMemoryAllocator allocator);
 
 void ivyDestroyMemoryAllocator(IvyAnyMemoryAllocator allocator);
 
-IVY_API IvyCode ivyGlobalDefaultMemoryAllocator(
+IVY_API IvyCode ivySetGlobalDefaultMemoryAllocator(
     IvyAnyMemoryAllocator allocator);
 
 IVY_API IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void);

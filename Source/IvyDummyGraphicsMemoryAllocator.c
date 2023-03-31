@@ -4,13 +4,13 @@
 #include "IvyRenderer.h"
 
 IVY_INTERNAL IvyBool ivyIsGraphicsMemoryChunkEmpty(
-    IvyGraphicsMemoryChunk *chunk) {
+    IvyGraphicsMemoryChunk const *chunk) {
   IVY_ASSERT(chunk);
   return !chunk->memory;
 }
 
 IVY_INTERNAL IvyGraphicsMemoryChunk *
-ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(
+ivyFindEmptyChunkInDummyGraphicsMemoryAllocator(
     IvyDummyGraphicsMemoryAllocator *allocator) {
   int index;
 
@@ -30,14 +30,13 @@ IVY_INTERNAL IvyCode ivyDummyGraphicsMemoryAllocatorAllocate(
     uint32_t flags, uint32_t type, uint64_t size, IvyGraphicsMemory *memory) {
   IvyCode ivyCode;
   IvyGraphicsMemoryChunk *chunk;
-  IvyDummyGraphicsMemoryAllocator *dummyAllocator;
+  IvyDummyGraphicsMemoryAllocator *dummyAllocator = allocator;
 
   IVY_ASSERT(device);
   IVY_ASSERT(allocator);
   IVY_ASSERT(memory);
 
-  dummyAllocator = allocator;
-  chunk = ivyDummyGraphicsMemoryAllocatorFindEmptyChunk(dummyAllocator);
+  chunk = ivyFindEmptyChunkInDummyGraphicsMemoryAllocator(dummyAllocator);
   IVY_ASSERT(chunk);
   if (!chunk) {
     return IVY_ERROR_NO_MEMORY;
@@ -65,14 +64,13 @@ IVY_INTERNAL void ivyDummyGraphicsMemoryAllocatorFree(
     IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator allocator,
     IvyGraphicsMemory *allocation) {
   IvyGraphicsMemoryChunk *chunk;
-  IvyDummyGraphicsMemoryAllocator *dummyAllocator;
+  IvyDummyGraphicsMemoryAllocator *dummyAllocator = allocator;
 
   IVY_ASSERT(device);
   IVY_ASSERT(allocator);
   IVY_ASSERT(allocation);
   IVY_ASSERT(0 <= allocation->slot);
 
-  dummyAllocator = allocator;
   --dummyAllocator->occupiedChunkCount;
   chunk = &dummyAllocator->chunks[allocation->slot];
   ivyFreeGraphicsMemoryChunk(device, chunk);
@@ -87,8 +85,9 @@ IVY_INTERNAL void ivyDestroyDummyGraphicsMemoryAllocator(
   dummyAllocator = allocator;
 
   for (index = 0; index < IVY_ARRAY_LENGTH(dummyAllocator->chunks); ++index) {
-    if (!ivyIsGraphicsMemoryChunkEmpty(&dummyAllocator->chunks[index])) {
-      ivyFreeGraphicsMemoryChunk(device, &dummyAllocator->chunks[index]);
+    IvyGraphicsMemoryChunk *chunk = &dummyAllocator->chunks[index];
+    if (!ivyIsGraphicsMemoryChunkEmpty(chunk)) {
+      ivyFreeGraphicsMemoryChunk(device, chunk);
     }
   }
 }

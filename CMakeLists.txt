@@ -28,13 +28,13 @@ target_compile_options(${PROJECT_NAME} PUBLIC
     -Wvla 
     -fdiagnostics-color=always
 
-    -Wno-long-long # C99 extension vulkan
-    -Wno-comment # C99 extension ivy 
-    -Wno-comment # C99 extension ivy
-    -Wno-variadic-macros # C99 extennsions ivy
-    -Wno-typedef-redefinition # C11 extensions  vulkan
-    -Wno-c99-extensions # C99 extension for cimgui
-    -Wno-c11-extensions # C99 extension for cimgui
+    -Wno-long-long 
+    -Wno-comment
+    -Wno-comment
+    -Wno-variadic-macros
+    -Wno-typedef-redefinition
+    -Wno-c99-extensions
+    -Wno-c11-extensions
   ">"
   "$<$<AND:$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>,$<CONFIG:Debug>>:"
     -O0

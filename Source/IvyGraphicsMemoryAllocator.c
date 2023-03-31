@@ -78,8 +78,9 @@ IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToBuffer(
 }
 
 IVY_API IvyCode ivyAllocateAndBindGraphicsMemoryToImage(
-    IvyGraphicsDevice *device, IvyAnyGraphicsMemoryAllocator graphicsMemoryAllocator,
-    uint32_t flags, VkImage image, IvyGraphicsMemory *allocation) {
+    IvyGraphicsDevice *device,
+    IvyAnyGraphicsMemoryAllocator graphicsMemoryAllocator, uint32_t flags,
+    VkImage image, IvyGraphicsMemory *allocation) {
   IvyCode ivyCode;
   VkResult vulkanResult;
   VkMemoryRequirements memoryRequirements;

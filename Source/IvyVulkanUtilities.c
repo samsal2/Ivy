@@ -2,6 +2,8 @@
 
 IVY_API IvyCode ivyVulkanResultAsIvyCode(VkResult vulkanResult) {
   switch (vulkanResult) {
+  case VK_SUCCESS:
+    return IVY_OK;
   default:
     return -1;
   }

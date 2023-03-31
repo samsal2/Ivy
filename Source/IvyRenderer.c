@@ -1773,7 +1773,6 @@ IVY_INTERNAL IvyCode ivyAcquireNextVulkanSwapchainImageIndex(
 
   semaphores = ivyGetCurrentGraphicsRenderSemaphores(renderer);
 
-  // FIXME(samuel): check vulkanResult
   vulkanResult = vkAcquireNextImageKHR(renderer->device.logicalDevice,
       renderer->swapchain, (uint64_t)-1,
       semaphores->swapchainImageAvailableSemaphore, VK_NULL_HANDLE,
@@ -1781,8 +1780,6 @@ IVY_INTERNAL IvyCode ivyAcquireNextVulkanSwapchainImageIndex(
 
   if (ivyCheckIfVulkanSwapchainRequiresRebuild(vulkanResult)) {
     renderer->requiresSwapchainRebuild = 1;
-    return IVY_OK;
-  } else if (!vulkanResult) {
     return IVY_OK;
   } else {
     return ivyVulkanResultAsIvyCode(vulkanResult);
@@ -1819,6 +1816,7 @@ IVY_INTERNAL void ivyWriteVulkanUniformDynamicDescriptorSet(VkDevice device,
   vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, NULL);
 }
 
+// TODO: cleanup
 IVY_API IvyCode ivyRequestGraphicsTemporaryBuffer(IvyRenderer *renderer,
     uint64_t size, IvyGraphicsTemporaryBuffer *temporaryBuffer) {
   IvyAnyGraphicsMemoryAllocator allocator = renderer->ownerMemoryAllocator;

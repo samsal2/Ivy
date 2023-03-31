@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 
+#include "IvyLog.h"
 #include "IvyRenderer.h"
 #include "IvyVulkanUtilities.h"
-#include "IvyLog.h"
 
 IVY_INTERNAL char *ivyLoadFileIntoByteBuffer(IvyAnyMemoryAllocator allocator,
     char const *path, uint64_t *size) {

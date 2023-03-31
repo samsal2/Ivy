@@ -29,6 +29,8 @@ typedef int IvyCode;
 
 #define IVY_UNUSED(e) (void)e
 #define IVY_MAX(a, b) ((a) > (b) ? (a) : (b))
+#define IVY_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define IVY_CLAMP(v, l, h) ((v) > (h) ? (h) : ((v) < (l) ? (l) : (v)))
 
 #if 1
 #include <string.h>

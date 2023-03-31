@@ -89,6 +89,8 @@ IVY_API IvyAnyMemoryAllocator ivyGetGlobalMemoryAllocator(void) {
     ivyCreateDummyMemoryAllocator(&defaultMemoryAllocator);
     globalMemoryAllocator = &defaultMemoryAllocator;
     createdDefaultAllocator = 1;
+  } else if (!globalMemoryAllocator && createdDefaultAllocator) {
+    globalMemoryAllocator = &defaultMemoryAllocator;
   }
 
   return globalMemoryAllocator;
