@@ -66,6 +66,7 @@ target_include_directories(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} 
   PUBLIC 
     IVY_API=
+    IVY_USE_COCOA=
   "$<$<CONFIG:DEBUG>:" 
     IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   ">"

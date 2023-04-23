@@ -1,14 +1,13 @@
 #ifndef IVY_RENDERER_H
 #define IVY_RENDERER_H
 
+#include "IvyApplication.h"
 #include "IvyDummyGraphicsMemoryAllocator.h"
 #include "IvyGraphicsProgram.h"
 #include "IvyMemoryAllocator.h"
 #include "IvyVectorMath.h"
 
 #define IVY_MAX_SWAPCHAIN_IMAGES 8
-
-typedef struct IvyApplication IvyApplication;
 
 typedef struct IvyGraphicsDevice {
   VkPhysicalDevice physicalDevice;

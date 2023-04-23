@@ -5,6 +5,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyApplication.h
   IvyArenaMemoryAllocator.c
   IvyArenaMemoryAllocator.h
+  IvyCocoaApplication.m
+  IvyCocoaApplication.h
   IvyDeclarations.h
   IvyDraw.c
   IvyDraw.h
@@ -12,6 +14,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   IvyDummyGraphicsMemoryAllocator.h
   IvyDummyMemoryAllocator.c
   IvyDummyMemoryAllocator.h
+  IvyGLFWApplication.c
+  IvyGLFWApplication.h
   IvyGraphicsDataUploader.c
   IvyGraphicsDataUploader.h
   IvyGraphicsIndexBuffer.c

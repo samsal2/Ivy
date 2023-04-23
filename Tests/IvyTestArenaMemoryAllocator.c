@@ -1,4 +1,3 @@
-
 #include <IvyArenaMemoryAllocator.h>
 #include <unity.h>
 

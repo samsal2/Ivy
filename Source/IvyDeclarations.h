@@ -24,7 +24,7 @@ typedef int IvyCode;
 #if 1
 #include <assert.h>
 #define IVY_ASSERT assert
-#define IVY_TODO() assert(0)
+#define IVY_TODO() IVY_ASSERT(0 && "TODO")
 #endif
 
 #define IVY_UNUSED(e) (void)e

@@ -28,7 +28,7 @@ IVY_INTERNAL VkResult ivyCreateVulkanInstance(IvyApplication *application,
 
   applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
   applicationInfo.pNext = NULL;
-  applicationInfo.pApplicationName = application->name;
+  applicationInfo.pApplicationName = ivyGetApplicationName(application);
   applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
   applicationInfo.pEngineName = "No Engine";
   applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -95,11 +95,11 @@ static VKAPI_ATTR VKAPI_CALL VkBool32 ivyLogVulkanMessages(
 }
 #endif
 
-#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
 IVY_INTERNAL VkResult ivyCreateVulkanDebugMessenger(VkInstance instance,
     PFN_vkCreateDebugUtilsMessengerEXT *createDebugUtilsMessengerEXT,
     PFN_vkDestroyDebugUtilsMessengerEXT *destroyDebugUtilsMessengerEXT,
     VkDebugUtilsMessengerEXT *messenger) {
+#ifdef IVY_ENABLE_VULKAN_VALIDATION_LAYERS
   VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo;
 
   ivyEnsureValidationFunctions(instance, createDebugUtilsMessengerEXT,
@@ -134,8 +134,10 @@ IVY_INTERNAL VkResult ivyCreateVulkanDebugMessenger(VkInstance instance,
 
   return (*createDebugUtilsMessengerEXT)(instance, &debugMessengerCreateInfo,
       NULL, messenger);
-}
+#else
+  return VK_SUCCESS
 #endif /* IVY_ENABLE_VULKAN_VALIDATION_LAYERS */
+}
 
 IVY_INTERNAL VkQueueFamilyProperties *ivyAllocateVulkanQueueFamilyProperties(
     IvyAnyMemoryAllocator allocator, VkPhysicalDevice device,
@@ -338,7 +340,7 @@ IVY_INTERNAL VkSurfaceFormatKHR *ivyAllocateVulkanSurfaceFormats(
   return formats;
 }
 
-IVY_INTERNAL IvyBool ivyDoesVulkanFormatExists(uint32_t surfaceFormatCount,
+IVY_INTERNAL IvyBool ivyDoesVulkanFormatExist(uint32_t surfaceFormatCount,
     VkSurfaceFormatKHR *surfaceFormats, VkFormat format,
     VkColorSpaceKHR colorSpace) {
   uint32_t index;
@@ -371,7 +373,7 @@ IVY_INTERNAL IvyBool ivyDoesVulkanPhysicalDeviceSupportFormat(
     return 0;
   }
 
-  exist = ivyDoesVulkanFormatExists(surfaceFormatCount, surfaceFormats, format,
+  exist = ivyDoesVulkanFormatExist(surfaceFormatCount, surfaceFormats, format,
       colorSpace);
 
   ivyFreeMemory(allocator, surfaceFormats);
@@ -1406,10 +1408,8 @@ IVY_API IvyCode ivyCreateRenderer(IvyAnyMemoryAllocator allocator,
     goto error;
   }
 
-  currentRenderer->swapchainWidth =
-      application->lastAddedWindow->framebufferWidth;
-  currentRenderer->swapchainHeight =
-      application->lastAddedWindow->framebufferHeight;
+  ivyGetApplicationFramebufferSize(currentRenderer->application,
+      &currentRenderer->swapchainWidth, &currentRenderer->swapchainHeight);
 
   ivyCode = ivyCreateGraphicsAttachment(&currentRenderer->device,
       &currentRenderer->defaultGraphicsMemoryAllocator,
@@ -1662,7 +1662,6 @@ IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
   VkResult vulkanResult;
   IvyCode ivyCode;
   IvyAnyMemoryAllocator allocator = renderer->ownerMemoryAllocator;
-  IvyApplication *application = renderer->application;
   VkImage *swapchainImages = NULL;
 
   ivyDestroyGraphicsResourcesForSwapchainRebuild(renderer);
@@ -1670,8 +1669,9 @@ IVY_API IvyCode ivyRebuildGraphicsSwapchain(IvyRenderer *renderer) {
   renderer->requiresSwapchainRebuild = 0;
   renderer->currentSemaphoreIndex = 0;
   renderer->currentSwapchainImageIndex = 0;
-  renderer->swapchainWidth = application->lastAddedWindow->framebufferWidth;
-  renderer->swapchainHeight = application->lastAddedWindow->framebufferHeight;
+
+  ivyGetApplicationFramebufferSize(renderer->application,
+      &renderer->swapchainWidth, &renderer->swapchainHeight);
 
   ivyCode = ivyCreateGraphicsAttachment(&renderer->device,
       &renderer->defaultGraphicsMemoryAllocator,
